@@ -1,0 +1,2038 @@
+{
+  "4E-01": {
+    "hook": "AFTER SCHOOL: WHAT'S YOUR STYLE?",
+    "visual": [
+      {"label": "FOOTBALL", "picto": "ballon"},
+      {"label": "BOOKS", "picto": "livre"},
+      {"label": "MUSIC", "picto": "musique"},
+      {"label": "GAMES", "picto": "manette"}
+    ],
+    "vocab": [
+      ["usually", "d'habitude", "I usually walk to school."],
+      ["sometimes", "parfois", "I sometimes play chess."],
+      ["never", "jamais", "She never watches TV in the morning."],
+      ["often", "souvent", "We often meet at the park."],
+      ["after school", "après les cours", "After school, I go to the library."],
+      ["free time", "temps libre", "In my free time, I draw."],
+      ["to practise", "s'entraîner", "He practises the guitar every day."],
+      ["to relax", "se détendre", "Music helps me relax."],
+      ["to prefer", "préférer", "I prefer reading to running."],
+      ["to read", "lire", "Do you read comics?"]
+    ],
+    "grammar": {
+      "title": "Present simple + how often?",
+      "rule": "I / you / we / they play  -  he / she / it plays. The frequency word goes before the verb: I usually play. But after be: I am often late.",
+      "examples": ["How often do you read?", "She never plays video games.", "We sometimes go swimming."]
+    },
+    "pronunciation": "The -s of he / she / it: plays and reads sound like [z], walks and likes sound like [s], watches and practises add a syllable [iz].",
+    "did_you_know": "In the UK, the school day usually ends around half past three. Many secondary schools offer after-school clubs: sport, drama, music, coding...",
+    "model": "Alex: I usually play football after school. I sometimes read in the evening.\nSam: I often read after school. I never play football on weekdays.\nAlex: What do you like doing?\nSam: I like drawing because it helps me relax.",
+    "listening": {
+      "title": "Free time",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/free-time",
+      "verified_on": "2026-11-02",
+      "questions": [
+        "What sport does Tyrone want to try?",
+        "How old is he?",
+        "On which two weekdays is the training?"
+      ],
+      "answers": ["Water polo", "15", "Tuesday and Thursday"],
+      "fallback": "Receptionist: Good afternoon, Riverside Swimming Pool.\nTyrone: Hello! I'd like to join the water polo club, please.\nReceptionist: Of course. How old are you?\nTyrone: I'm fifteen.\nReceptionist: Then you're in the junior team. Training is on Tuesdays and Thursdays, from half past six to eight.\nTyrone: Great, thanks a lot!"
+    },
+    "go_further": [
+      {
+        "title": "Stop wasting time",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "A2",
+        "media": "audio",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/stop-wasting-time",
+        "verified_on": "2026-11-02",
+        "task": "Tom can't concentrate on his homework. Note three things that distract him."
+      }
+    ],
+    "practice": [
+      "Circle the correct sentence: I usually read / I read usually.",
+      "Complete: She ___ (play) tennis on Mondays.",
+      "Ask your partner: How often do you read? Write the answer.",
+      "Write two sentences about a hobby you like and one reason."
+    ],
+    "practice_answers": ["I usually read", "plays", "Réponse personnelle", "Réponse personnelle"],
+    "starters": ["After school, I usually...", "I sometimes... but I never...", "My favourite activity is... because...", "How often do you...?"],
+    "mission": "Interview a partner about three after-school activities. Report two similarities or differences.",
+    "can_do": [
+      "I can say how often I do an activity.",
+      "I can ask: How often do you...?",
+      "I can explain why I like an activity with because."
+    ],
+    "memory": "Without looking, write five frequency or hobby words; check, correct, and reuse two in sentences."
+  },
+  "4E-02": {
+    "hook": "ONE SATURDAY. TWO FRIENDS. ONE PLAN!",
+    "visual": [
+      {"label": "CINEMA", "picto": "cinema"},
+      {"label": "PARK", "picto": "arbre"},
+      {"label": "MUSEUM", "picto": "musee"},
+      {"label": "SPORT", "picto": "ballon"}
+    ],
+    "vocab": [
+      ["to suggest", "proposer", "Can I suggest a film?"],
+      ["to agree", "être d'accord", "I agree with you."],
+      ["to prefer", "préférer", "I'd prefer to stay inside."],
+      ["instead", "à la place", "Let's go bowling instead."],
+      ["free time", "temps libre", "What do you do in your free time?"],
+      ["to meet up", "se retrouver", "Let's meet up at two."],
+      ["to go bowling", "aller au bowling", "We could go bowling on Saturday."],
+      ["bowling alley", "salle de bowling", "The bowling alley is near the station."],
+      ["how about...?", "et si... ?", "How about going to the park?"],
+      ["sounds great", "super idée", "A picnic? That sounds great!"],
+      ["because", "parce que", "Let's stay in because it's raining."]
+    ],
+    "grammar": {
+      "title": "Making suggestions",
+      "rule": "Let's + verb  -  We could + verb  -  How about / What about + verb-ing? Answer: Good idea! / I'd rather + verb...",
+      "examples": ["Let's go to the cinema.", "We could visit the museum.", "How about going bowling?"]
+    },
+    "pronunciation": "Go up at the end of a yes/no question: Do you want to come? Go down for a suggestion: Let's go to the park.",
+    "did_you_know": "British teenagers often say \"Fancy going to the cinema?\" to make a suggestion. Fancy + verb-ing = Ça te dit de... ?",
+    "model": "Mia: What shall we do on Saturday?\nLeo: We could visit the park.\nMia: I'd rather go to the cinema because it's raining.\nLeo: How about visiting the museum?\nMia: That sounds great! Let's meet at two.",
+    "listening": {
+      "title": "Making plans",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A2",
+      "media": "video",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/speaking/a2-speaking/making-plans",
+      "verified_on": "2026-11-02",
+      "questions": [
+        "What are the friends planning?",
+        "Which activity do they finally choose?",
+        "When do they plan to meet?"
+      ],
+      "answers": ["A birthday celebration", "Bowling", "Saturday at three o'clock"],
+      "fallback": "Gemma: It's Jack's birthday this weekend. Let's organise a surprise!\nMakayla: Good idea! How about the cinema?\nGemma: Hmm, we saw that film last week. And ice skating? No, Jack doesn't like it.\nMakayla: Everybody likes bowling. Let's go bowling!\nGemma: Perfect. Let's meet on Saturday at three, in front of the bowling alley."
+    },
+    "go_further": [
+      {
+        "title": "Going to the cinema",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "A2",
+        "media": "audio",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/going-cinema",
+        "verified_on": "2026-11-02",
+        "task": "Tamara and Mario choose a film. Note the time of the film and the time they meet."
+      }
+    ],
+    "practice": [
+      "Complete: We could ___ (visit) the park.",
+      "Complete: How about ___ (go) to the cinema?",
+      "Write a polite refusal and an alternative suggestion.",
+      "With a partner, agree on two activities and one meeting time."
+    ],
+    "practice_answers": ["visit", "going", "Réponse possible: I'd rather visit the museum. How about Saturday?", "Réponse personnelle"],
+    "starters": ["Let's...", "We could...", "How about...ing?", "I'd rather... because...", "OK, let's meet at..."],
+    "mission": "In pairs, plan a Saturday with a budget and weather constraint. Make suggestions, justify a preference and agree on a plan.",
+    "can_do": [
+      "I can make a suggestion with let's, we could or how about.",
+      "I can refuse politely and suggest something else.",
+      "I can agree on a time and a place."
+    ],
+    "memory": "Recall five expressions for suggesting, agreeing or preferring. Use three in a short dialogue."
+  },
+  "3E-01": {
+    "hook": "MAKE YOUR SCHOOL BETTER!",
+    "visual": [
+      {"label": "GARDEN", "picto": "plante"},
+      {"label": "READING", "picto": "livre"},
+      {"label": "RECYCLING", "picto": "recyclage"},
+      {"label": "SPORT", "picto": "ballon"}
+    ],
+    "vocab": [
+      ["project", "projet", "Our project is a reading club."],
+      ["aim", "objectif", "Our aim is to help new students."],
+      ["benefit", "avantage", "The main benefit is less waste."],
+      ["to improve", "améliorer", "We want to improve the playground."],
+      ["to organise", "organiser", "We will organise a book sale."],
+      ["to create", "créer", "Let's create a school garden."],
+      ["first", "d'abord", "First, we will ask the head teacher."],
+      ["then", "ensuite", "Then, we will make posters."],
+      ["finally", "enfin", "Finally, we will present our results."],
+      ["because", "parce que", "It's useful because students need help."],
+      ["we could", "nous pourrions", "We could also invite parents."]
+    ],
+    "grammar": {
+      "title": "Talking about plans: will / could",
+      "rule": "will + verb = a decision or a plan (We will plant herbs). could + verb = a possibility (We could sell vegetables). Our aim is + to + verb.",
+      "examples": ["First, we will make a poster.", "We could ask the science teacher.", "Our aim is to reduce waste."]
+    },
+    "pronunciation": "Stress the important word in a pitch: Our AIM is to make our school GREENER. Pause after First, Then and Finally.",
+    "did_you_know": "Many schools in the UK and in France have an eco-committee: students who lead projects like recycling, saving energy or growing a garden. The international programme is called Eco-Schools (Éco-École in France).",
+    "model": "Our project is a school garden. Our aim is to grow vegetables and make our school greener. First, we will ask the science teacher for help. Then, we will plant tomatoes and herbs in the schoolyard. We could also share what we grow with other classes. We want to do this because it will help students learn about nature and work together. Finally, we will show our garden to other classes. Thank you.",
+    "listening": {
+      "title": "Turning plastic waste into art",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "video",
+      "url": "https://learnenglishteens.britishcouncil.org/study-break/video-zone/turning-plastic-waste-art",
+      "verified_on": "2026-11-02",
+      "questions": [
+        "In which country do the Greenfingers Changemakers live?",
+        "What plastic waste do they collect? Name two things.",
+        "What do they make with it? Name two things.",
+        "What is their message?"
+      ],
+      "answers": [
+        "Nigeria",
+        "Cups, bottles, bottle caps",
+        "Wall murals, jewellery (earrings, bracelets, necklaces), plastic dresses, a Christmas tree",
+        "Stop using single-use plastics, or recycle them"
+      ],
+      "fallback": "Hi, I'm Nicole. I'm a Greenfingers Changemaker in Nigeria. With my friends, we collect plastic in our streets: cups, bottles and lots of bottle caps. Then we turn this waste into art. We make wall murals with bottle-cap flowers, we make earrings and bracelets, and we even made a Christmas tree with green bottles! Our message is simple: stop using single-use plastics. And if you use them, recycle them!"
+    },
+    "go_further": [],
+    "practice": [
+      "Underline the aim in the model.",
+      "Find two actions and one benefit.",
+      "Complete: Our aim is ___ (make) our school greener.",
+      "Write one sentence using because to justify your project."
+    ],
+    "practice_answers": [
+      "Our aim is to grow vegetables and make our school greener.",
+      "Ask the science teacher; plant tomatoes and herbs; benefit: learn about nature and work together.",
+      "to make",
+      "Réponse personnelle"
+    ],
+    "starters": ["Our project is...", "Our aim is to...", "First, we will... Then, we will...", "It will help students because...", "Thank you. Any questions?"],
+    "mission": "Pitch your school improvement project to a group. Explain the aim, two actions, a benefit and answer one question.",
+    "can_do": [
+      "I can present the aim of a project.",
+      "I can explain the steps with first, then and finally.",
+      "I can justify my project with because and answer a question."
+    ],
+    "memory": "Close the page: recall aim, action, benefit, first and because; use them in a mini-pitch."
+  },
+  "3E-02": {
+    "hook": "CAN YOU DEFEND YOUR IDEA?",
+    "visual": [
+      {"label": "DEBATE", "picto": "bulles"},
+      {"label": "IDEAS", "picto": "ampoule"},
+      {"label": "TEAM", "picto": "equipe"},
+      {"label": "SOLUTION", "picto": "valide"}
+    ],
+    "vocab": [
+      ["to defend", "défendre", "I want to defend my idea."],
+      ["argument", "argument", "That's a strong argument."],
+      ["objection", "objection", "Do you have an objection?"],
+      ["solution", "solution", "We found a cheap solution."],
+      ["however", "cependant", "It's a good idea. However, it's expensive."],
+      ["although", "bien que", "Although it's hard, it's possible."],
+      ["realistic", "réaliste", "Is this plan realistic?"],
+      ["to convince", "convaincre", "Can you convince the class?"],
+      ["in my opinion", "à mon avis", "In my opinion, we need more clubs."],
+      ["for example", "par exemple", "For example, a chess club."]
+    ],
+    "grammar": {
+      "title": "Answering an objection",
+      "rule": "Accept, then contrast: I see what you mean, but... / That's true. However, ... / Although + idea, + your answer.",
+      "examples": ["I see what you mean, but it only takes one hour.", "That's true. However, students can choose.", "Although it costs money, it's useful."]
+    },
+    "pronunciation": "Use a polite, calm voice: slow down on HOWEVER and BUT, then stress your key argument.",
+    "did_you_know": "Debating clubs are popular in British schools, and some students take part in national competitions. Good debaters listen to the other side, accept a fair point, and then explain their own argument calmly.",
+    "model": "Our school should start a reading club. It could help students discover new books. Some people might say that students are too busy. However, we could meet only once a month. This solution is practical because it does not take much time. What do you think?",
+    "listening": {
+      "title": "Different opinions",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "video",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/speaking/b1-speaking/different-opinions",
+      "verified_on": "2026-11-02",
+      "questions": [
+        "What do Gemma and Jack disagree about?",
+        "Why does Gemma like her French teacher?",
+        "Which expression does Jack use to end the disagreement?",
+        "Which teacher do they both like?"
+      ],
+      "answers": [
+        "Their teachers",
+        "She is strict, but students learn a lot",
+        "Let's agree to disagree",
+        "Miss McCloud, the science teacher"
+      ],
+      "fallback": "Gemma: I really like Madame Martin, our French teacher. She's strict, but we learn a lot.\nJack: I see what you mean, but her lessons are hard for me. I don't understand everything!\nGemma: OK... let's agree to disagree.\nJack: But Miss McCloud, the science teacher, is brilliant.\nGemma: Yes, I agree with you there. She's really kind."
+    },
+    "go_further": [],
+    "practice": [
+      "Underline the main proposal.",
+      "Circle the objection and box the response.",
+      "Complete: We should ___ (create) a club.",
+      "Write one objection and a respectful reply using however."
+    ],
+    "practice_answers": [
+      "Our school should start a reading club.",
+      "Objection: students are too busy; reply: meet only once a month.",
+      "create",
+      "Réponse personnelle"
+    ],
+    "starters": ["In my opinion, our school should...", "For example, ...", "Some people might say that...", "I see what you mean, but...", "This solution is realistic because..."],
+    "mission": "Defend a school project with two reasons and respond politely to one objection from another group.",
+    "can_do": [
+      "I can give my opinion and two reasons.",
+      "I can answer an objection politely with however or but.",
+      "I can disagree without being rude."
+    ],
+    "memory": "Without looking, recall five argument words; make a sentence with however and one with because."
+  },
+  "4E-03": {
+    "hook": "PLATFORM 3, 10:15. DON'T MISS THE TRAIN!",
+    "visual": [
+      {"label": "TRAIN", "picto": "train"},
+      {"label": "TIME", "picto": "horloge"},
+      {"label": "TIMETABLE", "picto": "calendrier"},
+      {"label": "TRIP", "picto": "valise"}
+    ],
+    "vocab": [
+      ["platform", "quai", "The train leaves from platform 3."],
+      ["to leave", "partir", "It leaves at ten."],
+      ["to arrive", "arriver", "We arrive at noon."],
+      ["single ticket", "aller simple", "A single to Manchester, please."],
+      ["return ticket", "aller-retour", "A return ticket is cheaper."],
+      ["late", "en retard", "The train is late."],
+      ["on time", "à l'heure", "Our bus is on time."],
+      ["next", "prochain", "When is the next train?"],
+      ["to catch", "attraper (un train)", "Run! We can catch it!"],
+      ["half past", "et demie", "It leaves at half past ten."],
+      ["quarter to", "moins le quart", "It arrives at a quarter to four."]
+    ],
+    "grammar": {
+      "title": "Telling the time and timetables",
+      "rule": "at + time: at 10:15 (ten fifteen / a quarter past ten). Timetables use the present simple: The train leaves at 12:30. It arrives at 18:30. Question: What time does it leave?",
+      "examples": [
+        "What time does the train leave?",
+        "It leaves at a quarter past ten.",
+        "The next train arrives at platform 1."
+      ]
+    },
+    "pronunciation": "fifTEEN or FIFty? Stress the end of -teen numbers (thirTEEN, fifTEEN) and the beginning of -ty numbers (THIRty, FIFty).",
+    "did_you_know": "British timetables often use the 24-hour clock (18:30), but people usually say \"half past six\".",
+    "model": "Nora: Excuse me, which platform for the Cambridge train?\nBen: The 10:15? It leaves from platform 3.\nNora: Great! What time does it arrive?\nBen: At five past eleven. I love train trips, they're relaxing.\nNora: Me too, but I hate getting up early!",
+    "listening": {
+      "title": "Trains and travel",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/trains-travel",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "Which platform does the Cambridge train leave from?",
+        "In conversation C, where is the train going?",
+        "What time does Harry's ticket say?"
+      ],
+      "answers": ["Platform 3 (the 10:15 train)", "To Liverpool (her ticket is for Oxford)", "4:20"],
+      "fallback": "Passenger: Excuse me, does the Cambridge train leave from here?\nStaff: The 10:15? No, it leaves from platform 3.\nInspector: Your ticket is for Oxford, but this train is going to Liverpool.\nAngel: Hurry up, Harry! The London train leaves at 4:30.\nHarry: No, my ticket says 4:20! Oh look, it's late. We can catch it!"
+    },
+    "go_further": [
+      {
+        "title": "Travelling abroad",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "A2",
+        "media": "audio",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/travelling-abroad",
+        "verified_on": "2026-11-03",
+        "task": "Listen to five airport announcements. Note one flight number, one gate and one time."
+      }
+    ],
+    "practice": [
+      "Write the times in words: 10:15 - 12:30 - 15:45.",
+      "Complete: The train ___ (leave) at 12:30 from platform 2.",
+      "Write the question: ___ time ___ the train arrive?",
+      "Give your opinion about train trips with one adjective and because."
+    ],
+    "practice_answers": [
+      "a quarter past ten - half past twelve - a quarter to four",
+      "leaves",
+      "What time does the train arrive?",
+      "Réponse possible : I like train trips because they are relaxing."
+    ],
+    "starters": [
+      "The train leaves at...",
+      "It arrives at...",
+      "It's on platform...",
+      "Excuse me, what time...?",
+      "I think it's... because..."
+    ],
+    "mission": "In pairs, one student reads a class-trip timetable aloud, the other notes times, platforms and one opinion. Then swap roles and check your notes together.",
+    "can_do": [
+      "I can understand times and platforms in a short dialogue.",
+      "I can ask what time a train leaves.",
+      "I can note an opinion I hear."
+    ],
+    "memory": "Write five times in words and three station words. Test a partner next time."
+  },
+  "4E-04": {
+    "hook": "ONE TEEN. TWO CULTURES. ONE STORY.",
+    "visual": [
+      {"label": "HOME", "picto": "maison"},
+      {"label": "FAMILY", "picto": "coeur"},
+      {"label": "TRAVEL", "picto": "avion"},
+      {"label": "WORLD", "picto": "globe"}
+    ],
+    "vocab": [
+      ["to come from", "venir de", "My family comes from Mexico."],
+      ["to live in", "habiter à", "I live in Manchester."],
+      ["to miss", "manquer (à quelqu'un)", "I miss my grandparents."],
+      ["abroad", "à l'étranger", "My cousin lives abroad."],
+      ["language", "langue", "I speak two languages."],
+      ["grandparents", "grands-parents", "I visit my grandparents in July."],
+      ["half-brother", "demi-frère", "My half-brother lives in New York."],
+      ["best friend", "meilleur(e) ami(e)", "My best friend is from Poland."],
+      ["tradition", "tradition", "Tacos on Sunday are a family tradition."],
+      ["every summer", "chaque été", "We go there every summer."]
+    ],
+    "grammar": {
+      "title": "Finding key information: wh- questions",
+      "rule": "Who? = a person. Where? = a place. When? = a time. What? = a thing or an activity. How often? = frequency. Underline the answer in the text before you write it.",
+      "examples": [
+        "Where does Lucía live? In Manchester.",
+        "Who is her best friend? A girl from Poland.",
+        "When does she go to Mexico? Every summer."
+      ]
+    },
+    "pronunciation": "Final -s: lives and comes = /z/, visits = /s/, misses = /iz/. Say it clearly: she misses her grandparents.",
+    "did_you_know": "In the 2021 census, about one person in six living in England and Wales was born in another country.",
+    "model": "Hi, I'm Lucía. I'm 14 and I live in Manchester, but my family comes from Mexico. At home we speak Spanish and we eat tacos on Sundays. At school I speak English all day. My best friend is from Poland. Every summer I visit my grandparents in Mexico City. I miss them a lot, but I love my life in two cultures!",
+    "listening": {
+      "title": "Talking about your family",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A2",
+      "media": "video",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/speaking/a2-speaking/talking-about-your-family",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "Where does Rob, Sam's half-brother, live?",
+        "How many times has Sam visited Rob?",
+        "How old is Rob?"
+      ],
+      "answers": ["In New York", "Three times", "23 (five years older than Sam)"],
+      "fallback": "Jack: Hey, is that the new Game of Kings? Where did you get it?\nSam: My half-brother Rob sent it. He lives in New York.\nJack: Your half-brother? I didn't know!\nSam: Yes, he's 23, five years older than me. I've visited him three times and we often talk online.\nJack: Cool! Let's play it."
+    },
+    "go_further": [
+      {
+        "title": "My town",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "A2",
+        "media": "text",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/reading/a2-reading/my-town",
+        "verified_on": "2026-11-03",
+        "task": "Read Alex's text about his seaside town. Find his favourite beach and one activity you would like to try."
+      }
+    ],
+    "practice": [
+      "Find: Where does Lucía's family come from?",
+      "Find: What language does she speak at home?",
+      "True or false? Lucía visits Mexico every winter. Correct it.",
+      "Find one thing she misses and one thing she loves."
+    ],
+    "practice_answers": [
+      "From Mexico.",
+      "Spanish.",
+      "False: she visits Mexico every summer.",
+      "She misses her grandparents; she loves her life in two cultures."
+    ],
+    "starters": [
+      "Her name is...",
+      "She lives in... but her family comes from...",
+      "At home, she...",
+      "She misses...",
+      "She loves..."
+    ],
+    "mission": "Read a short testimony, fill in an ID card (name, age, places, languages, traditions, feelings) and present the person to your group in three sentences.",
+    "can_do": [
+      "I can find who, where and when in a short text.",
+      "I can understand feelings like miss and love.",
+      "I can sum up a testimony in three sentences."
+    ],
+    "memory": "Write five question words with one example answer each."
+  },
+  "4E-05": {
+    "hook": "FIRST, THEN, FINALLY: WRITE YOUR WEEK!",
+    "visual": [
+      {"label": "MY WEEK", "picto": "calendrier"},
+      {"label": "HOMEWORK", "picto": "livre"},
+      {"label": "ROUTINE", "picto": "horloge"},
+      {"label": "WRITING", "picto": "crayon"}
+    ],
+    "vocab": [
+      ["first", "d'abord", "First, I get up at seven."],
+      ["then", "ensuite", "Then I have breakfast."],
+      ["after that", "après cela", "After that, I go to school."],
+      ["finally", "enfin", "Finally, I go to bed."],
+      ["also", "aussi", "I also play the guitar."],
+      ["but", "mais", "I like Mondays but I hate Tuesdays."],
+      ["because", "parce que", "I love Fridays because we have art."],
+      ["on Mondays", "le lundi", "On Mondays I go swimming."],
+      ["homework", "devoirs", "I do my homework in the kitchen."],
+      ["timetable", "emploi du temps", "My timetable is busy."],
+      ["to get up", "se lever", "I get up at seven."]
+    ],
+    "grammar": {
+      "title": "Linking words to organise a paragraph",
+      "rule": "Order: first, then, after that, finally. Add: and, also. Contrast: but. Reason: because. Start with a topic sentence and end with a conclusion.",
+      "examples": [
+        "My week is busy but fun.",
+        "First, I go to school by bus. Then I do my homework.",
+        "I like my week, but I want more free time!"
+      ]
+    },
+    "pronunciation": "Read your paragraph aloud: make a short pause after each linking word (First, ... Then, ...). Your reader follows your plan.",
+    "did_you_know": "Many British students write their homework in a planner, a small school diary that teachers and parents check.",
+    "model": "My week is busy but fun. First, on Mondays I get up at seven and I go to school by bus. Then, after school, I usually do my homework in the kitchen. After that, on Wednesdays I play basketball with my friends because I love team sports. Finally, at the weekend I relax: I read comics and I sometimes visit my cousins. I like my week, but I would like more free time!",
+    "listening": {
+      "title": "Using colours to do homework",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/using-colours-do-homework",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "What colour is PE, and why?",
+        "What colour are the sticky notes for geography?",
+        "What does the pink circle on her calendar mean?"
+      ],
+      "answers": ["Yellow, because her trainers are yellow", "Black", "French homework"],
+      "fallback": "Student: I organise my homework with colours. First, I buy cheap pens, sticky notes and folders.\nStudent: Then I give each subject a colour: maths is green like my ruler, and PE is yellow like my trainers.\nStudent: History is blue and geography is black.\nStudent: Finally, on my wall calendar, a green star means a maths test and a pink circle means French homework."
+    },
+    "go_further": [
+      {
+        "title": "Taking notes",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "A2",
+        "media": "audio",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/taking-notes",
+        "verified_on": "2026-11-03",
+        "task": "Listen to Mark and Clare. Note two tips to make your notes shorter."
+      }
+    ],
+    "practice": [
+      "Put in order: Then / First / Finally / After that.",
+      "Join with because: I like Fridays. We have art.",
+      "Join with but: I love sport. I hate swimming.",
+      "Write a topic sentence about your week."
+    ],
+    "practice_answers": [
+      "First, Then, After that, Finally.",
+      "I like Fridays because we have art.",
+      "I love sport but I hate swimming.",
+      "Réponse possible : My week is busy but fun."
+    ],
+    "starters": ["My week is...", "First, I...", "Then...", "After that...", "Finally... I like my week because..."],
+    "mission": "Write a 70-90 word paragraph about your week with at least four linking words. Swap with a partner, colour the linking words and suggest one improvement.",
+    "can_do": [
+      "I can write a topic sentence.",
+      "I can organise my ideas with first, then, after that, finally.",
+      "I can give a reason with because."
+    ],
+    "memory": "Write four order words and one contrast word. Use them in a mini-paragraph next time."
+  },
+  "4E-06": {
+    "hook": "LOST IN TOWN? ASK, LISTEN, GO!",
+    "visual": [
+      {"label": "DIRECTIONS", "picto": "panneau"},
+      {"label": "MUSEUM", "picto": "musee"},
+      {"label": "STATION", "picto": "train"},
+      {"label": "LIBRARY", "picto": "livre"}
+    ],
+    "vocab": [
+      ["go straight on", "aller tout droit", "Go straight on for two minutes."],
+      ["turn left", "tourner à gauche", "Turn left at the bank."],
+      ["take the first right", "prendre la première à droite", "Take the first right into King's Road."],
+      ["next to", "à côté de", "The café is next to the cinema."],
+      ["opposite", "en face de", "The bank is opposite the school."],
+      ["between", "entre", "It's between the bank and the park."],
+      ["traffic lights", "feux", "Stop at the traffic lights."],
+      ["roundabout", "rond-point", "Turn left at the roundabout."],
+      ["on the corner", "au coin", "It's on the corner of the street."],
+      ["How do I get to...?", "Comment aller à... ?", "How do I get to the station?"]
+    ],
+    "grammar": {
+      "title": "The imperative for directions",
+      "rule": "Use the verb without a subject: Go, Turn, Take, Walk. Negative: Don't turn left. Places: next to, opposite, between, on the corner of.",
+      "examples": ["Go straight on and turn right.", "Don't cross the bridge.", "The station is opposite the museum."]
+    },
+    "pronunciation": "Stress the key words: turn LEFT at the TRAFFIC lights. And say it politely: exCUSE me...",
+    "did_you_know": "In the UK, cars drive on the left. In London, some crossings have LOOK RIGHT painted on the road to help visitors.",
+    "model": "Tourist: Excuse me, how do I get to the station?\nAmy: Go straight on and turn left at the traffic lights.\nTourist: Left at the traffic lights. And then?\nAmy: Take the second right. The station is opposite the museum.\nTourist: Thank you very much!\nAmy: You're welcome.",
+    "listening": {
+      "title": "Giving directions",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/giving-directions",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "Speaker A: which turn do you take, and into which street?",
+        "Speaker C: what is opposite the building?",
+        "Speaker D: which right turn do you take?"
+      ],
+      "answers": ["The first left, into Green Street", "The hospital", "The second right, into King's Road"],
+      "fallback": "Speaker A: Go straight on and take the first left into Green Street. Walk past the library: it's next to the library, on the left.\nSpeaker C: Go straight on past the traffic lights to the roundabout and turn left. It's next to the theatre, opposite the hospital.\nSpeaker D: Go straight on and take the second right into King's Road. It's next to the bookshop, opposite the café."
+    },
+    "go_further": [
+      {
+        "title": "My city",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "A2",
+        "media": "text",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/reading/a2-reading/my-city",
+        "verified_on": "2026-11-03",
+        "task": "Read the magazine page about Liverpool. Choose two places you would like to visit and say how to get there."
+      }
+    ],
+    "practice": [
+      "Complete: ___ straight on and ___ left.",
+      "Translate: en face de / à côté de.",
+      "Put in order: the / first / right / take.",
+      "Give directions from your school to a shop in two sentences."
+    ],
+    "practice_answers": [
+      "Go / turn",
+      "opposite / next to",
+      "Take the first right.",
+      "Réponse possible : Go straight on and turn right. The shop is next to the bakery."
+    ],
+    "starters": [
+      "Excuse me, how do I get to...?",
+      "Go straight on...",
+      "Turn left / right at...",
+      "Take the first / second...",
+      "It's next to / opposite..."
+    ],
+    "mission": "With a simple town map, play Secret Destination: give directions to a secret place, your partner follows with a finger and names the place. Swap three times.",
+    "can_do": [
+      "I can ask for directions politely.",
+      "I can give simple directions with the imperative.",
+      "I can say where a place is (next to, opposite)."
+    ],
+    "memory": "Draw five arrows and write the matching direction under each one."
+  },
+  "4E-07": {
+    "hook": "BIG CITY OR SMALL TOWN: WHICH LIFE FOR YOU?",
+    "visual": [
+      {"label": "CITY", "picto": "musee"},
+      {"label": "COUNTRYSIDE", "picto": "arbre"},
+      {"label": "SUNNY", "picto": "soleil"},
+      {"label": "RAINY", "picto": "pluie"}
+    ],
+    "vocab": [
+      ["flat", "appartement", "We live in a flat."],
+      ["seaside town", "ville balnéaire", "Newquay is a seaside town."],
+      ["busy", "animé", "London is very busy."],
+      ["quiet", "calme", "My village is quiet."],
+      ["expensive", "cher", "Flats are expensive in London."],
+      ["cheap", "bon marché", "The bus is cheap."],
+      ["noisy", "bruyant", "My street is noisy."],
+      ["the Tube", "le métro de Londres", "I take the Tube to school."],
+      ["countryside", "campagne", "I prefer the countryside."],
+      ["warmer than", "plus chaud que", "The south is warmer than the north."]
+    ],
+    "grammar": {
+      "title": "Comparatives",
+      "rule": "Short adjectives: big - bigger than, busy - busier than. Long adjectives: more expensive than. Irregular: good - better, bad - worse. Same level: as quiet as.",
+      "examples": [
+        "London is bigger than Newquay.",
+        "A flat in London is more expensive.",
+        "The weather in the south is better than in the north."
+      ]
+    },
+    "pronunciation": "than is short and weak: bigger than London sounds like \"bigger thn London\".",
+    "did_you_know": "Cornwall, in the south-west of England, is famous for its beaches. Newquay is one of the UK's favourite surfing towns.",
+    "model": "Zoe, London: I live in a flat in London. My school is big and noisy and I take the Tube every day. London is busier and more exciting than a small town, but it is more expensive.\nKai, Newquay: I live in a small seaside town in Cornwall. My school is smaller than Zoe's. I walk to school and I surf at the weekend. Life here is quieter and slower, but there are fewer shops.",
+    "listening": {
+      "title": "Weather forecast",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/weather-forecast",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "Which region may have a thunderstorm, and when?",
+        "Which region has the best weather, and how warm is it?",
+        "Is the east warmer or colder than the north?"
+      ],
+      "answers": ["The east, in the afternoon", "The south, about 15 degrees", "Warmer (13 degrees, the north is 10)"],
+      "fallback": "Reporter: Here is today's weather. In the north, it's very windy and cold, about 10 degrees, so take an umbrella.\nReporter: In the east, it's rainy all day, with a storm in the afternoon, but it's a bit warmer: 13 degrees.\nReporter: The west and the middle are dry but cloudy, 10 degrees.\nReporter: The south has the best weather: sunny in the afternoon and 15 degrees."
+    },
+    "go_further": [
+      {
+        "title": "My town",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "A2",
+        "media": "text",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/reading/a2-reading/my-town",
+        "verified_on": "2026-11-03",
+        "task": "Read Alex's text about Newquay. Compare his town with yours in two sentences."
+      }
+    ],
+    "practice": [
+      "Complete: London is ___ (busy) than Newquay.",
+      "Complete: A flat in London is ___ (expensive) than a house in Cornwall.",
+      "Find two differences between Zoe's and Kai's lives.",
+      "Write one sentence comparing your town with London."
+    ],
+    "practice_answers": [
+      "busier",
+      "more expensive",
+      "Zoe takes the Tube, Kai walks; Zoe's school is bigger.",
+      "Réponse personnelle."
+    ],
+    "starters": [
+      "... is bigger / smaller than...",
+      "... is more ... than...",
+      "Zoe ..., whereas Kai ...",
+      "Both ... and ...",
+      "I'd prefer ... because..."
+    ],
+    "mission": "In groups, compare two lifestyles (city and seaside, or France and the UK) in a Venn diagram. Present three differences and one similarity.",
+    "can_do": [
+      "I can find differences in two short texts.",
+      "I can compare with -er than and more ... than.",
+      "I can say which life I prefer and why."
+    ],
+    "memory": "Write five adjectives and their comparatives. Include one irregular one."
+  },
+  "4E-08": {
+    "hook": "IT RAINED, WE LAUGHED, WE RAN: TELL YOUR TRIP!",
+    "visual": [
+      {"label": "PLANE", "picto": "avion"},
+      {"label": "SUITCASE", "picto": "valise"},
+      {"label": "RAIN", "picto": "pluie"},
+      {"label": "MONUMENT", "picto": "musee"}
+    ],
+    "vocab": [
+      ["went (go)", "suis allé(e)", "I went to London last summer."],
+      ["saw (see)", "ai vu", "We saw Big Ben."],
+      ["visited", "ai visité", "We visited the Tower of London."],
+      ["took a photo", "ai pris une photo", "I took a photo of the bridge."],
+      ["had fun", "me suis amusé(e)", "We had fun on the bus."],
+      ["it was", "c'était", "It was amazing!"],
+      ["yesterday", "hier", "Yesterday it rained."],
+      ["last summer", "l'été dernier", "Last summer we went to Spain."],
+      ["two years ago", "il y a deux ans", "I went to Italy two years ago."],
+      ["in the end", "finalement", "In the end, we ran into a café."]
+    ],
+    "grammar": {
+      "title": "Past simple",
+      "rule": "Regular verbs: verb + -ed (visited, played). Irregular: go - went, see - saw, have - had, take - took. Negative: didn't + verb. Question: Did you + verb? Time: yesterday, last summer, two years ago.",
+      "examples": ["We visited the Tower of London.", "We didn't have umbrellas.", "Did you enjoy the trip?"]
+    },
+    "pronunciation": "-ed endings: /t/ walked, /d/ played, /id/ visited. Only verbs ending in t or d add a syllable: vi-si-ted, wan-ted.",
+    "did_you_know": "London's red double-decker buses are famous. Some tour buses have an open top so tourists can see the sights.",
+    "model": "Last summer I went to London with my family. On the first day, we took an open-top bus tour. We saw Big Ben and the London Eye. Then it rained a lot and we didn't have umbrellas! We ran into a café and had hot chocolate. It was a funny day and I loved it.",
+    "listening": {
+      "title": "Tour of London",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/tour-london",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "How long is the bus tour?",
+        "What does a tourist ask for when it starts raining?",
+        "What happens at the end of the tour?"
+      ],
+      "answers": ["Two hours", "Extra umbrellas (there aren't any)", "A storm starts and everybody runs off the bus"],
+      "fallback": "Greg: Welcome to our two-hour tour of London on an open-top bus!\nTourist: Oh no, it's raining! Have you got any umbrellas?\nGreg: Sorry, no umbrellas today. On your left, Big Ben and the Houses of Parliament.\nTourist: Is tea with the Queen included?\nGreg: No, but there's a café near Buckingham Palace. Oh no, a storm! Everybody off the bus, quick!"
+    },
+    "go_further": [
+      {
+        "title": "Travelling abroad",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "A2",
+        "media": "audio",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/travelling-abroad",
+        "verified_on": "2026-11-03",
+        "task": "Listen to the airport announcements. Which flight was late, and why?"
+      }
+    ],
+    "practice": [
+      "Write the past: go - see - have - take.",
+      "Complete: We ___ (visit) the Tower of London.",
+      "Make it negative: We had umbrellas.",
+      "Ask a question: you / enjoy / the trip?"
+    ],
+    "practice_answers": ["went - saw - had - took", "visited", "We didn't have umbrellas.", "Did you enjoy the trip?"],
+    "starters": ["Last summer, I went to...", "First, we...", "Then...", "Unfortunately...", "In the end... It was..."],
+    "mission": "Tell a partner about a real or imaginary trip in 6-8 sentences: where, when, what you did, a problem and how you felt. Your partner asks two Did you...? questions.",
+    "can_do": [
+      "I can tell a short story in the past.",
+      "I can use regular and irregular past verbs.",
+      "I can ask a question with Did you...?"
+    ],
+    "memory": "Write ten irregular verbs in the past. Make a memory game with a partner."
+  },
+  "4E-09": {
+    "hook": "YOUR FRIEND DOESN'T UNDERSTAND? EXPLAIN IT SIMPLY!",
+    "visual": [
+      {"label": "MENU", "picto": "assiette"},
+      {"label": "EXPLAIN", "picto": "bulles"},
+      {"label": "HELP", "picto": "equipe"},
+      {"label": "IDEA", "picto": "ampoule"}
+    ],
+    "vocab": [
+      ["it means", "ça veut dire", "Starter means the first dish."],
+      ["in other words", "autrement dit", "In other words, it's closed."],
+      ["it's a kind of", "c'est une sorte de", "It's a kind of soup."],
+      ["it's like", "c'est comme", "It's like a sandwich."],
+      ["for example", "par exemple", "Fruit, for example apples."],
+      ["to explain", "expliquer", "Can you explain this word?"],
+      ["starter", "entrée", "I'd like a salad as a starter."],
+      ["main course", "plat principal", "Chicken for the main course."],
+      ["to order", "commander", "Are you ready to order?"],
+      ["Do you mean...?", "Tu veux dire... ?", "Do you mean the first dish?"]
+    ],
+    "grammar": {
+      "title": "Paraphrase: say it another way",
+      "rule": "Explain a word you can't translate: It's a kind of... / It's like... / You use it to... / It means... Use short sentences and words your friend knows. Check: Do you understand?",
+      "examples": [
+        "A starter is the first dish of the meal.",
+        "It's a kind of spicy chicken.",
+        "In other words, the library is closed."
+      ]
+    },
+    "pronunciation": "Speak slowly and stress the important word: it's a KIND of SOUP.",
+    "did_you_know": "In British restaurants, a \"starter\" is the first dish, and many people say \"pudding\" for any dessert.",
+    "model": "Tom: What does \"starter\" mean?\nNina: It's the first dish of the meal, before the main course.\nTom: And Thai chicken?\nNina: It's a kind of spicy chicken from Thailand, with rice.\nTom: OK, I understand now. Thanks!",
+    "listening": {
+      "title": "Eating out",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/eating-out",
+      "verified_on": "2026-11-03",
+      "questions": ["What starter does Sally order?", "What main course do they both choose?", "What does Jamie drink?"],
+      "answers": ["A tomato salad", "Thai chicken and rice", "A fresh orange juice"],
+      "fallback": "Waiter: Good evening. A table for two?\nJamie: Yes, please. I'd like the French onion soup to start.\nSally: A tomato salad for me. And for the main course, the Thai chicken and rice.\nJamie: Steak or chicken? I can't decide... OK, the Thai chicken for me too.\nSally: And a mineral water, please.\nJamie: A fresh orange juice for me."
+    },
+    "go_further": [],
+    "practice": [
+      "Explain \"main course\" in one simple sentence.",
+      "Complete: A menu is something you read ___ choose your food.",
+      "Explain \"mineral water\" to a friend.",
+      "Write a question to check that your friend understands."
+    ],
+    "practice_answers": [
+      "Réponse possible : It's the big dish of the meal.",
+      "to",
+      "Réponse possible : It's water from a spring, in a bottle.",
+      "Do you understand? / Is it clear?"
+    ],
+    "starters": ["It means...", "It's a kind of...", "It's like...", "In other words...", "Do you understand?"],
+    "mission": "In groups of three, A reads a short English menu or notice, B doesn't understand, C helps by explaining in simple English. Rotate roles three times.",
+    "can_do": [
+      "I can explain a word in simple English.",
+      "I can help a friend understand a menu or a notice.",
+      "I can check that my friend understands."
+    ],
+    "memory": "Choose three new words and write a simple explanation for each one."
+  },
+  "4E-10": {
+    "hook": "SAME WORDS, DIFFERENT MUSIC!",
+    "visual": [
+      {"label": "SPEAK", "picto": "micro"},
+      {"label": "RHYTHM", "picto": "musique"},
+      {"label": "QUESTIONS", "picto": "bulles"},
+      {"label": "STRESS", "picto": "cible"}
+    ],
+    "vocab": [
+      ["word stress", "accent de mot", "Put the word stress on the right syllable."],
+      ["syllable", "syllabe", "Exciting has three syllables."],
+      ["intonation", "intonation", "Your intonation shows your feelings."],
+      ["to go up", "monter", "Yes/no questions go up."],
+      ["to go down", "descendre", "Wh- questions go down."],
+      ["brilliant", "génial", "The film was brilliant!"],
+      ["boring", "ennuyeux", "It was so boring."],
+      ["exciting", "passionnant", "What an exciting story!"],
+      ["annoying", "agaçant", "That actor is annoying."],
+      ["I can't stand", "je ne supporte pas", "I can't stand horror films."]
+    ],
+    "grammar": {
+      "title": "Word stress and intonation",
+      "rule": "Each word has one strong syllable: BRIL-liant, BOR-ing, ex-CI-ting, an-NOY-ing. Yes/no questions go up at the end: Was it good? Wh- questions go down: What did you see? Show strong feelings by stressing the adjective.",
+      "examples": ["It was BRILLIANT!", "Was it good? (up)", "What did you see? (down)"]
+    },
+    "pronunciation": "Small words are weak and fast: a, of, to, and. Big words are strong: a FILM of ACTION. Strong syllables make the rhythm of English.",
+    "did_you_know": "English is a stress-timed language: strong syllables come at regular intervals and small words become very short.",
+    "model": "Ella: Did you like the film?\nSam: Yes, it was BRILLIANT!\nElla: Really? I thought it was BORING.\nSam: What did you prefer?\nElla: The cartoon. It was so FUNNY!",
+    "listening": {
+      "title": "Giving your opinion",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A2",
+      "media": "video",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/speaking/a2-speaking/giving-your-opinion",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "Which film did Jack see with his sister?",
+        "What did Gemma think of Tornado Express?",
+        "Which actor can't Gemma stand?"
+      ],
+      "answers": ["Friends Forever", "It was brilliant: exciting, with great special effects", "Jessica Foster"],
+      "fallback": "Gemma: Hi Jack! Have you just seen a film?\nJack: Yes, Friends Forever, with my sister Molly. I thought it was boring, but she liked it.\nGemma: I saw Tornado Express. It was brilliant, so exciting!\nJack: I want to see Double Revenge.\nGemma: Oh no, I can't stand Jessica Foster. She's so annoying!"
+    },
+    "go_further": [],
+    "practice": [
+      "Underline the stressed syllable: exciting - annoying - brilliant - interesting.",
+      "Up or down? \"Was it good?\"",
+      "Up or down? \"What did you see?\"",
+      "Write a sentence with a strong feeling and stress the adjective."
+    ],
+    "practice_answers": [
+      "ex-CI-ting, an-NOY-ing, BRIL-liant, IN-teresting",
+      "Up",
+      "Down",
+      "Réponse possible : It was so BORING!"
+    ],
+    "starters": [
+      "It was so...!",
+      "Did you like...?",
+      "What did you think of...?",
+      "I thought it was...",
+      "I can't stand..."
+    ],
+    "mission": "In pairs, perform a 6-line film review dialogue. Your partner checks the stress of three adjectives and the intonation of two questions.",
+    "can_do": [
+      "I can stress the right syllable in common words.",
+      "I can make my voice go up or down in questions.",
+      "I can show my feelings with my voice."
+    ],
+    "memory": "Write five adjectives with the stressed syllable in capitals. Say them to a partner next time."
+  },
+  "3E-03": {
+    "hook": "IT'S MY FAVOURITE, AND HERE IS WHY!",
+    "visual": [
+      {"label": "FILM", "picto": "cinema"},
+      {"label": "BOOK", "picto": "livre"},
+      {"label": "SONG", "picto": "musique"},
+      {"label": "FAVOURITE", "picto": "etoile"}
+    ],
+    "vocab": [
+      ["in my opinion", "à mon avis", "In my opinion, it's a great film."],
+      ["for example", "par exemple", "For example, the ending is surprising."],
+      ["such as", "tel que", "Films such as Skyfall are exciting."],
+      ["that's why", "c'est pourquoi", "That's why I love it."],
+      ["the main reason", "la raison principale", "The main reason is the music."],
+      ["moreover", "de plus", "Moreover, the actors are excellent."],
+      ["plot", "intrigue", "The plot is clever."],
+      ["character", "personnage", "My favourite character is Auggie."],
+      ["special effects", "effets spéciaux", "The special effects are amazing."],
+      ["to recommend", "recommander", "I recommend this book."]
+    ],
+    "grammar": {
+      "title": "Opinion + reason + example",
+      "rule": "Point: In my opinion / I think... Reason: because / since / that's why. Example: for example, for instance, such as. A strong opinion always has a reason and an example.",
+      "examples": [
+        "In my opinion, Skyfall is the best Bond film.",
+        "It has a better story than most action films.",
+        "For example, Bond seems older and more human."
+      ]
+    },
+    "pronunciation": "Pause just before because and for example: it gives you time to think and helps your listeners follow.",
+    "did_you_know": "Skyfall's theme song, sung by Adele, won the Oscar for Best Original Song in 2013.",
+    "model": "My favourite book is Wonder. In my opinion, it's the best story about school life because it shows how kindness can change everything. For example, Jack becomes Auggie's friend even when other students are cruel. Moreover, the characters are very real. That's why I recommend it to everyone in my class.",
+    "listening": {
+      "title": "My favourite film",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/my-favourite-film",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "Who sang the Oscar-winning song from Skyfall?",
+        "Which book did speaker C read after seeing the film?",
+        "Which version of Let the Right One In does speaker E prefer?"
+      ],
+      "answers": ["Adele", "Pride and Prejudice, by Jane Austen", "The Swedish version"],
+      "fallback": "Speaker B: My favourite film is Skyfall. The story is better than in most Bond films, it was filmed in Shanghai and Scotland, and Adele's song won an Oscar.\nSpeaker C: I love Pride and Prejudice. It's about people who judge others too quickly. After the film, I read Jane Austen's novel.\nSpeaker E: My choice is Let the Right One In. There are two versions, and I prefer the Swedish one to the American one."
+    },
+    "go_further": [],
+    "practice": [
+      "Complete: I love this series ___ the characters are funny.",
+      "Add an example: The film has great special effects, ___ the flying scene.",
+      "Correct the order: For example I think that it is good.",
+      "Write a Point-Reason-Example chain about your favourite song."
+    ],
+    "practice_answers": [
+      "because",
+      "for example / such as",
+      "I think it is good. For example, the ending is surprising.",
+      "Réponse personnelle."
+    ],
+    "starters": [
+      "In my opinion...",
+      "The main reason is that...",
+      "For example...",
+      "Moreover...",
+      "That's why I recommend..."
+    ],
+    "mission": "Present your favourite film, book or game in one minute: one opinion, two reasons, one precise example. The group votes for the best-justified choice.",
+    "can_do": ["I can give my opinion clearly.", "I can support it with two reasons.", "I can give a precise example."],
+    "memory": "Write three ways to give a reason and three ways to give an example."
+  },
+  "3E-04": {
+    "hook": "ONE IDEA. FIVE STEPS. A BETTER SCHOOL!",
+    "visual": [
+      {"label": "IDEA", "picto": "ampoule"},
+      {"label": "PLAN", "picto": "calendrier"},
+      {"label": "WRITE", "picto": "crayon"},
+      {"label": "CHECK", "picto": "valide"}
+    ],
+    "vocab": [
+      ["to propose", "proposer", "We propose to open a club."],
+      ["proposal", "proposition", "Read our proposal."],
+      ["aim", "objectif", "The aim is to help students."],
+      ["to set up", "mettre en place", "Let's set up a homework club."],
+      ["firstly", "premièrement", "Firstly, it will open on Tuesdays."],
+      ["in addition", "de plus", "In addition, it's free."],
+      ["however", "cependant", "However, we need a teacher."],
+      ["to sum up", "pour résumer", "To sum up, it's a great idea."],
+      ["draft", "brouillon", "Write a first draft."],
+      ["to proofread", "relire pour corriger", "Proofread your text twice."]
+    ],
+    "grammar": {
+      "title": "Structure and check a proposal",
+      "rule": "Title - Aim (We propose... / The aim is to...) - Steps (Firstly, Secondly, In addition) - Benefit (It will help... because...) - Conclusion (To sum up...). Then check: capital letters, -s, will + verb, linking words.",
+      "examples": [
+        "We propose to set up a homework club.",
+        "Firstly, it will open on Tuesdays.",
+        "To sum up, it will help students organise their time."
+      ]
+    },
+    "pronunciation": "proPOSE, proPOsal: the stress is on the second syllable. Read your proposal aloud before you hand it in.",
+    "did_you_know": "The Pomodoro Technique is named after a tomato-shaped kitchen timer: \"pomodoro\" means tomato in Italian.",
+    "model": "A quiet homework club - our proposal. The aim of this proposal is to help students who cannot work well at home. Firstly, we propose to open a quiet room on Tuesdays and Thursdays from 4 to 5 pm. Secondly, older students could help younger ones. In addition, we would use the Pomodoro method: 25 minutes of work, then a short break. However, we need a teacher in the room. To sum up, this club will help everyone feel more organised.",
+    "listening": {
+      "title": "Organising your time",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/organising-your-time",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "Who invented the Pomodoro Technique, and when?",
+        "How long is one work session?",
+        "What does Peter do with his phone?"
+      ],
+      "answers": [
+        "Francesco Cirillo, an Italian, in the 1980s",
+        "25 minutes",
+        "He switches it off and uses a separate timer"
+      ],
+      "fallback": "Host: Peter, you get top grades. What's your secret?\nPeter: The Pomodoro Technique. An Italian, Francesco Cirillo, invented it in the 1980s. The name comes from a tomato-shaped kitchen timer.\nPeter: First, I list the steps of my task. Then I work for 25 minutes and take a short break of three to five minutes.\nPeter: After four or five short breaks, I take a longer one. And I switch off my phone!"
+    },
+    "go_further": [],
+    "practice": [
+      "Put in order: To sum up / Firstly / The aim is / Secondly.",
+      "Correct the mistakes: the club will helps student to work.",
+      "Add a benefit with because: The club will be useful...",
+      "Write a title and an aim for your own proposal."
+    ],
+    "practice_answers": [
+      "The aim is / Firstly / Secondly / To sum up",
+      "The club will help students to work.",
+      "Réponse possible : ... because students will have a quiet place.",
+      "Réponse personnelle."
+    ],
+    "starters": ["We propose to...", "The aim is to...", "Firstly... Secondly...", "However...", "To sum up..."],
+    "mission": "Write a 120-150 word proposal for a school project. Swap drafts, use the checklist (aim, steps, benefit, conclusion) and make three corrections before your final version.",
+    "can_do": [
+      "I can organise a proposal in clear parts.",
+      "I can use firstly, in addition, however and to sum up.",
+      "I can proofread and correct my text."
+    ],
+    "memory": "Write the five parts of a proposal and one linking word for each."
+  },
+  "3E-05": {
+    "hook": "LISTEN SMART: CATCH THE KEY IDEAS!",
+    "visual": [
+      {"label": "KEY IDEAS", "picto": "loupe"},
+      {"label": "NOTES", "picto": "livre"},
+      {"label": "BREAKS", "picto": "horloge"},
+      {"label": "TIPS", "picto": "valide"}
+    ],
+    "vocab": [
+      ["advice", "conseils", "My teacher gave me good advice."],
+      ["to advise", "conseiller", "She advises us to sleep more."],
+      ["to focus on", "se concentrer sur", "Focus on the main points."],
+      ["main point", "idée principale", "What's the main point?"],
+      ["to avoid", "éviter", "Avoid sugary drinks."],
+      ["to warn", "avertir", "He warns us about screens."],
+      ["to persuade", "persuader", "She wants to persuade us."],
+      ["intention", "intention, but", "What is the speaker's intention?"],
+      ["key word", "mot-clé", "Write key words only."],
+      ["past paper", "sujet d'annales", "Practise with past papers."]
+    ],
+    "grammar": {
+      "title": "Spotting arguments and intentions",
+      "rule": "Advice: You should... / Don't... / Try to... Reasons: because, so, that's why. Intentions: to inform, to advise, to warn, to persuade. Notes: key words only and symbols (+ and, -> so, x don't, = means).",
+      "examples": ["Eat fruit + x cola", "Break 5 min / 30 min", "Intention -> to advise students before exams"]
+    },
+    "pronunciation": "Speakers stress the important information. Write the stressed words first: TAKE a BREAK every HALF HOUR.",
+    "did_you_know": "In England, students take their GCSE exams at about 16, at the end of Year 11.",
+    "model": "Mr Hall: Good morning. Today I want to persuade you to sleep more. Firstly, teenagers need about nine hours of sleep. Secondly, sleep helps your memory, so you remember your lessons better. Finally, screens at night keep you awake, so switch off your phone one hour before bed.",
+    "listening": {
+      "title": "Advice for exams",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/advice-exams",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "How long should a break be, and how often?",
+        "Which food is especially good for studying?",
+        "Where can students find past exam papers?"
+      ],
+      "answers": ["Five minutes every half hour", "Apples", "In the library"],
+      "fallback": "Teacher: Your exams are next week, so here is my advice. Don't eat sweets or drink cola: eat fruit, especially apples.\nTeacher: Study in a room with plenty of light, but not too comfortable, or you'll fall asleep.\nTeacher: Don't try to learn everything: learn the main points first, then the details.\nTeacher: Use the past exam papers in the library, and take a five-minute break every half hour. Good luck!"
+    },
+    "go_further": [
+      {
+        "title": "Taking notes",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "A2",
+        "media": "audio",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a2-listening/taking-notes",
+        "verified_on": "2026-11-03",
+        "task": "Listen to Mark helping Clare. Note how pictures can make notes shorter."
+      }
+    ],
+    "practice": [
+      "Take notes with symbols: Eat fruit and avoid cola.",
+      "What is Mr Hall's intention: to inform, to warn or to persuade?",
+      "Find two reasons Mr Hall gives.",
+      "Rewrite as advice: Don't use your phone at night. -> You should..."
+    ],
+    "practice_answers": [
+      "fruit + / x cola",
+      "To persuade.",
+      "Sleep helps memory; screens at night keep you awake.",
+      "You should switch off your phone at night."
+    ],
+    "starters": [
+      "The speaker wants to...",
+      "The first argument is...",
+      "He / She says that...",
+      "For example...",
+      "In my notes: ..."
+    ],
+    "mission": "Listen to a classmate's one-minute advice talk (exams, sport, screens). Take notes in a grid: intention, three arguments, one example. Report back to the group.",
+    "can_do": [
+      "I can identify the speaker's intention.",
+      "I can note the main arguments.",
+      "I can take short notes with key words and symbols."
+    ],
+    "memory": "Write five note-taking symbols and what they mean."
+  },
+  "3E-06": {
+    "hook": "TWO TEENS, TWO OPINIONS: WHO DO YOU AGREE WITH?",
+    "visual": [
+      {"label": "OPINIONS", "picto": "bulles"},
+      {"label": "CULTURES", "picto": "globe"},
+      {"label": "FRIENDS", "picto": "equipe"},
+      {"label": "FEELINGS", "picto": "coeur"}
+    ],
+    "vocab": [
+      ["point of view", "point de vue", "I understand your point of view."],
+      ["to agree with", "être d'accord avec", "I agree with Mia."],
+      ["to disagree", "ne pas être d'accord", "I disagree with this idea."],
+      ["both", "tous les deux", "Both students like school."],
+      ["unlike", "contrairement à", "Unlike Mia, Léo has no uniform."],
+      ["whereas", "alors que", "Mia likes it whereas Léo doesn't."],
+      ["however", "cependant", "However, he agrees on one point."],
+      ["on the one hand", "d'un côté", "On the one hand, it saves time."],
+      ["on the other hand", "d'un autre côté", "On the other hand, it's expensive."],
+      ["to judge", "juger", "Don't judge people by their clothes."]
+    ],
+    "grammar": {
+      "title": "Agreeing, disagreeing and comparing",
+      "rule": "Agree: I agree with... / That's true. Disagree: I disagree with... / I don't think so. Partly: I partly agree, but... Compare: both..., unlike..., whereas..., on the one hand... on the other hand...",
+      "examples": [
+        "I agree with Mia: it saves time.",
+        "Unlike Mia, Léo prefers his own clothes.",
+        "Mia likes uniforms whereas Léo doesn't."
+      ]
+    },
+    "pronunciation": "To disagree politely, use a soft voice and a falling tone: I'm not sure I agree...",
+    "did_you_know": "Most secondary schools in the UK have a uniform, often with a blazer and a tie in the school's colours.",
+    "model": "Mia (UK): I think school uniforms are great. Everybody looks the same, so nobody judges your clothes. Moreover, it saves time in the morning.\nLéo (France): I disagree with Mia. In France we don't wear uniforms and I like it: my clothes show my personality. However, I agree that some students judge others' clothes.",
+    "listening": {
+      "title": "Important people",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/important-people",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "How has speaker B's relationship with his brother changed?",
+        "Why do speaker C and her friend help each other?",
+        "How does speaker D keep in touch with his friend now?"
+      ],
+      "answers": [
+        "They ignored each other at school; now they get on well",
+        "She is good at languages and her friend is good at maths",
+        "Mainly on Facebook"
+      ],
+      "fallback": "Speaker B: My brother is four years older. At school we ignored each other, but now we get on well and we watch football together.\nSpeaker C: My best friend and I met when we were five. I'm good at languages and she's good at maths, so we help each other with homework.\nSpeaker D: A boy moved into my street when I was ten. His family left a couple of years ago, so now we keep in touch on Facebook."
+    },
+    "go_further": [
+      {
+        "title": "Foreign exchange emails",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "B1",
+        "media": "text",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/reading/b1-reading/foreign-exchange-emails",
+        "verified_on": "2026-11-03",
+        "task": "Read Simon's and Fran's emails. Find one positive and one negative point about Fran's host family."
+      }
+    ],
+    "practice": [
+      "Find one argument for uniforms.",
+      "Find one argument against uniforms.",
+      "Find one point Mia and Léo both accept.",
+      "Complete: ___ Mia, Léo doesn't wear a uniform."
+    ],
+    "practice_answers": [
+      "Nobody judges your clothes / it saves time.",
+      "Your clothes show your personality.",
+      "Some students judge others' clothes.",
+      "Unlike"
+    ],
+    "starters": [
+      "Both... think that...",
+      "Unlike..., ...",
+      "... whereas...",
+      "I agree with... because...",
+      "I partly agree, but..."
+    ],
+    "mission": "Read two short documents with different points of view (uniforms, phones at school...). Fill a two-column chart, then write three sentences: both..., unlike..., I agree with... because...",
+    "can_do": [
+      "I can find the arguments in two short texts.",
+      "I can compare two points of view.",
+      "I can say if I agree and why."
+    ],
+    "memory": "Write three ways to agree and three ways to disagree politely."
+  },
+  "3E-07": {
+    "hook": "GREAT IDEA... OR NOT? WEIGH THE PROS AND CONS!",
+    "visual": [
+      {"label": "SPORTS CENTRE", "picto": "haltere"},
+      {"label": "CAR-FREE DAY", "picto": "arbre"},
+      {"label": "VOLUNTEERS", "picto": "equipe"},
+      {"label": "IDEA", "picto": "ampoule"}
+    ],
+    "vocab": [
+      ["advantage", "avantage", "The main advantage is the price."],
+      ["drawback", "inconvénient", "The only drawback is the noise."],
+      ["benefit", "bénéfice", "It has many benefits."],
+      ["limit", "limite", "What are the limits of this idea?"],
+      ["expensive", "cher", "That gym is expensive."],
+      ["to reduce", "réduire", "It could reduce pollution."],
+      ["to improve", "améliorer", "It might improve our health."],
+      ["worth it", "ça vaut la peine", "It's expensive but it's worth it."],
+      ["we should", "on devrait", "We should try it."],
+      ["it might", "il se pourrait que", "It might rain."]
+    ],
+    "grammar": {
+      "title": "should, could, might",
+      "rule": "should = advice: We should try it. could = possibility or suggestion: It could help students. might = weaker possibility: It might be too expensive. Always + verb without to.",
+      "examples": ["We should organise a bike bus.", "It could reduce pollution.", "Some parents might not agree."]
+    },
+    "pronunciation": "should, could, would: the l is silent! Say /shud/, /kud/, /wud/.",
+    "did_you_know": "Every year, on 22 September, many towns around the world celebrate World Car-Free Day.",
+    "model": "Ava: Our school wants a car-free day once a month. What do you think?\nRyan: It could reduce pollution and we might walk more.\nAva: True, but it might be difficult for students who live far away.\nRyan: We should organise a bike bus with teachers.\nAva: Good idea. The benefits are bigger than the drawbacks.",
+    "listening": {
+      "title": "Sports centres",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/sports-centres",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "How long has Grange Park Sports Centre been open?",
+        "How many classes a week are included in the membership at Maya's centre?",
+        "What is the main drawback of Bill's centre?"
+      ],
+      "answers": ["Ten years", "Two", "It is more expensive than other gyms in the area"],
+      "fallback": "Maya: Grange Park is a small centre, open for ten years, with lots of classes: yoga, Zumba, dance and now flamenco. There's a sauna and a café. Membership includes the gym and two classes a week, but bring your own towel.\nBill: Our gym is very big, with new machines, a swimming pool and four specialists for exercise and diet. It's more expensive than other gyms in the area, but our services are better."
+    },
+    "go_further": [
+      {
+        "title": "Theme parks",
+        "source": "British Council - LearnEnglish Teens",
+        "level": "B1",
+        "media": "audio",
+        "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/theme-parks",
+        "verified_on": "2026-11-03",
+        "task": "Listen to Andy Wells. Note one advantage of his job and one difficulty."
+      }
+    ],
+    "practice": [
+      "Complete with should, could or might: We ___ ask the town for help. (advice)",
+      "Complete: It ___ rain that day. (weak possibility)",
+      "Give one advantage and one drawback of a car-free day.",
+      "Write a sentence with \"on the other hand\"."
+    ],
+    "practice_answers": [
+      "should",
+      "might",
+      "Réponse possible : less pollution / difficult for students who live far away.",
+      "Réponse personnelle."
+    ],
+    "starters": [
+      "The main advantage is...",
+      "One drawback is...",
+      "It could... / It might...",
+      "We should...",
+      "All in all, I think..."
+    ],
+    "mission": "In groups of four, discuss an initiative (car-free day, no phones at lunch, school garden): two students defend the advantages, two explain the limits. Agree on a recommendation with should.",
+    "can_do": [
+      "I can give advantages and limits of an idea.",
+      "I can use should, could and might.",
+      "I can reach a decision with my group."
+    ],
+    "memory": "Write two advantages and two limits of one initiative with should, could or might."
+  },
+  "3E-08": {
+    "hook": "IT HAPPENED... AND IT CHANGED EVERYTHING.",
+    "visual": [
+      {"label": "PHONE", "picto": "telephone"},
+      {"label": "JOURNEY", "picto": "valise"},
+      {"label": "FEELINGS", "picto": "coeur"},
+      {"label": "BEFORE / AFTER", "picto": "horloge"}
+    ],
+    "vocab": [
+      ["suddenly", "soudain", "Suddenly, the lights went out."],
+      ["while", "pendant que", "While I was texting, he took my phone."],
+      ["as a result", "en conséquence", "As a result, I was late."],
+      ["so", "donc", "I missed the bus, so I walked."],
+      ["since then", "depuis", "Since then, I've been more careful."],
+      ["to happen", "arriver, se produire", "What happened?"],
+      ["to steal (stole)", "voler", "Someone stole my bike."],
+      ["to realise", "se rendre compte", "I realised my bag was open."],
+      ["to retake", "repasser (un examen)", "He has to retake the exam."],
+      ["I learnt that", "j'ai appris que", "I learnt that friends matter."]
+    ],
+    "grammar": {
+      "title": "Past simple and past continuous",
+      "rule": "Past continuous (was / were + -ing) = background action: I was texting a friend. Past simple = short event: someone stole my phone. While + past continuous, when + past simple. Consequences: so, as a result, since then.",
+      "examples": [
+        "I was walking to school when I saw the accident.",
+        "While we were waiting, it started to rain.",
+        "As a result, I was late."
+      ]
+    },
+    "pronunciation": "was is weak in the middle of a sentence: I /wuz/ walking. Stress the verb: I was WALKING when I SAW him.",
+    "did_you_know": "In the UK, the emergency number is 999, but 112 also works, as in France.",
+    "model": "Last year, I was walking to school when I saw an old man fall. Suddenly, everybody stopped, but nobody moved. I called for help and I stayed with him. As a result, the ambulance arrived quickly. Since then, I have done a first-aid course, and I feel ready to help.",
+    "listening": {
+      "title": "Difficult situations",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/difficult-situations",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "What will probably happen if Ryan failed his Economics exam?",
+        "Why did Bonzo run into the road?",
+        "What might help to find the phone thief?"
+      ],
+      "answers": [
+        "He will have to retake the whole course",
+        "He ran after a ball that went over the hedge",
+        "The CCTV camera at the school entrance"
+      ],
+      "fallback": "Mother: Ryan, you failed your Economics exam? You were out until four in the morning!\nRyan: I know. Now I'll probably have to retake the whole course. I'll talk to my teacher.\nMegan: This morning Bonzo chased a ball over the hedge into the road and a car hit him. The vet couldn't save him.\nBoy: Dad, someone stole your phone outside school while I was texting. There's a CCTV camera at the entrance, so maybe it filmed him."
+    },
+    "go_further": [],
+    "practice": [
+      "Complete: I ___ (text) a friend when the thief ___ (take) my phone.",
+      "Join with so: I missed the bus. I was late.",
+      "Write a consequence: Bonzo ran into the road. As a result...",
+      "Ask the question: What / you / do / when it happened?"
+    ],
+    "practice_answers": [
+      "was texting / took",
+      "I missed the bus, so I was late.",
+      "Réponse possible : As a result, a car hit him.",
+      "What did you do when it happened?"
+    ],
+    "starters": [
+      "It was... and I was...ing when...",
+      "Suddenly...",
+      "As a result...",
+      "Since then...",
+      "I learnt that..."
+    ],
+    "mission": "Tell your group about an experience (real or imagined: a trip, a problem, a surprise) in one to two minutes: the background, the event, the consequences and what you learnt. Listeners ask one question.",
+    "can_do": [
+      "I can tell a story with past simple and past continuous.",
+      "I can explain the consequences of an event.",
+      "I can say what I learnt from an experience."
+    ],
+    "memory": "Write a three-sentence story with while, suddenly and as a result."
+  },
+  "3E-09": {
+    "hook": "ONE DOCUMENT, ONE MINUTE: THE WHOLE GROUP KNOWS!",
+    "visual": [
+      {"label": "PARTY", "picto": "gateau"},
+      {"label": "MUSIC", "picto": "musique"},
+      {"label": "CULTURES", "picto": "globe"},
+      {"label": "DATES", "picto": "calendrier"}
+    ],
+    "vocab": [
+      ["carnival", "carnaval", "The carnival takes place in August."],
+      ["parade", "défilé", "We watched the parade."],
+      ["costume", "costume, déguisement", "They wear colourful costumes."],
+      ["to celebrate", "fêter, célébrer", "We celebrate Diwali in November."],
+      ["anniversary", "anniversaire (d'un événement)", "It's their golden wedding anniversary."],
+      ["neighbour", "voisin", "Our neighbours cook for the party."],
+      ["the main idea", "l'idée principale", "What's the main idea?"],
+      ["according to", "selon", "According to the text, ..."],
+      ["in short", "en bref", "In short, it's a festival of light."],
+      ["it is about", "il s'agit de", "This text is about Diwali."]
+    ],
+    "grammar": {
+      "title": "Synthesising for a group",
+      "rule": "Introduce: This document is about... Main ideas: According to the text... / The first point is... Link: also, whereas, both. Conclude: In short / To sum up... Keep only who, what, where, when and why.",
+      "examples": [
+        "This text is about Diwali, the festival of lights.",
+        "According to the speaker, the carnival is in August.",
+        "In short, both festivals bring people together."
+      ]
+    },
+    "pronunciation": "Pause between your main ideas and let your voice go down at the end of each one: listeners know an idea is finished.",
+    "did_you_know": "The Notting Hill Carnival started in the 1960s. It celebrates Caribbean culture and is one of the biggest street festivals in Europe.",
+    "model": "This text is about Diwali, the festival of lights. According to the text, Hindus, Sikhs and Jains celebrate it in October or November. People light lamps, share sweets and watch fireworks. In Leicester, in the UK, thousands of people come to see the lights. In short, Diwali is a festival of light, family and sharing.",
+    "listening": {
+      "title": "Celebrations",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/celebrations",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "When does the Notting Hill Carnival take place?",
+        "What anniversary does speaker C's family celebrate?",
+        "Where do the neighbours at speaker E's street party come from?"
+      ],
+      "answers": [
+        "Every August",
+        "A golden wedding anniversary (50 years)",
+        "From India, China and several African countries"
+      ],
+      "fallback": "Speaker B: Every August there's the Notting Hill Carnival in London, with costumes, steel bands and dancing. But watch out for pickpockets!\nSpeaker C: For my grandparents' golden wedding anniversary, we're hiring a boat for a river trip, with a picnic and music from the 1960s.\nSpeaker E: For the Royal Wedding in June, we're having a street party. Our neighbours from India, China and Africa are bringing food."
+    },
+    "go_further": [],
+    "practice": [
+      "Find the who, what, where and when of the Diwali text.",
+      "Shorten to keep the key idea: In Leicester, in the UK, thousands and thousands of people come every year to see the beautiful lights.",
+      "Complete: ___ the text, people share sweets.",
+      "Write a one-sentence summary of Diwali with In short."
+    ],
+    "practice_answers": [
+      "Hindus, Sikhs and Jains / festival of lights / India and Leicester / October or November",
+      "Thousands of people see the lights in Leicester every year.",
+      "According to",
+      "Réponse possible : In short, Diwali is a festival of light and sharing."
+    ],
+    "starters": [
+      "This document is about...",
+      "According to...",
+      "The main idea is...",
+      "Both... whereas...",
+      "In short..."
+    ],
+    "mission": "In groups of four, each student reads a different short document about a celebration (Carnival, Diwali, Thanksgiving, Burns Night), takes notes and gives a 45-second synthesis. The group finds two things in common.",
+    "can_do": [
+      "I can find the main ideas in a short document.",
+      "I can sum them up in my own words.",
+      "I can present a clear synthesis to my group."
+    ],
+    "memory": "Write the five synthesis questions (who, what, where, when, why) and three linking expressions."
+  },
+  "3E-10": {
+    "hook": "SLOW DOWN, PAUSE, AND EVERYONE GETS IT!",
+    "visual": [
+      {"label": "SPEAK", "picto": "micro"},
+      {"label": "PACE", "picto": "horloge"},
+      {"label": "FACTS", "picto": "ampoule"},
+      {"label": "AUDIENCE", "picto": "equipe"}
+    ],
+    "vocab": [
+      ["pace", "débit", "Speak at a good pace."],
+      ["pause", "pause", "Make a pause after each idea."],
+      ["to slow down", "ralentir", "Slow down for the numbers."],
+      ["to stress", "accentuer", "Stress the key word."],
+      ["chunk", "groupe de mots", "Read in short chunks."],
+      ["clearly", "clairement", "Please speak clearly."],
+      ["loud", "fort", "Speak loud enough for the class."],
+      ["audience", "public", "Look at your audience."],
+      ["to rehearse", "répéter (s'entraîner)", "Rehearse twice before you present."],
+      ["amazing", "incroyable", "That's an amazing fact!"]
+    ],
+    "grammar": {
+      "title": "Chunks and pauses",
+      "rule": "Split long sentences into chunks of 3 to 6 words. Pause (/) between chunks, stress one key word in each chunk and slow down for numbers.",
+      "examples": [
+        "Only one TENTH / of the cells in your BODY / are HUMAN.",
+        "Most of them / are really HELPFUL.",
+        "About SEVEN octillion / CELLS!"
+      ]
+    },
+    "pronunciation": "Numbers need time: say about SEVEN octillion and a THIRD of a millimetre slowly, and stress the number.",
+    "did_you_know": "Many good speakers talk at about 120 to 150 words per minute. When we are nervous, we often speak much faster.",
+    "model": "Did you know / that your body / is home to millions of bacteria? / Don't panic! / Most of them / are really helpful. / They help you / digest your food. / Amazing, isn't it?",
+    "listening": {
+      "title": "Amazing facts",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/amazing-facts",
+      "verified_on": "2026-11-03",
+      "questions": [
+        "What proportion of the cells in your body are human?",
+        "Roughly how many cells does a human body have?",
+        "How long are the mites that live in eyelashes?"
+      ],
+      "answers": ["About one tenth", "About seven octillion (7 followed by 27 zeros)", "About a third of a millimetre"],
+      "fallback": "A: Listen to this! Only about one tenth of the cells in your body are human. Most of the others are bacteria.\nB: Bacteria? That's horrible!\nA: Don't worry, most of them help us digest food. And a body has about seven octillion cells.\nA: Also, tiny mites live in our eyelashes. They're about a third of a millimetre long.\nB: Stop! That's disgusting!"
+    },
+    "go_further": [],
+    "practice": [
+      "Mark the pauses (/): Most bacteria in your body are helpful because they help you digest food.",
+      "Underline the key word in each chunk of the model text.",
+      "Read slowly: 7 octillion - one tenth - a third of a millimetre.",
+      "Time yourself: read the model text in about 20 seconds."
+    ],
+    "practice_answers": [
+      "Most bacteria in your body / are helpful / because they help you / digest food.",
+      "Réponse possible : KNOW, BODY, BACTERIA, PANIC, HELPFUL, DIGEST, AMAZING",
+      "Réponse orale.",
+      "Réponse orale."
+    ],
+    "starters": [
+      "Did you know that...?",
+      "Believe it or not...",
+      "Here is an amazing fact:...",
+      "In other words...",
+      "Amazing, isn't it?"
+    ],
+    "mission": "Prepare a 45-second Amazing Fact presentation. Mark chunks and key words, rehearse twice, then present. The group gives feedback on pace, pauses and stress.",
+    "can_do": [
+      "I can speak at a pace my audience can follow.",
+      "I can pause between groups of words.",
+      "I can stress key words and numbers."
+    ],
+    "memory": "Write three tips for speaking clearly and practise them with one sentence."
+  },
+  "6E-01": {
+    "hook": "HELLO! WHO ARE YOU? WHERE ARE YOU FROM?",
+    "visual": [
+      {"label": "HELLO", "picto": "bulles"},
+      {"label": "COUNTRY", "picto": "globe"},
+      {"label": "FRIENDS", "picto": "equipe"},
+      {"label": "BIRTHDAY", "picto": "gateau"}
+    ],
+    "vocab": [
+      ["name", "nom, prénom", "My name is Sam."],
+      ["friend", "ami(e)", "This is my friend Mia."],
+      ["country", "pays", "What country are you from?"],
+      ["to be from", "venir de", "I'm from France."],
+      ["old", "âgé", "I'm eleven years old."],
+      ["nice to meet you", "enchanté(e)", "Hi Tom, nice to meet you!"],
+      ["this is", "voici", "This is my brother."],
+      ["his", "son, sa (à lui)", "His name is Leo."],
+      ["her", "son, sa (à elle)", "Her name is Ana."],
+      ["Germany", "l'Allemagne", "Greta is from Germany."],
+      ["Argentina", "l'Argentine", "Pablo is from Argentina."]
+    ],
+    "grammar": {
+      "title": "be + my / his / her",
+      "rule": "I am (I'm) - you are (you're) - he is (he's) - she is (she's). Age: I'm eleven (not I have eleven). His = to a boy, her = to a girl: This is Tom. His name is Tom. This is Ana. Her name is Ana.",
+      "examples": ["What's your name? - My name's Lily.", "How old are you? - I'm twelve.", "This is Pablo. He's from Argentina."]
+    },
+    "pronunciation": "The h in hello, his, her and how is pronounced: breathe out! Practise: Hello, how old is his sister?",
+    "did_you_know": "In the United Kingdom, people often say \"Hiya!\" or \"Alright?\" to say hello to friends.",
+    "model": "Mia: Hi! I'm Mia. What's your name?\nLeo: Hello, I'm Leo. Nice to meet you!\nMia: Nice to meet you too. Where are you from?\nLeo: I'm from Canada. And this is my friend Ana. She's from Ireland.\nAna: Hi Mia! I'm eleven. How old are you?\nMia: I'm eleven too!",
+    "listening": {
+      "title": "Introducing a friend",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a1-listening/introducing-friend",
+      "verified_on": "2026-11-06",
+      "questions": ["Who introduces Pablo to Greta?", "Where is Greta from?", "Where is Pablo from?"],
+      "answers": ["Sumi", "Germany", "Argentina"],
+      "fallback": "Sumi: Greta, I'd like you to meet my friend Pablo.\nGreta: Hi Pablo! Nice to meet you. I'm Greta, I'm from Germany.\nPablo: Nice to meet you too, Greta. I'm from Argentina.\nSumi: Pablo is in my English class."
+    },
+    "go_further": [
+      {"title": "Spelling names", "source": "British Council - LearnEnglish Teens", "level": "A1", "media": "audio", "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a1-listening/spelling-names", "verified_on": "2026-11-06", "task": "Do the preparation task, then listen and write the names you hear, letter by letter."}
+    ],
+    "practice": ["Complete: I ___ eleven. She ___ from Wales.", "His or her? This is Tom. ___ name is Tom.", "Write the question: ___ are you from?", "Introduce a friend in two sentences."],
+    "practice_answers": ["am - is", "His", "Where are you from?", "Réponse possible : This is Lucy. She's twelve and she's from England."],
+    "starters": ["Hello, I'm...", "I'm ... years old.", "I'm from...", "This is my friend...", "His / Her name is..."],
+    "mission": "In pairs, pick an identity card. Introduce yourself to your partner, then present your partner to another pair: name, age and country.",
+    "can_do": ["I can say my name, my age and my country.", "I can introduce a friend.", "I can ask: What's your name? Where are you from?"],
+    "memory": "Write your identity card in English and learn it. Next time, introduce a classmate without notes."
+  },
+  "6E-02": {
+    "hook": "TALL OR SHORT? BROWN EYES OR GREEN EYES? GUESS WHO!",
+    "visual": [
+      {"label": "FAMILY", "picto": "maison"},
+      {"label": "LOOK", "picto": "loupe"},
+      {"label": "TWINS", "picto": "equipe"},
+      {"label": "CUTE", "picto": "coeur"}
+    ],
+    "vocab": [
+      ["brother", "frère", "My brother is fifteen."],
+      ["sister", "sœur", "I've got one sister."],
+      ["twins", "jumeaux", "Jem and Alex are twins."],
+      ["tall", "grand", "My dad is very tall."],
+      ["short", "petit, court", "She's got short hair."],
+      ["thin", "mince", "He's tall and thin."],
+      ["hair", "cheveux", "Her hair is long."],
+      ["eyes", "yeux", "He's got green eyes."],
+      ["brown", "brun, marron", "I've got brown eyes."],
+      ["long", "long", "She's got long brown hair."],
+      ["glasses", "lunettes", "My grandma has got glasses."],
+      ["cute", "mignon", "Your little brother is cute!"]
+    ],
+    "grammar": {
+      "title": "have got / has got + adjectives",
+      "rule": "I / you / we / they have got ('ve got) - he / she has got ('s got). The adjective comes before the noun and never takes -s: short brown hair, green eyes.",
+      "examples": ["She's got long brown hair.", "He's got green eyes.", "Has he got glasses? - No, he hasn't."]
+    },
+    "pronunciation": "Hair, her and here are different: hair /heə/, her /hɜː/. Say: Her hair is long.",
+    "did_you_know": "About one baby in eighty is a twin. Twins who look the same are called identical twins.",
+    "model": "Leo: Who's that boy?\nZoe: That's my cousin Sam. He's thirteen.\nLeo: He's very tall!\nZoe: Yes, he's tall and thin. He's got short black hair and blue eyes.\nLeo: And the girl with long hair?\nZoe: That's his sister. She's got long red hair. She's really funny.",
+    "listening": {
+      "title": "Describing people",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a1-listening/describing-people",
+      "verified_on": "2026-11-06",
+      "questions": ["Who is Jem?", "How old are Jem and Alex?", "What colour are the twins' eyes?"],
+      "answers": ["Hannah's brother (Alex's twin)", "Fifteen", "Green"],
+      "fallback": "Aurelia: Hannah, who's the boy over there?\nHannah: That's my brother Jem. And that's his girlfriend Lucy, with long brown hair.\nAurelia: Is Alex your brother too?\nHannah: Yes! Jem and Alex are twins. They're fifteen.\nAurelia: They're both tall and thin, with short brown hair and green eyes.\nHannah: And big ears!\nAurelia: No, they're cute!"
+    },
+    "go_further": [
+      {"title": "Spelling colours", "source": "British Council - LearnEnglish Teens", "level": "A1", "media": "audio", "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a1-listening/spelling-colours", "verified_on": "2026-11-06", "task": "Do the preparation task, then listen and write the colours you hear. Use three of them to describe someone."}
+    ],
+    "practice": ["Complete: He ___ got green eyes. I ___ got brown hair.", "Put the words in order: hair / long / she's got / brown.", "Correct the mistake: She's got eyes blues.", "Describe a person in your family in two sentences."],
+    "practice_answers": ["has - have", "She's got long brown hair.", "She's got blue eyes.", "Réponse possible : My sister is ten. She's got short blond hair and brown eyes."],
+    "starters": ["This is my...", "He's / She's ... years old.", "He's / She's tall / short.", "He's / She's got ... hair.", "He's / She's got ... eyes."],
+    "mission": "In pairs, student A describes a family member and student B draws the person. Then swap roles and compare your drawings with the descriptions.",
+    "can_do": ["I can describe someone's hair and eyes.", "I can say if a person is tall, short or thin.", "I can understand a short description of a person."],
+    "memory": "Learn ten words to describe people. Next time, describe a famous person and your partner guesses who it is."
+  },
+  "5E-01": {
+    "hook": "HUNGRY? CAN I HAVE A CHEESEBURGER, PLEASE?",
+    "visual": [
+      {"label": "FOOD", "picto": "assiette"},
+      {"label": "CAKE", "picto": "gateau"},
+      {"label": "ORDER", "picto": "bulles"},
+      {"label": "PAY", "picto": "valide"}
+    ],
+    "vocab": [
+      ["Can I have...?", "Est-ce que je peux avoir... ?", "Can I have a cola, please?"],
+      ["I'd like...", "Je voudrais...", "I'd like a sandwich."],
+      ["a slice of cake", "une part de gâteau", "A slice of banana cake, please."],
+      ["apple juice", "jus de pomme", "An apple juice for me."],
+      ["How much is it?", "Combien ça coûte ?", "How much is the burger?"],
+      ["a pound", "une livre (£)", "It's ten pounds."],
+      ["pence", "pence (centimes)", "It's eighty pence."],
+      ["change", "monnaie rendue", "Here's your change."],
+      ["table", "table", "We're at table 3."],
+      ["next, please!", "au suivant !", "Next, please! What would you like?"],
+      ["Here you are.", "Voilà.", "Here you are, your juice."]
+    ],
+    "grammar": {
+      "title": "Polite requests and prices",
+      "rule": "Order politely: Can I have + noun, please? or I'd like + noun. Ask the price: How much is it? / How much are they? Prices: £8.37 = eight pounds thirty-seven (pence).",
+      "examples": ["Can I have a double cheeseburger, please?", "How much is it? - It's eight pounds thirty-seven.", "Here's your change: one pound sixty-three."]
+    },
+    "pronunciation": "Join the words: Can I have a... = /kənaɪhævə/. Say it fast and smile: Can-I-have-a juice, please?",
+    "did_you_know": "In a British café, people often order and pay at the counter, then wait for their table number to be called.",
+    "model": "Waiter: Hello! What would you like?\nKim: Can I have a cheese sandwich and an orange juice, please?\nWaiter: Sure. Anything else?\nKim: I'd like a slice of chocolate cake too.\nWaiter: That's six pounds fifty, please.\nKim: Here you are, ten pounds.\nWaiter: Thank you. Here's your change: three pounds fifty.",
+    "listening": {
+      "title": "Ordering food in a café",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a1-listening/ordering-food-cafe",
+      "verified_on": "2026-11-06",
+      "questions": ["What does Andi drink?", "How much is the order?", "How much change does Andi get from £10?"],
+      "answers": ["An apple juice", "£8.37 (eight pounds thirty-seven)", "£1.63"],
+      "fallback": "Waiter: Next, please! Hi, what would you like?\nAndi: Can I have a double cheeseburger, please? And a slice of banana cake.\nWaiter: Anything to drink?\nAndi: An apple juice, please.\nWaiter: That's eight pounds thirty-seven. You're at table 3.\nAndi: Here's ten pounds.\nWaiter: Thanks. Your change is one pound sixty-three."
+    },
+    "go_further": [
+      {"title": "Understanding numbers", "source": "British Council - LearnEnglish Teens", "level": "A1", "media": "audio", "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a1-listening/understanding-numbers", "verified_on": "2026-11-06", "task": "Do the preparation task, then listen and write the numbers you hear. Read three of them as prices."}
+    ],
+    "practice": ["Make it polite: I want a cola.", "Write the price in words: £4.75.", "Write the question to ask the price of a sandwich.", "You pay £5 for £3.20. What's your change? Write it in words."],
+    "practice_answers": ["Can I have a cola, please? / I'd like a cola, please.", "four pounds seventy-five", "How much is the sandwich?", "one pound eighty"],
+    "starters": ["Can I have..., please?", "I'd like...", "How much is it?", "It's ... pounds ...", "Here you are."],
+    "mission": "Play the class café: student A is the waiter, student B is the customer. Order a meal, pay with play money and check the change. Then swap roles.",
+    "can_do": ["I can order food and drinks politely.", "I can ask and understand a price.", "I can check my change."],
+    "memory": "Make a mini menu with six items and prices in pounds. Read the prices aloud to a partner next time."
+  },
+  "5E-02": {
+    "hook": "HORROR, COMEDY OR SCI-FI? WOULD YOU LIKE TO COME?",
+    "visual": [
+      {"label": "CINEMA", "picto": "cinema"},
+      {"label": "TIME", "picto": "horloge"},
+      {"label": "FRIENDS", "picto": "equipe"},
+      {"label": "PLANS", "picto": "calendrier"}
+    ],
+    "vocab": [
+      ["Would you like to...?", "Est-ce que tu voudrais... ?", "Would you like to come?"],
+      ["tonight", "ce soir", "Are you free tonight?"],
+      ["horror film", "film d'horreur", "I hate horror films."],
+      ["comedy", "comédie", "This comedy is very funny."],
+      ["science fiction", "science-fiction", "I love science fiction."],
+      ["romantic", "romantique", "No romantic films, please!"],
+      ["to meet", "se retrouver", "Let's meet at seven."],
+      ["outside", "devant, dehors", "We meet outside the cinema."],
+      ["homework", "devoirs", "I've got a lot of homework."],
+      ["Sorry, I can't.", "Désolé, je ne peux pas.", "Sorry, I can't, I'm busy."],
+      ["Great idea!", "Bonne idée !", "The cinema? Great idea!"]
+    ],
+    "grammar": {
+      "title": "Inviting, accepting and refusing",
+      "rule": "Invite: Would you like to + verb? / Do you want to + verb? / Let's + verb. Accept: Yes, great! / I'd love to. Refuse politely and give a reason: Sorry, I can't, I've got... / No thanks, I don't like... because...",
+      "examples": ["Would you like to see a film tonight?", "Sorry, I can't, I've got a lot of homework.", "Let's meet outside the cinema at half past seven."]
+    },
+    "pronunciation": "Would you sounds like /wʊdʒu/. Say it smoothly: Would you like to come?",
+    "did_you_know": "In the UK and the USA, many cinemas sell popcorn sweet or salty, and people choose their seat when they buy the ticket.",
+    "model": "Ella: Hi Sam! Would you like to go to the cinema on Saturday?\nSam: Great idea! What film?\nElla: There's a new horror film.\nSam: Oh no, I hate horror films. What about the new sci-fi film?\nElla: OK! It starts at six.\nSam: Perfect. Let's meet outside the cinema at half past five.",
+    "listening": {
+      "title": "Inviting someone to the cinema",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "A1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a1-listening/inviting-someone-cinema",
+      "verified_on": "2026-11-06",
+      "questions": ["Why doesn't Ismael want to see the horror film?", "Which film do they choose?", "What time and where do they meet?"],
+      "answers": ["He doesn't like horror films", "A new science fiction film (Alien Attacks)", "At 7:30, outside the cinema (the film is at 8)"],
+      "fallback": "Jack: Ismael, do you want to come to the cinema tonight? Jamie and Nicola are coming.\nIsmael: Maybe, but I've got lots of homework. What film?\nJack: The new horror film!\nIsmael: No way, I don't like horror films.\nJack: OK... what about that new sci-fi film, Alien Attacks?\nIsmael: Yes, good idea. What time?\nJack: The film is at eight. Let's meet outside the cinema at half past seven."
+    },
+    "go_further": [
+      {"title": "Band auditions", "source": "British Council - LearnEnglish Teens", "level": "A1", "media": "audio", "url": "https://learnenglishteens.britishcouncil.org/skills/listening/a1-listening/band-auditions", "verified_on": "2026-11-06", "task": "Do the preparation task, then listen and note one thing each person can do and one thing they like."}
+    ],
+    "practice": ["Complete: Would you like ___ come to my party?", "Refuse politely and give a reason: Do you want to play tennis tonight?", "Put in order: meet / let's / outside / the cinema / at seven.", "Invite a friend to see a film: give the day and the time."],
+    "practice_answers": ["to", "Réponse possible : Sorry, I can't, I've got a lot of homework.", "Let's meet outside the cinema at seven.", "Réponse possible : Would you like to see a comedy on Friday at six?"],
+    "starters": ["Would you like to...?", "Yes, great idea!", "Sorry, I can't, I...", "I don't like ... because...", "Let's meet at ... outside..."],
+    "mission": "With your diary card, invite your partner to the cinema. Agree on a film, a day, a time and a meeting place. At least one invitation must be refused with a reason.",
+    "can_do": ["I can invite a friend.", "I can accept or refuse and say why.", "I can agree on a time and a place to meet."],
+    "memory": "Write three invitations and three answers on cards. Next time, play them with a partner without looking."
+  },
+  "2NDE-01": {
+    "hook": "SHOW ME YOUR FAVOURITE THING AND I'LL TELL YOU WHO YOU ARE.",
+    "visual": [
+      {"label": "TECH", "picto": "telephone"},
+      {"label": "PETS", "picto": "coeur"},
+      {"label": "MUSIC", "picto": "casque"},
+      {"label": "CREATE", "picto": "crayon"}
+    ],
+    "vocab": [
+      ["belonging", "objet personnel", "My guitar is my most precious belonging."],
+      ["to mean a lot to", "compter beaucoup pour", "This old watch means a lot to me."],
+      ["affectionate", "affectueux", "My cat is very affectionate."],
+      ["to keep someone company", "tenir compagnie", "My dog keeps me company."],
+      ["freedom", "liberté", "My scooter gives me freedom."],
+      ["second-hand", "d'occasion", "I love second-hand clothes."],
+      ["to customise", "personnaliser", "She customises old jackets."],
+      ["to take up", "se mettre à (une activité)", "He took up cooking last year."],
+      ["to host", "recevoir (des invités)", "We host dinners for friends."],
+      ["light", "léger", "My tablet is light and small."],
+      ["to reflect", "refléter", "My room reflects my personality."]
+    ],
+    "grammar": {
+      "title": "Present perfect with for / since + relative clauses",
+      "rule": "Something that started in the past and is still true: I've had my cat since 2020 / for six years (not I have my cat since). Relative clauses add information: which / that for things, who for people.",
+      "examples": ["I've had this tablet for a year.", "It's a sewing machine which I use every day.", "My cousin, who studies fashion, made this jacket."]
+    },
+    "pronunciation": "Weak forms: I've had it for years = /aɪv hæd ɪt fə jɪəz/. For is short and unstressed: /fə/.",
+    "did_you_know": "In British schools, younger pupils often do \"show and tell\": they bring an object from home and present it to the class.",
+    "model": "Maya: My favourite thing is this old camera. I've had it since I was thirteen.\nTom: Why does it matter so much?\nMaya: It belonged to my grandmother, who was a photographer. It reminds me of her.\nTom: Do you still use it?\nMaya: Yes, every weekend. Taking photos helps me see the world differently.",
+    "listening": {
+      "title": "Favourite things",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/favourite-things",
+      "verified_on": "2026-11-06",
+      "questions": ["Which speaker's favourite thing is an animal?", "Why does one speaker prefer his scooter to walking?", "How often does the speaker with Japanese knives host dinners?"],
+      "answers": ["The second speaker (a girl): her cat", "It's faster to get to the metro and college, and easy to park", "Every two or three weeks"],
+      "fallback": "Boy 1: My tablet goes everywhere with me: it's light and I use it for messages, homework and films.\nGirl 1: My favourite is my cat. I've had her since she was a kitten and she always welcomes me home.\nBoy 2: My new scooter! It's quicker than walking and parking is easy. I feel free.\nGirl 2: I study fashion, so my sewing machine is precious: I change second-hand clothes.\nBoy 3: My Japanese knives. I took up cooking after a TV show, and every two or three weeks I cook for my friends."
+    },
+    "go_further": [
+      {"title": "My hero", "source": "British Council - LearnEnglish Teens", "level": "B2", "media": "audio", "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b2-listening/my-hero", "verified_on": "2026-11-06", "task": "Do the preparation task, then listen and note who the hero is and two reasons why he or she matters to the speaker."}
+    ],
+    "practice": ["Complete: I've known my best friend ___ primary school.", "Correct the mistake: I have this bike since three years.", "Join with which: I've got a notebook. I draw in it every day.", "Write two sentences about an object that matters to you."],
+    "practice_answers": ["since", "I've had this bike for three years.", "I've got a notebook which I draw in every day.", "Réponse possible : My headphones mean a lot to me. I've had them for two years."],
+    "starters": ["My favourite thing is...", "I've had it for / since...", "It means a lot to me because...", "It's something which...", "It reflects my personality: ..."],
+    "mission": "Bring (or draw) an object that matters to you. In groups of four, present it in one minute, then answer two questions from your classmates.",
+    "can_do": ["I can present an object and say why it matters to me.", "I can use the present perfect with for and since.", "I can note reasons in a recording with several speakers."],
+    "memory": "Record your one-minute presentation on your phone. Listen again and correct one mistake before next lesson."
+  },
+  "2NDE-02": {
+    "hook": "17 ROLLER COASTERS IN ONE PARK. WOULD YOU DARE?",
+    "visual": [
+      {"label": "THRILLS", "picto": "etoile"},
+      {"label": "TRAVEL", "picto": "avion"},
+      {"label": "WORLD", "picto": "globe"},
+      {"label": "RECORDS", "picto": "cible"}
+    ],
+    "vocab": [
+      ["theme park", "parc d'attractions", "We went to a theme park in Florida."],
+      ["ride", "attraction, manège", "This ride is terrifying!"],
+      ["roller coaster", "montagnes russes", "It has seventeen roller coasters."],
+      ["thrilling", "palpitant", "The new ride is thrilling."],
+      ["Ferris wheel", "grande roue", "The Ferris wheel is the tallest in the world."],
+      ["indoor", "couvert, en intérieur", "It's the largest indoor park."],
+      ["lifelike", "réaliste, plus vrai que nature", "The dinosaurs look lifelike."],
+      ["queue", "file d'attente", "We waited in the queue for an hour."],
+      ["worth it", "qui en vaut la peine", "It's expensive but worth it."],
+      ["guidebook", "guide (livre)", "He wrote a guidebook about parks."],
+      ["to expand", "se développer", "Theme parks are expanding in China."]
+    ],
+    "grammar": {
+      "title": "Comparatives and superlatives",
+      "rule": "Short adjectives: big - bigger than - the biggest. Long adjectives: exciting - more exciting than - the most exciting. Irregular: good - better - the best, bad - worse - the worst, far - further - the furthest.",
+      "examples": ["Cedar Point is more exciting than my local park.", "Lotte World is the largest indoor park in the world.", "The queues were worse than last year."]
+    },
+    "pronunciation": "Than is weak: /ðən/. Say: bigger than = /bɪgə ðən/, not /ðæn/.",
+    "did_you_know": "Some roller coasters reach more than 200 kilometres per hour, faster than many cars on a motorway.",
+    "model": "Lena: Shall we go to Thrill Valley or Splash Kingdom for the class trip?\nOmar: Thrill Valley is cheaper and closer.\nLena: True, but Splash Kingdom has more rides and the biggest water slide in the country.\nOmar: The queues are longer there, though.\nLena: OK, let's choose Thrill Valley: it's the best option for a one-day trip.",
+    "listening": {
+      "title": "Theme parks",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B1",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/theme-parks",
+      "verified_on": "2026-11-06",
+      "questions": ["Which park is the best for thrill rides, and how many roller coasters does it have?", "What is special about a wingcoaster?", "Which two world records will Ocean Kingdom in China hold?"],
+      "answers": ["Cedar Point in Ohio, with 17 roller coasters", "The seats stick out on both sides, so you feel you are flying", "The longest roller coaster and the tallest Ferris wheel"],
+      "fallback": "Host: Andy, you've written a guide to the world's theme parks. Which is the best for thrills?\nAndy: Cedar Point, in Ohio. It has seventeen roller coasters! The new one is a wingcoaster: the seats are on the sides, so you feel like you're flying.\nHost: And the biggest park?\nAndy: Magic Kingdom in Florida gets the most visitors. In Asia, Lotte World in South Korea is the largest indoor park.\nAndy: Fans of fiction love the Wizarding World of Harry Potter in Orlando, and Cedar Point even has lifelike dinosaurs.\nHost: What's next?\nAndy: China. Ocean Kingdom will have the longest roller coaster and the tallest Ferris wheel in the world."
+    },
+    "go_further": [
+      {"title": "The weekend", "source": "British Council - LearnEnglish Teens", "level": "B1", "media": "audio", "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b1-listening/weekend", "verified_on": "2026-11-06", "task": "Do the preparation task, then listen and note two activities and compare them with your own weekend."}
+    ],
+    "practice": ["Complete: This ride is ___ (scary) than the old one.", "Complete: It's the ___ (good) park I've ever visited.", "Correct the mistake: Lotte World is more bigger than my park.", "Compare two places you know in one sentence."],
+    "practice_answers": ["scarier", "best", "Lotte World is bigger than my park.", "Réponse possible : Paris is busier than my town, but my town is more relaxing."],
+    "starters": ["X is more ... than Y.", "The best thing about ... is...", "It's the ...-est in the world.", "I'd recommend ... because...", "I see your point, but..."],
+    "mission": "In pairs, compare two parks from your cards (price, rides, distance) and agree on the best one for the class trip. Present your choice to the class in three sentences.",
+    "can_do": ["I can understand numbers and records in a radio interview.", "I can compare places with comparatives and superlatives.", "I can recommend a place and justify my choice."],
+    "memory": "Write five facts with superlatives about places in your region. Test a partner next lesson."
+  },
+  "TLE-01": {
+    "hook": "YOU CHOOSE WHAT YOU CLICK. BUT WHO CHOOSES WHAT YOU SEE?",
+    "visual": [
+      {"label": "ONLINE", "picto": "telephone"},
+      {"label": "DATA", "picto": "loupe"},
+      {"label": "NEWS", "picto": "livre"},
+      {"label": "VIEWS", "picto": "bulles"}
+    ],
+    "vocab": [
+      ["filter bubble", "bulle de filtres", "We all live in a filter bubble."],
+      ["to track", "suivre, pister", "Websites track what we click."],
+      ["cookie", "cookie (témoin de connexion)", "Cookies are downloaded onto your computer."],
+      ["newsfeed", "fil d'actualité", "My newsfeed only shows sports news."],
+      ["personalised", "personnalisé", "Our online experience is personalised."],
+      ["algorithm", "algorithme", "The algorithm decides what we see."],
+      ["to be aware of", "avoir conscience de", "Few people are aware of it."],
+      ["point of view", "point de vue", "We don't see other points of view."],
+      ["advert", "publicité", "I saw adverts for trainers everywhere."],
+      ["to rely on", "dépendre de", "Many teens rely on social media for news."],
+      ["biased", "partial, orienté", "A biased feed can change your opinions."]
+    ],
+    "grammar": {
+      "title": "The passive voice",
+      "rule": "be + past participle. Present: Our clicks are tracked. Past: My data was collected. Use the passive when the doer is unknown, obvious or less important. Add by + agent only if useful: The book was written by Eli Pariser.",
+      "examples": ["What we see is chosen by algorithms.", "Cookies are downloaded onto our computers.", "My friends' posts were hidden from my newsfeed."]
+    },
+    "pronunciation": "Stress shifts in word families: PERsonal, personALity, PERsonalised. Practise: My personalised feed shows my personality.",
+    "did_you_know": "The expression \"filter bubble\" was made popular by internet activist Eli Pariser in a book published in 2011.",
+    "model": "Ines: I only see football videos on my feed now.\nJake: That's because your clicks are tracked. The app thinks it's all you like.\nInes: So I'm in a filter bubble?\nJake: Exactly. You aren't shown other topics anymore.\nInes: That's a bit worrying. I'd argue we should be able to switch it off.",
+    "listening": {
+      "title": "The Filter Bubble - part one",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b2-listening/filter-bubble-part-one",
+      "verified_on": "2026-11-06",
+      "questions": ["What tool do websites use to track what users do?", "Why did posts from some of the speaker's friends disappear from the newsfeed?", "What does Eli Pariser think we should worry about?"],
+      "answers": ["Cookies, downloaded onto the user's computer", "The speaker rarely clicked on them, so the site decided they weren't interesting", "Websites and apps control what information we see and don't see"],
+      "fallback": "Speaker: Today I'd like to recommend a book: The Filter Bubble, by Eli Pariser. Websites and apps record what we do online, often with cookies. Then they decide what to show us.\nLast month I looked for new trainers. Since then, I've seen trainer adverts everywhere!\nIt's more serious with news. I rarely clicked on posts by friends who vote for another party, so they disappeared from my newsfeed.\nPariser says we should worry: we don't see all the information, and we don't even notice."
+    },
+    "go_further": [
+      {"title": "The Filter Bubble - part two", "source": "British Council - LearnEnglish Teens", "level": "B2", "media": "audio", "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b2-listening/filter-bubble-part-two", "verified_on": "2026-11-06", "task": "Listen to the second part of the talk and note two solutions to get out of the filter bubble."}
+    ],
+    "practice": ["Make passive: Algorithms choose our videos.", "Make passive (past): Someone hacked my account.", "Complete: The book ___ (write) by Eli Pariser.", "Give your opinion on personalised feeds in two sentences."],
+    "practice_answers": ["Our videos are chosen by algorithms.", "My account was hacked.", "was written", "Réponse possible : Personalised feeds are convenient. However, I'd argue they hide other points of view."],
+    "starters": ["Our data is collected by...", "We are shown...", "I'd argue that...", "Admittedly, ... but...", "It depends on..."],
+    "mission": "In groups, prepare two arguments for or against personalised feeds. Debate with another group: one minute per speaker, then one counter-argument each.",
+    "can_do": ["I can explain what a filter bubble is.", "I can use the passive to talk about data and the internet.", "I can defend an opinion and answer an argument."],
+    "memory": "Check the settings of one app you use. Next lesson, explain in English what data it collects."
+  },
+  "1RE-01": {
+    "hook": "CLOUDS IN YOUR LIVING ROOM, GLOVES THAT SPEAK: SCIENCE FICTION OR SCIENCE?",
+    "visual": [
+      {"label": "IDEAS", "picto": "ampoule"},
+      {"label": "WATER", "picto": "pluie"},
+      {"label": "SUN", "picto": "soleil"},
+      {"label": "SPEECH", "picto": "micro"}
+    ],
+    "vocab": [
+      ["invention", "invention", "It's the best invention of the year."],
+      ["to glide", "planer", "With a wingsuit, you can glide."],
+      ["drinking water", "eau potable", "It turns salty water into drinking water."],
+      ["sign language", "langue des signes", "The gloves translate sign language."],
+      ["hearing impairment", "déficience auditive", "It helps people with hearing impairments."],
+      ["investor", "investisseur", "The project needs investors."],
+      ["to mass-produce", "produire en série", "It isn't mass-produced yet."],
+      ["submarine", "sous-marin", "The submarine went down ten kilometres."],
+      ["breakthrough", "avancée majeure", "It's a real breakthrough."],
+      ["affordable", "abordable", "Wingsuits are becoming more affordable."],
+      ["to solve", "résoudre", "It could solve a real problem."]
+    ],
+    "grammar": {
+      "title": "Possibility and hypothesis: could, might, would",
+      "rule": "Possibility: It could / might help thousands of people (could / might + base verb, no to). Second conditional for an imaginary situation: If + past simple, would + base verb. If I had a wingsuit, I would fly over the Alps.",
+      "examples": ["These gloves could change lives.", "If it were cheaper, more people would buy it.", "It might not work in every country."]
+    },
+    "pronunciation": "Would, could, should: the l is silent. /wʊd/, /kʊd/, /ʃʊd/.",
+    "did_you_know": "In 2012, film director James Cameron dived alone to the deepest point of the ocean, almost 11 kilometres down, in a submarine he helped design.",
+    "model": "Sara: Which invention did you prefer?\nNoah: The talking gloves. They could help thousands of people with hearing impairments.\nSara: I agree. If they were cheaper, every school would have some.\nNoah: And the indoor clouds?\nSara: Beautiful, but useless! I wouldn't buy them.",
+    "listening": {
+      "title": "New inventions",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b2-listening/new-inventions",
+      "verified_on": "2026-11-06",
+      "questions": ["What does Gabriele Diamanti's solar distiller do?", "What do the gloves made by Ukrainian students translate?", "How long did James Cameron stay at the deepest point of the ocean?"],
+      "answers": ["It turns salty water into drinking water using sunlight", "Sign language into text, then speech on a smartphone", "Three hours"],
+      "fallback": "Presenter: Welcome to Tech Today. Jed, what's new?\nJed: First, wingsuits: they're better and cheaper than before, but still too expensive for me.\nThen a solar distiller by Gabriele Diamanti: the sun turns salty water into drinking water. It's simple, but it needs investors.\nPresenter: And the gloves?\nJed: Brilliant! Ukrainian students made gloves that turn sign language into text and speech on a phone.\nJed: Finally, the Deepsea Challenger: James Cameron stayed three hours at the bottom of the ocean."
+    },
+    "go_further": [
+      {"title": "How to improve your memory", "source": "British Council - LearnEnglish Teens", "level": "B2", "media": "audio", "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b2-listening/how-improve-your-memory", "verified_on": "2026-11-06", "task": "Listen and note three tips. Which one could work for you? Write one sentence with could or might."}
+    ],
+    "practice": ["Complete: If I ___ (be) an inventor, I ___ (create) a robot teacher.", "Correct the mistake: It could to help many people.", "Rewrite with might: Perhaps it doesn't work everywhere.", "Imagine an invention for your school in two sentences."],
+    "practice_answers": ["were (was) - would create", "It could help many people.", "It might not work everywhere.", "Réponse possible : I'd invent a bag that weighs nothing. It could protect our backs."],
+    "starters": ["It could / might...", "If it were..., it would...", "The main benefit is...", "One risk is...", "To some extent, ..."],
+    "mission": "In groups, invent something that could solve a real problem. Pitch it in one minute (what it does, who it helps, one risk) and vote for the most useful invention.",
+    "can_do": ["I can understand descriptions of inventions in a radio show.", "I can make hypotheses with could, might and the second conditional.", "I can present an idea and its limits."],
+    "memory": "Find one recent invention online. Next lesson, present it in three sentences, one with could."
+  },
+  "1RE-02": {
+    "hook": "WOLF, HONOR, APPLE: WOULD YOU GIVE THESE NAMES TO YOUR CHILD?",
+    "visual": [
+      {"label": "NATURE", "picto": "arbre"},
+      {"label": "MUSIC", "picto": "musique"},
+      {"label": "IDENTITY", "picto": "loupe"},
+      {"label": "WORLD", "picto": "globe"}
+    ],
+    "vocab": [
+      ["first name", "prénom", "My first name comes from Greek."],
+      ["surname", "nom de famille", "Mason used to be a surname."],
+      ["to be named after", "porter le nom de", "She was named after a novelist."],
+      ["trend", "tendance", "It's the latest trend in baby names."],
+      ["to set a trend", "lancer une mode", "Celebrities set trends."],
+      ["to tend to", "avoir tendance à", "British parents tend to be traditional."],
+      ["virtue", "vertu", "Faith and Honor are virtue names."],
+      ["anagram", "anagramme", "Their names are anagrams of the same letters."],
+      ["common noun", "nom commun", "Apple is a common noun used as a name."],
+      ["to sound strange", "sembler bizarre", "New names sound strange at first."],
+      ["heritage", "héritage, patrimoine", "My name reflects my heritage."]
+    ],
+    "grammar": {
+      "title": "tend to, used to, be named after",
+      "rule": "tend to + base verb for a general habit: Parents tend to follow celebrities. used to + base verb for a past habit that has stopped: People used to choose saints' names. be named after + person: He was named after his grandfather.",
+      "examples": ["The USA tends to start naming trends.", "Names like Taylor used to be surnames.", "Harper was named after a novelist."]
+    },
+    "pronunciation": "Used to is pronounced /juːstə/, with an s sound: People used to /juːstə/ choose traditional names.",
+    "did_you_know": "In England and Wales, the most popular baby names are published every year by the Office for National Statistics.",
+    "model": "Chloe: Why did your parents call you River?\nRiver: They tend to love nature: my sister is called Willow!\nChloe: In my family, people used to be named after their grandparents.\nRiver: Do you think a name changes who you are?\nChloe: To some extent. People judge you before they meet you, just from your name.",
+    "listening": {
+      "title": "What's in a name?",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b2-listening/whats-name",
+      "verified_on": "2026-11-06",
+      "questions": ["Which country usually starts new trends in baby names?", "What do the names of the Dutch family's six children have in common?", "Give one category of common nouns used as first names."],
+      "answers": ["The United States (Britain tends to follow)", "They are all made with the letters A, E, L and X", "Any one: virtues, nature or animals, music, months, colours, food, places, jobs"],
+      "fallback": "Presenter 1: Finn, where do baby-name trends come from?\nFinn: Mostly from the USA; Britain follows, but parents here tend to be more traditional.\nPresenter 1: What's the big trend?\nFinn: Ordinary words as names: virtues like Honor, nature like Wolf or Fox, music like Melody, even food, like Apple.\nPresenter 1: Any surprising families?\nFinn: A Dutch family whose six children's names all use the letters A, E, L and X! New names sound strange at first, then we get used to them."
+    },
+    "go_further": [
+      {"title": "Unusual British festivals", "source": "British Council - LearnEnglish Teens", "level": "B2", "media": "audio", "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b2-listening/unusual-british-festivals", "verified_on": "2026-11-06", "task": "Listen and note two festivals and what they say about local identity."}
+    ],
+    "practice": ["Complete: Teenagers ___ (tend) follow celebrities on social media.", "Complete with used to: My grandparents ___ live in Ireland.", "Correct the mistake: He was named of his uncle.", "Does a name shape who we are? Answer in two sentences."],
+    "practice_answers": ["tend to", "used to", "He was named after his uncle.", "Réponse possible : To some extent, yes: people make assumptions from names. But our choices matter more."],
+    "starters": ["I was named after...", "People tend to...", "In the past, parents used to...", "To some extent, ...", "To sum up, our group feels that..."],
+    "mission": "In groups of four, discuss \"Does a name shape who we are?\" for ten minutes using the argument cards. Then a spokesperson sums up your ideas in one minute.",
+    "can_do": ["I can understand the main points of a radio discussion.", "I can talk about trends and past habits.", "I can take part in a discussion and sum it up."],
+    "memory": "Find the meaning and origin of a name you like. Present it in three sentences next lesson."
+  },
+  "TLE-02": {
+    "hook": "THEY USED TO HUNT LIONS. NOW THEY PROTECT THEM.",
+    "visual": [
+      {"label": "NATURE", "picto": "arbre"},
+      {"label": "PROTECT", "picto": "valide"},
+      {"label": "COMMUNITY", "picto": "equipe"},
+      {"label": "TRACKING", "picto": "loupe"}
+    ],
+    "vocab": [
+      ["livestock", "bétail", "Lions attacked their livestock."],
+      ["herder", "éleveur, berger", "Guardians warn herders about lions."],
+      ["warrior", "guerrier", "Young warriors used to hunt lions."],
+      ["rite of passage", "rite de passage", "Killing a lion was a rite of passage."],
+      ["conservation", "protection de la nature", "They work in conservation."],
+      ["to track", "suivre (à la trace)", "They track lions with radio collars."],
+      ["to come of age", "devenir adulte", "Boys came of age by proving their courage."],
+      ["to persuade", "persuader", "They persuade people not to hunt."],
+      ["scheme", "programme, dispositif", "The scheme started in 2007."],
+      ["whereas", "alors que (contraste)", "Sixty-three lions died there, whereas none died here."],
+      ["endangered", "menacé", "Lions are an endangered species."]
+    ],
+    "grammar": {
+      "title": "Contrast and change",
+      "rule": "Contrast two facts: whereas / while (Zero lions were killed here, whereas 63 were killed next door), although (Although it was a tradition, it changed). Replace an action: instead of + -ing (Instead of killing lions, they protect them). Past habit: used to + base verb.",
+      "examples": ["Young men used to kill lions.", "Instead of hunting, they now track lions.", "Although the tradition was old, the community accepted the change."]
+    },
+    "pronunciation": "Stress in long words: conserVAtion, traDItion, compeTItion. The stress falls just before -tion.",
+    "did_you_know": "Lion Guardians started in Kenya in 2007. Many guardians are former lion hunters who now use radio tracking to follow the lions.",
+    "model": "Amara: Did you know the Maasai used to kill lions to become warriors?\nLeo: Really? Do they still do it?\nAmara: Much less. Instead of hunting, some young men become Lion Guardians.\nLeo: Do they earn respect in the same way?\nAmara: Yes, they can earn a lion name by protecting lions, whereas in the past they earned it by killing one.",
+    "listening": {
+      "title": "The Maasai and the lions",
+      "source": "British Council - LearnEnglish Teens",
+      "level": "B2",
+      "media": "audio",
+      "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b2-listening/maasai-lions",
+      "verified_on": "2026-11-06",
+      "questions": ["What did young Maasai warriors traditionally have to do to come of age?", "What is the aim of the Lion Guardians scheme?", "How many lions were killed in the area patrolled by the Guardians, compared with the area next to it?"],
+      "answers": ["Kill a lion", "To train local people to protect lions and manage conflicts between lions and herders", "None in the Guardians' area since 2007, whereas 63 were killed in the neighbouring area"],
+      "fallback": "Reporter: For centuries, the Maasai of Kenya saw lions as enemies: lions killed their cattle, and young men proved they were warriors by killing a lion.\nToday, a scheme called Lion Guardians trains local people to protect lions. Guardians follow the lions, warn herders, help find lost animals and persuade others not to hunt.\nOlubi used to be a hunter: he killed seven lions. Now he is a Guardian.\nSince 2007, no lion has been killed in the Guardians' area, whereas sixty-three were killed in the area next to it."
+    },
+    "go_further": [
+      {"title": "High-achieving teenagers", "source": "British Council - LearnEnglish Teens", "level": "B2", "media": "audio", "url": "https://learnenglishteens.britishcouncil.org/skills/listening/b2-listening/high-achieving-teenagers", "verified_on": "2026-11-06", "task": "Listen and note what one young person achieved and what motivated him or her."}
+    ],
+    "practice": ["Join with whereas: In the Guardians' area, no lions died. In the next area, 63 died.", "Rewrite with instead of: They don't hunt lions now; they protect them.", "Complete with used to: Olubi ___ hunt lions.", "Should traditions change to protect nature? Answer in two sentences."],
+    "practice_answers": ["No lions died in the Guardians' area, whereas 63 died in the next area.", "Instead of hunting lions, they protect them.", "used to", "Réponse possible : Traditions matter, although some must adapt. Changing them can protect both people and nature."],
+    "starters": ["They used to..., but now...", "Instead of ...-ing, ...", "Whereas..., ...", "Although..., ...", "The best compromise would be..."],
+    "mission": "In groups, play a village meeting (herder, young warrior, Lion Guardian, tourist guide). Each defends his or her interests, then the group agrees on one solution and presents it.",
+    "can_do": ["I can understand a report about a changing tradition.", "I can contrast past and present.", "I can defend a point of view in a role play."],
+    "memory": "Find another example of a tradition that changed to protect nature. Present it next lesson with one contrast connector."
+  }
+}

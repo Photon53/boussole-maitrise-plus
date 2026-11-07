@@ -1,0 +1,811 @@
+"""Contrats d'API. La séparation QuestionPublique / ResultatReponse garantit
+que la bonne réponse n'est envoyée au navigateur qu'après soumission."""
+
+import re
+from datetime import datetime
+from typing import Annotated
+
+from pkp_engine import Niveau, TypeQuestion
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from app.referentiel import (
+    PARCOURS_PAR_NIVEAU,
+    Adaptation,
+    Parcours,
+    PublicRessource,
+    Role,
+    StatutValidation,
+    TypeRessource,
+    parcours_par_defaut,
+)
+
+_PRENOM = re.compile(r"^[A-Za-zÀ-ÖØ-öø-ÿ' -]+$")
+
+
+def normaliser_prenom(prenom: str) -> str:
+    """« inès », « INÈS » et « Inès » désignent le même élève."""
+    return " ".join(prenom.split()).title()
+
+
+class _Modele(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+
+# --- Élève ----------------------------------------------------------------
+
+
+def valider_prenom(v: str) -> str:
+    v = normaliser_prenom(v)
+    if not v or len(v) > 50 or not _PRENOM.match(v):
+        raise ValueError("Le prénom ne doit contenir que des lettres, espaces, tirets ou apostrophes.")
+    return v
+
+
+class ConnexionEleve(BaseModel):
+    prenom: Annotated[str, Field(min_length=1, max_length=50)]
+    code_classe: Annotated[str, Field(min_length=1, max_length=20)]
+    code_personnel: Annotated[str, Field(min_length=1, max_length=20)]
+
+    @field_validator("prenom")
+    @classmethod
+    def _prenom(cls, v: str) -> str:
+        return valider_prenom(v)
+
+    @field_validator("code_classe")
+    @classmethod
+    def _code(cls, v: str) -> str:
+        return v.strip().upper()
+
+
+class ConnexionIdentifiant(BaseModel):
+    """Connexion simplifiée : identifiant + code personnel, sans prénom ni code classe."""
+
+    identifiant: Annotated[str, Field(min_length=3, max_length=40)]
+    code_personnel: Annotated[str, Field(min_length=1, max_length=20)]
+    rester_connecte: bool = False  # appareil personnel : session de plusieurs semaines
+
+
+class EleveInfo(BaseModel):
+    id: int
+    prenom: str
+    identifiant: str | None = None
+    code_classe: str
+    niveau: Niveau
+    parcours: Parcours
+
+
+class InscriptionLiee(BaseModel):
+    """Une inscription (classe) d'un élève suivi dans plusieurs parcours."""
+
+    eleve_id: int
+    prenom: str
+    code_classe: str
+    niveau: Niveau
+    parcours: Parcours
+    actuelle: bool = False
+
+
+class LiensEleve(BaseModel):
+    """Côté professeur : inscriptions déjà reliées, et suggestions (même prénom dans ses autres classes)."""
+
+    liees: list[InscriptionLiee]
+    suggestions: list[InscriptionLiee]
+
+
+class LienCreation(BaseModel):
+    eleve_id: int
+
+
+class JetonEleve(BaseModel):
+    jeton: str
+    eleve: EleveInfo
+
+
+class ChapitreResume(_Modele):
+    id: int
+    titre: str
+
+
+class SeanceCreation(BaseModel):
+    """Chapitres choisis par l'élève ; vide = tous les chapitres ouverts de sa classe.
+    `competence_ids` cible la séance sur ces compétences (bouton « S'entraîner » d'une leçon)."""
+
+    chapitre_ids: Annotated[list[int], Field(max_length=60)] = []
+    competence_ids: Annotated[list[int], Field(max_length=20)] = []
+    difficulte_min: Annotated[int, Field(ge=1, le=5)] | None = None
+    difficulte_max: Annotated[int, Field(ge=1, le=5)] | None = None
+
+    @model_validator(mode="after")
+    def _niveaux(self):
+        if self.difficulte_min and self.difficulte_max and self.difficulte_min > self.difficulte_max:
+            raise ValueError("Le niveau minimal dépasse le niveau maximal.")
+        return self
+
+
+class CompetenceResume(_Modele):
+    id: int
+    libelle: str
+
+
+class SeanceInfo(_Modele):
+    id: int
+    debut: datetime
+    fin: datetime | None
+    chapitres: list[ChapitreResume] = []
+    competences: list[CompetenceResume] = []
+    difficulte_min: int | None = None
+    difficulte_max: int | None = None
+
+
+class ChapitreOuvert(BaseModel):
+    """Chapitre proposé par l'enseignant, tel que l'élève le voit."""
+
+    id: int
+    code: str
+    titre: str
+    nb_questions: int
+
+
+class ChapitreProgramme(BaseModel):
+    """Chapitre du programme d'une classe, vu par l'enseignant."""
+
+    id: int
+    code: str
+    titre: str
+    ordre: int
+    propose: bool
+    nb_competences: int
+    nb_questions: int
+
+
+class ChoixChapitres(BaseModel):
+    chapitre_ids: Annotated[list[int], Field(max_length=60)]
+
+
+class QuestionPublique(_Modele):
+    """Ce que voit l'élève avant de répondre : jamais de champ `solution`."""
+
+    id: int
+    competence_id: int
+    enonce: str
+    type: TypeQuestion
+    difficulte: int
+    # Valeurs variables : chaque service tire de nouveaux nombres ; « refaire » propose une variante.
+    variable: bool = False
+    # Question pas encore validée par un enseignant : l'élève est prévenu qu'elle peut contenir une erreur.
+    en_relecture: bool = False
+
+
+class DemandeVariante(BaseModel):
+    question_id: int
+
+
+class CompetenceCours(BaseModel):
+    id: int
+    code: str
+    libelle: str
+    a_une_lecon: bool
+
+
+class ChapitreCours(BaseModel):
+    id: int
+    code: str
+    titre: str
+    competences: list[CompetenceCours]
+
+
+class RessourceVue(BaseModel):
+    """Ressource telle qu'affichée sous un cours (élève ou enseignant)."""
+
+    id: int
+    type: str
+    titre: str
+    description: str
+    url: str | None
+    domaine: str | None
+    taille_octets: int | None
+    portee: str
+
+
+class RessourceCreation(BaseModel):
+    """Lien (avec `url`) ou PDF (le fichier est envoyé ensuite, à part)."""
+
+    type: TypeRessource
+    titre: Annotated[str, Field(min_length=1, max_length=120)]
+    description: Annotated[str, Field(max_length=300)] = ""
+    url: Annotated[str | None, Field(max_length=500)] = None
+    source: Annotated[str | None, Field(max_length=200)] = None
+    licence: Annotated[str | None, Field(max_length=100)] = None
+    chapitre_id: int | None = None
+    competence_id: int | None = None
+    public: PublicRessource = PublicRessource.TOUS
+    # Portée « classe » : classes du professeur qui verront la ressource.
+    classe_ids: Annotated[list[int], Field(max_length=60)] = []
+    # PDF : le professeur déclare détenir les droits de diffusion à ses élèves (EA5.10).
+    droits_declares: bool = False
+    ordre: int = 0
+
+    @model_validator(mode="after")
+    def _coherence(self):
+        if (self.chapitre_id is None) == (self.competence_id is None):
+            raise ValueError("Rattacher la ressource à un chapitre ou à une compétence (un seul des deux).")
+        if self.type == TypeRessource.LIEN and not self.url:
+            raise ValueError("Un lien doit avoir une adresse.")
+        if self.type == TypeRessource.PDF:
+            self.url = None
+            if not (self.source and self.licence):
+                raise ValueError("Pour un PDF, indiquer la source et la licence.")
+        return self
+
+
+class RessourceDetail(RessourceVue):
+    """Vue de gestion : rattachement, public, état du lien, modération."""
+
+    source: str | None
+    licence: str | None
+    chapitre_id: int | None
+    competence_id: int | None
+    rattachement: str
+    public: str
+    auteur: str
+    classes: list[str]
+    masquee: bool
+    motif_masquage: str | None
+    echecs_lien: int
+    a_un_fichier: bool
+    consultations: int
+    cree_le: datetime
+
+
+class LeconInfo(BaseModel):
+    competence_id: int
+    code: str
+    libelle: str
+    chapitre: str
+    chapitre_id: int | None = None
+    cours: str
+    resume: str
+    objectifs: list[str] = []
+    methodes: list[dict] = []
+    erreurs_frequentes: list[dict] = []
+    ressources: list[RessourceVue] = []
+
+
+class SoumissionReponse(BaseModel):
+    question_id: int
+    reponse_donnee: Annotated[str, Field(max_length=200)]
+
+
+class ResultatReponse(BaseModel):
+    correcte: bool
+    solution: str
+    # Correction détaillée : envoyée seulement ici, donc après la réponse de l'élève (E0.3).
+    correction: dict | None = None
+    # Partie du cours à revoir : toujours fournie, pour les questions qui n'ont pas encore de correction détaillée.
+    competence: str | None = None
+    competence_id: int | None = None
+    # Titres des méthodes de la leçon, dans l'ordre : la correction renvoie l'élève vers la bonne fiche.
+    methodes: list[str] = []
+    rappel: str | None = None  # résumé « L'essentiel » de la leçon
+    maitrise: float = Field(description="Maîtrise de la compétence après cette réponse, entre 0 et 1.")
+    maitrisee: bool
+    # Réponse juste en valeur mais pas sous la forme demandée (« Développer », « Factoriser »…).
+    remarque: str | None = None
+
+
+class ReponseHistorique(BaseModel):
+    """Une réponse passée : l'élève (et son professeur) revoient la question, la réponse et la correction."""
+
+    id: int
+    repondu_le: datetime
+    seance_id: int
+    question_id: int
+    competence_id: int
+    competence: str
+    chapitre: str
+    enonce: str
+    type: TypeQuestion
+    difficulte: int
+    reponse_donnee: str
+    correcte: bool
+    solution: str
+    correction: dict | None = None
+    duree_s: float
+
+
+class AvancementCompetence(BaseModel):
+    """Méthode PKP sur une compétence : où en est l'élève dans les étapes « je m'entraîne », « je me dépasse », « je vérifie »."""
+
+    competence_id: int
+    libelle: str
+    reponses: int
+    reussies_bases: int  # bonnes réponses de niveau 1 à 3
+    objectif_bases: int
+    reussies_avancees: int  # bonnes réponses de niveau 4 et 5
+    objectif_avancees: int
+    maitrise: float
+    maitrisee: bool
+
+
+class PageHistorique(BaseModel):
+    total: int
+    erreurs: int
+    elements: list[ReponseHistorique]
+
+
+class ProgressionCompetence(BaseModel):
+    competence_id: int
+    code: str
+    libelle: str
+    chapitre: str
+    nb_reponses: int
+    maitrise: float
+    maitrisee: bool
+
+
+# --- Enseignant -----------------------------------------------------------
+
+
+class ConnexionEnseignant(BaseModel):
+    email: Annotated[str, Field(min_length=3, max_length=254)]
+    mot_de_passe: Annotated[str, Field(min_length=1, max_length=200)]
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, v: str) -> str:
+        return v.strip().lower()
+
+
+class JetonEnseignant(BaseModel):
+    jeton: str
+    nom: str
+    role: Role = Role.ENSEIGNANT
+    # Vrai : l'interface demande un nouveau mot de passe avant tout le reste.
+    mdp_provisoire: bool = False
+    # Espaces ouverts au compte ; l'API les revérifie à chaque requête.
+    enseigne_maths: bool = True
+    enseigne_anglais: bool = False
+    # Référent : ouvre la page de validation des séances PKP Anglais.
+    referent_anglais: bool = False
+
+
+class ChangementMotDePasse(BaseModel):
+    actuel: Annotated[str, Field(min_length=1, max_length=200)]
+    nouveau: Annotated[str, Field(min_length=12, max_length=200)]
+
+
+class CompetenceCoursEnseignant(BaseModel):
+    id: int
+    code: str
+    libelle: str
+    a_une_lecon: bool
+    nb_questions: int
+
+
+class ChapitreCoursEnseignant(BaseModel):
+    id: int
+    code: str
+    titre: str
+    niveau: Niveau
+    parcours: Parcours
+    # Codes des classes du professeur où ce chapitre est ouvert aux élèves.
+    ouvert_dans: list[str]
+    competences: list[CompetenceCoursEnseignant]
+
+
+class ClasseCreation(BaseModel):
+    niveau: Niveau
+    parcours: Parcours | None = None  # par défaut : tronc commun en 2nde, spécialité ensuite
+
+    @model_validator(mode="after")
+    def _parcours_du_niveau(self):
+        if self.parcours is None:
+            self.parcours = parcours_par_defaut(self.niveau)
+        elif self.parcours not in PARCOURS_PAR_NIVEAU[self.niveau]:
+            raise ValueError(f"Le parcours « {self.parcours.value} » n'existe pas en {self.niveau.value}.")
+        return self
+
+
+class ClasseResume(BaseModel):
+    id: int
+    code: str
+    niveau: Niveau
+    parcours: Parcours
+    nb_eleves: int
+
+
+class EleveResume(BaseModel):
+    id: int
+    prenom: str
+    identifiant: str | None = None
+    a_un_code: bool
+    nb_reponses: int
+    taux_reussite: float | None
+    competences_maitrisees: int
+    competences_total: int
+    classes_liees: list[str] = []  # codes des autres classes du même élève
+
+
+class EleveRenommage(BaseModel):
+    prenom: str
+
+    @field_validator("prenom")
+    @classmethod
+    def _prenom(cls, v: str) -> str:
+        return valider_prenom(v)
+
+
+class CreationEleves(BaseModel):
+    """Prénoms à inscrire dans une classe (un par ligne côté interface)."""
+
+    prenoms: Annotated[list[str], Field(min_length=1, max_length=60)]
+
+    @field_validator("prenoms")
+    @classmethod
+    def _prenoms(cls, v: list[str]) -> list[str]:
+        propres = [valider_prenom(p) for p in v if p.strip()]
+        if not propres:
+            raise ValueError("Aucun prénom fourni.")
+        return list(dict.fromkeys(propres))  # sans doublons, ordre conservé
+
+
+class CodeEleve(BaseModel):
+    """Code personnel en clair : affiché une seule fois, à la génération."""
+
+    id: int
+    prenom: str
+    code: str
+    identifiant: str | None = None
+
+
+class ResultatCreationEleves(BaseModel):
+    crees: list[CodeEleve]
+    deja_presents: list[str]
+
+
+class CompetenceInfo(BaseModel):
+    id: int
+    code: str
+    libelle: str
+    chapitre: str
+    niveau: Niveau
+    parcours: Parcours
+
+
+class QuestionCreation(BaseModel):
+    competence_id: int
+    enonce: Annotated[str, Field(min_length=1, max_length=2000)]
+    type: TypeQuestion
+    solution: Annotated[str, Field(min_length=1, max_length=200)]
+    difficulte: Annotated[int, Field(ge=1, le=5)]
+
+
+class QuestionEnseignant(_Modele):
+    """Vue enseignant : contient la solution."""
+
+    id: int
+    competence_id: int
+    enonce: str
+    type: TypeQuestion
+    solution: str
+    difficulte: int
+    archivee: bool
+    source: str
+    source_url: str | None
+    licence_source: str | None
+    adaptation: Adaptation
+    statut_validation: StatutValidation
+    correction: dict | None = None
+
+
+# --- Parents --------------------------------------------------------------------
+
+_EMAIL = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+class ParentCreation(BaseModel):
+    """E-mail du parent, saisi par le professeur ; le mot de passe provisoire est généré."""
+
+    email: Annotated[str, Field(min_length=5, max_length=254)]
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not _EMAIL.match(v):
+            raise ValueError("Adresse e-mail invalide.")
+        return v
+
+
+class ParentVue(BaseModel):
+    id: int
+    email: str
+    nom: str = ""
+    prenom: str = ""
+    mdp_provisoire: bool
+    derniere_connexion: datetime | None
+    enfants: list[str]  # « Lina (2NDE-A-DEMO) »
+
+
+class ParentCree(BaseModel):
+    parent: ParentVue
+    # Absent quand le compte existait déjà (autre enfant) : le parent garde son mot de passe.
+    mot_de_passe_provisoire: str | None = None
+
+
+class JetonParent(BaseModel):
+    jeton: str
+    email: str
+    # Vrai : l'interface demande un nouveau mot de passe avant tout le reste.
+    mdp_provisoire: bool
+
+
+class EnfantResume(BaseModel):
+    id: int
+    prenom: str
+    identifiant: str | None
+    code_classe: str
+    niveau: Niveau
+    parcours: Parcours
+    a_un_code: bool
+    nb_reponses: int
+    taux_reussite: float | None
+    competences_maitrisees: int
+    competences_total: int
+    derniere_activite: datetime | None
+    minutes_7_jours: float
+
+
+class JourActivite(BaseModel):
+    jour: str  # AAAA-MM-JJ
+    nb_reponses: int
+    minutes: float
+
+
+class ChapitreSuivi(BaseModel):
+    titre: str
+    competences_total: int
+    competences_maitrisees: int
+
+
+class TableauEnfant(BaseModel):
+    enfant: EnfantResume
+    activite: list[JourActivite]  # les 14 derniers jours, du plus ancien au plus récent
+    minutes_30_jours: float
+    seances_30_jours: int
+    chapitres: list[ChapitreSuivi]
+    progression: list[ProgressionCompetence]
+
+
+class CodeChoisi(BaseModel):
+    code: Annotated[str, Field(min_length=1, max_length=20)]
+
+
+class CodeEnfantModifie(BaseModel):
+    identifiant: str
+
+
+# --- Familles : enfants (personnes) et leur carte unique ---------------------------------------------
+
+
+class EnfantSaisi(BaseModel):
+    """Un enfant saisi par l'administrateur : prénom, nom (ou initiale, facultatif) et niveau d'études."""
+
+    prenom: str
+    nom: Annotated[str, Field(max_length=50)] = ""
+    niveau: Niveau
+
+    @field_validator("prenom")
+    @classmethod
+    def _prenom(cls, v: str) -> str:
+        return valider_prenom(v)
+
+    @field_validator("nom")
+    @classmethod
+    def _nom(cls, v: str) -> str:
+        v = " ".join(v.split())
+        if v and not _PRENOM.match(v):
+            raise ValueError("Nom invalide : lettres, espaces, apostrophes et tirets seulement.")
+        return v
+
+
+def _nom_facultatif(v: str) -> str:
+    v = " ".join(v.split())
+    if v and (len(v) > 50 or not _PRENOM.match(v)):
+        raise ValueError("Nom invalide : lettres, espaces, apostrophes et tirets seulement.")
+    return v
+
+
+class IdentiteResponsable(BaseModel):
+    """Nom et prénom du responsable légal, facultatifs (V3, Lot 1)."""
+
+    nom: str = ""
+    prenom: str = ""
+
+    @field_validator("nom", "prenom")
+    @classmethod
+    def _valider(cls, v: str) -> str:
+        return _nom_facultatif(v)
+
+
+class ResponsableAjout(IdentiteResponsable):
+    """Responsable d'un enfant existant : compte retrouvé par son e-mail, ou créé."""
+
+    email: Annotated[str, Field(min_length=5, max_length=254)]
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, v: str) -> str:
+        return ParentCreation(email=v).email
+
+
+class EnfantModification(BaseModel):
+    prenom: str | None = None
+    nom: Annotated[str | None, Field(max_length=50)] = None
+    niveau: Niveau | None = None
+
+    @field_validator("prenom")
+    @classmethod
+    def _prenom(cls, v: str | None) -> str | None:
+        return None if v is None else valider_prenom(v)
+
+    @field_validator("nom")
+    @classmethod
+    def _nom(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        v = " ".join(v.split())
+        if v and not _PRENOM.match(v):
+            raise ValueError("Nom invalide : lettres, espaces, apostrophes et tirets seulement.")
+        return v
+
+
+class CarteEnfant(BaseModel):
+    """Identifiant et code en clair : affichés une seule fois, à imprimer ou à recopier."""
+
+    id: int
+    prenom: str
+    nom: str
+    niveau: Niveau
+    identifiant: str
+    code: str
+
+
+class InscriptionMaths(BaseModel):
+    eleve_id: int
+    code_classe: str
+    niveau: Niveau
+    parcours: Parcours
+    libelle_parcours: str
+    enseignant: str
+    # Parcours principal (tronc commun, spécialité…) ou option (excellence, mise à niveau…) : V3, Lot 1.
+    principal: bool = True
+    # Classe archivée (V3, Lot 3) : montrée à l'administrateur et aux responsables, plus à l'élève.
+    archivee: bool = False
+
+
+class InscriptionAnglais(BaseModel):
+    eleve_id: int
+    groupe: str
+    niveau: str
+    enseignant: str
+    archivee: bool = False
+
+
+class EnfantFamille(BaseModel):
+    """Un enfant et toutes ses inscriptions (vu par l'administrateur, le professeur ou le parent)."""
+
+    id: int
+    prenom: str
+    nom: str
+    niveau: Niveau
+    identifiant: str
+    a_un_code: bool
+    derniere_connexion: datetime | None
+    maths: list[InscriptionMaths]
+    bloque: bool = False
+    anglais: list[InscriptionAnglais]
+
+
+class EnfantChoix(BaseModel):
+    """Ce qu'un professeur voit d'un enfant pour l'ajouter à sa classe : le strict nécessaire."""
+
+    id: int
+    nom: str
+    niveau: Niveau
+    identifiant: str
+    deja_inscrit: bool = False
+
+
+class AjoutEnfants(BaseModel):
+    enfant_ids: Annotated[list[int], Field(min_length=1, max_length=60)]
+
+
+class ResultatAjoutEnfants(BaseModel):
+    ajoutes: list[str]
+    refus: list[str]
+
+
+class Matiere(BaseModel):
+    """Une matière de l'espace de l'enfant ; `disponible` faux : affichée « bientôt disponible »."""
+
+    code: str
+    libelle: str
+    disponible: bool
+
+
+class EspaceEnfant(BaseModel):
+    id: int
+    prenom: str
+    nom: str
+    niveau: Niveau
+    identifiant: str
+    matieres: list[Matiere]
+    maths: list[InscriptionMaths]
+    anglais: list[InscriptionAnglais]
+
+
+class JetonEnfant(BaseModel):
+    jeton: str
+    enfant: EspaceEnfant
+
+
+class ConnexionCarte(BaseModel):
+    """Réponse de la connexion par carte : carte d'enfant de famille, ou ancienne carte d'élève de maths."""
+
+    type: str  # « enfant » ou « eleve »
+    jeton: str
+    enfant: EspaceEnfant | None = None
+    eleve: EleveInfo | None = None
+
+
+class CodeEnfantFamille(BaseModel):
+    """Choisi par le parent (8 à 16 caractères) ; vide : un code est tiré au hasard et renvoyé une fois."""
+
+    code: Annotated[str, Field(max_length=20)] = ""
+
+
+class NouvelleCarte(BaseModel):
+    identifiant: str
+    code: str | None = None  # seulement quand il a été tiré au hasard
+
+
+class ProgressionAnglaisEnfant(BaseModel):
+    groupe: str
+    niveau: str
+    seances_faites: int
+    score_moyen: float | None  # entre 0 et 1
+    i_can: int  # nombre d'auto-évaluations « I can » cochées
+
+
+class SuiviEnfant(BaseModel):
+    """Tableau du parent pour un enfant : maths (par inscription), anglais, et le français à venir."""
+
+    enfant: EnfantFamille
+    matieres: list[Matiere]
+    maths: list[EnfantResume]
+    anglais: list[ProgressionAnglaisEnfant]
+
+
+class ArchiveResume(BaseModel):
+    """Inscription archivée d'un enfant (V3) : ce qu'elle était et ce qu'il y avait fait."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    matiere: str
+    domaine_code: str
+    niveau: str
+    parcours: str | None
+    cours: str
+    enseignant: str
+    inscrit_le: datetime | None
+    archivee_le: datetime
+    par: str
+    motif: str
+    resume: dict
+
+
+class ArchiveDetail(ArchiveResume):
+    contenu: dict
+

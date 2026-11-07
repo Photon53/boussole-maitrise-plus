@@ -1,0 +1,276 @@
+chapitre:
+  code: 2NDE-FONCTIONS
+  niveau: 2nde
+  parcours: tronc-commun
+  ordre: 8
+  titre: Généralités sur les fonctions
+
+competences:
+  - code: 2NDE-IMG
+    libelle: Calculer une image et rechercher un antécédent
+    attendus: [2NDE-2026-AUTO-16, 2NDE-2026-FREP-01, 2NDE-2026-FREP-02]
+    cours_couvre: [2NDE-2026-AUTO-16, 2NDE-2026-FREP-01, 2NDE-2026-FREP-02]
+    objectifs:
+    - Calculer une image et chercher un antécédent par le calcul.
+    methodes:
+    - titre: Chercher les antécédents d'un nombre
+      etapes:
+      - Écrire l'équation $f(x) = k$.
+      - Résoudre l'équation ; vérifier que les solutions sont dans l'ensemble de définition.
+      exemple:
+        enonce: $f(x) = 4x - 3$. Antécédent de $9$ ?
+        resolution:
+        - $4x - 3 = 9$ donne $4x = 12$, soit $x = 3$.
+        resultat: $3$
+    erreurs_frequentes:
+    - erreur: Confondre image et antécédent.
+      explication: L'image de $a$ est $f(a)$ (on calcule) ; un antécédent de $k$ est un $x$ tel que $f(x) = k$ (on résout).
+    - erreur: Calculer $-3^2 = -9$ en remplaçant $x$ par $-3$ dans $x^2$.
+      explication: 'Remplacer $x$ par $(-3)$ avec les parenthèses : $(-3)^2 = 9$.'
+    resume: |
+      - Une fonction $f$ définie sur $D$ associe à chaque $x$ de $D$ un **unique** réel $f(x)$, l'**image** de $x$.
+      - Un **antécédent** de $k$ est un réel $x$ de $D$ tel que $f(x) = k$ ; il peut y en avoir zéro, un ou plusieurs.
+      - Image : on **calcule** $f(x)$ ; antécédents : on **résout** $f(x) = k$.
+      - Sur la courbe : l'image se lit sur l'axe des ordonnées, les antécédents sur l'axe des abscisses.
+      - L'ensemble de définition exclut les valeurs qui annulent un dénominateur ou rendent négatif un nombre sous une racine.
+    cours: |
+      ## 1. Notion de fonction
+      > **Définition.** Soit $D$ un intervalle ou une réunion d'intervalles de $\mathbb{R}$. Définir une **fonction** $f$ sur $D$, c'est associer à chaque réel $x$ de $D$ un **unique** réel, noté $f(x)$. On écrit $f : x \mapsto f(x)$. L'ensemble $D$ est l'**ensemble de définition** de $f$.
+
+      Une fonction peut être donnée par une formule, un tableau de valeurs, une courbe ou un programme.
+
+      ## 2. Image et antécédent
+      - Si $f(a) = b$, on dit que $b$ est l'**image** de $a$ par $f$ et que $a$ est **un antécédent** de $b$ par $f$.
+      - Un réel de $D$ a **toujours une seule** image ; un réel peut avoir aucun, un ou plusieurs antécédents.
+
+      **Exemple.** Pour $f(x) = x^2 - 3$ sur $\mathbb{R}$ : l'image de $-2$ est $f(-2) = (-2)^2 - 3 = 1$. Les antécédents de $6$ vérifient $x^2 - 3 = 6$, soit $x^2 = 9$ : ce sont $-3$ et $3$. Le nombre $-5$ n'a pas d'antécédent, car $x^2 - 3 \geqslant -3$.
+
+      ## 3. Ensemble de définition
+      Si l'ensemble de définition n'est pas donné, c'est l'ensemble des réels pour lesquels la formule a un sens :
+      - un **dénominateur** ne doit pas s'annuler ;
+      - un nombre sous une **racine carrée** doit être positif ou nul.
+
+      Exemples : $g(x) = \dfrac{5}{x + 4}$ est définie sur $\mathbb{R} \setminus \{-4\}$ ; $h(x) = \sqrt{2x - 6}$ est définie sur $[3 ; +\infty[$ car $2x - 6 \geqslant 0 \iff x \geqslant 3$. Dans un problème concret, le contexte peut réduire l'ensemble d'étude (une longueur est positive…).
+
+      ## 4. Méthodes
+      ### Calculer une image
+      Remplacer $x$ par la valeur, **avec des parenthèses**, puis respecter les priorités.
+
+      ### Rechercher les antécédents de $k$ par le calcul
+      1. Écrire l'équation $f(x) = k$.
+      2. La résoudre (premier degré, $x^2 = a$, produit nul…).
+      3. Garder les solutions qui appartiennent à l'ensemble de définition.
+
+      ### Lire graphiquement
+      - **Image de $a$** : se placer en $a$ sur l'axe des abscisses, monter ou descendre jusqu'à la courbe, lire l'ordonnée.
+      - **Antécédents de $k$** : tracer la droite horizontale d'équation $y = k$ ; les abscisses des points d'intersection avec la courbe sont les antécédents.
+
+      **Exemple complet.** $f(x) = 3 - 2x$ sur $[-1 ; 4]$.
+      - Image de $\dfrac{1}{2}$ : $f\left(\dfrac{1}{2}\right) = 3 - 1 = 2$.
+      - Antécédent de $-3$ : $3 - 2x = -3 \iff -2x = -6 \iff x = 3$, et $3 \in [-1 ; 4]$.
+      - Antécédent de $8$ : $3 - 2x = 8$ donne $x = -2{,}5$, qui n'est pas dans $[-1 ; 4]$ : $8$ n'a pas d'antécédent.
+
+      ## 5. Erreurs fréquentes
+      - Confondre image et antécédent : l'image est le résultat $f(x)$, l'antécédent la valeur de départ $x$.
+      - Oublier des parenthèses : avec $x = -2$, $x^2$ vaut $(-2)^2 = 4$ et non $-4$.
+      - Ne donner qu'un antécédent quand il y en a plusieurs (cas de $x^2 = 9$).
+      - Lire l'image sur le mauvais axe lors d'une lecture graphique.
+    questions:
+      - code: 2NDE-IMG-01
+        difficulte: 1
+        type: numerique
+        enonce: 'Soit $f(x) = 3x - 2$. Calculer $f(4)$.'
+        solution: 10
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $f(4) = 3 \times 4 - 2 = 10$.
+          resultat: 10
+      - code: 2NDE-IMG-02
+        difficulte: 2
+        type: numerique
+        enonce: 'Soit $f(x) = x^2 - 2x$. Calculer $f(-3)$.'
+        solution: 15
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $f(-3) = (-3)^2 - 2 \times (-3) = 9 + 6 = 15$.
+          resultat: 15
+          erreurs_frequentes:
+          - Écrire $-3^2 = -9$ sans parenthèses.
+      - code: 2NDE-IMG-03
+        difficulte: 3
+        type: numerique
+        enonce: 'Soit $f(x) = 2x + 5$. Quel est l''antécédent de 11 par $f$ ?'
+        solution: 3
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - 'Un antécédent de $11$ est un nombre $x$ tel que $f(x) = 11$ : on résout l''équation $2x + 5 = 11$.'
+          - 'On soustrait $5$ aux deux membres : $2x = 6$, puis on divise par $2$ : $x = 3$.'
+          - 'Vérification : $f(3) = 2 \times 3 + 5 = 11$. L''antécédent de $11$ est $3$.'
+          resultat: 3
+      - code: 2NDE-IMG-04
+        difficulte: 4
+        type: qcm
+        enonce: 'Quels sont les antécédents de 9 par la fonction carré ? A) 3 seulement  B) $-3$ et $3$  C) 81'
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - 'Les antécédents de $9$ par la fonction carré sont les solutions de l''équation $x^2 = 9$.'
+          - 'Comme $9 > 0$, cette équation a deux solutions : $\sqrt{9} = 3$ et $-\sqrt{9} = -3$, car $3^2 = 9$ et $(-3)^2 = 9$.'
+          - 'Réponse B. La réponse C donne l''image de $9$ ($9^2 = 81$), pas ses antécédents.'
+          resultat: B
+      - code: 2NDE-IMG-05
+        difficulte: 5
+        type: numerique
+        enonce: 'Soit $f(x) = \dfrac{x - 1}{x + 2}$ pour $x \neq -2$. Quel est l''antécédent de 2 par $f$ ?'
+        solution: -5
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - '$\dfrac{x - 1}{x + 2} = 2$ avec $x \neq -2$ : $x - 1 = 2(x + 2)$.'
+          - $x - 1 = 2x + 4$, donc $x = -5$, qui est bien différent de $-2$.
+          resultat: -5
+      - code: 2NDE-IMG-V1
+        difficulte: 2
+        type: numerique
+        gabarit:
+          parametres: {a: {entre: [-3, 3], sauf: [0]}, b: {entre: [-6, 6]}, c: {entre: [-9, 9]}, t: {entre: [-4, 4]}}
+          calculs: {v: "a*t*t + b*t + c"}
+        enonce: 'Soit $f(x) = [[a:coef]]x^2 [[b:+]]x [[c:+]]$. Calculer $f([[t]])$.'
+        solution: '[[v]]'
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: 'Remplacer $x$ par la valeur, avec des parenthèses.'
+          etapes:
+          - '$f([[t]]) = [[a]] \times ([[t]])^2 [[b:+]] \times ([[t]]) [[c:+]]$.'
+          - '$= [[a*t*t]] [[b*t:+]] [[c:+]] = [[v]]$.'
+          resultat: '[[v]]'
+
+  - code: 2NDE-COURBE
+    libelle: Exploiter la courbe représentative d'une fonction
+    attendus: [2NDE-2026-FREP-03, 2NDE-2026-FREP-06, 2NDE-2026-FREP-09, 2NDE-2026-FREP-11, 2NDE-2026-FVAR-05, 2NDE-2026-FVAR-06]
+    cours_couvre: [2NDE-2026-FREP-03, 2NDE-2026-FREP-06, 2NDE-2026-FREP-09, 2NDE-2026-FREP-11, 2NDE-2026-FVAR-05, 2NDE-2026-FVAR-06]
+    objectifs:
+    - Savoir si un point appartient à une courbe.
+    - Trouver des points d'intersection et un ensemble de définition.
+    prerequis:
+    - 2NDE-IMG
+    methodes:
+    - titre: Tester si un point appartient à une courbe
+      etapes:
+      - Calculer $f(x_A)$.
+      - $A$ est sur la courbe si et seulement si $f(x_A) = y_A$.
+      exemple:
+        enonce: $A(3 ; 8)$ est-il sur la courbe de $f(x) = x^2 - 1$ ?
+        resolution:
+        - $f(3) = 9 - 1 = 8 = y_A$.
+        resultat: Oui.
+    erreurs_frequentes:
+    - erreur: Oublier une solution en cherchant l'intersection de deux courbes.
+      explication: Résoudre complètement $f(x) = g(x)$ ; une équation du second degré peut avoir deux solutions.
+    resume: |
+      - La courbe $\mathcal{C}_f$ est l'ensemble des points $M(x ; y)$ avec $x \in D$ et $y = f(x)$.
+      - $A(a ; b) \in \mathcal{C}_f \iff a \in D$ et $f(a) = b$.
+      - $f(x) = k$ : abscisses des points de $\mathcal{C}_f$ d'ordonnée $k$ ; $f(x) < k$ : abscisses des points situés **sous** la droite $y = k$.
+      - $f(x) = g(x)$ : abscisses des points d'intersection ; $f(x) < g(x)$ : là où $\mathcal{C}_f$ est **sous** $\mathcal{C}_g$.
+      - La courbe permet de dresser le tableau de variations et de lire les extremums.
+    cours: |
+      ## 1. Courbe représentative
+      > **Définition.** Dans un repère, la **courbe représentative** $\mathcal{C}_f$ d'une fonction $f$ définie sur $D$ est l'ensemble des points $M(x ; y)$ tels que $x \in D$ et $y = f(x)$. On dit que $y = f(x)$ est une **équation** de $\mathcal{C}_f$.
+
+      > **Propriété.** Le point $A(a ; b)$ appartient à $\mathcal{C}_f$ si et seulement si $a \in D$ et $f(a) = b$.
+
+      ### Méthode : exploiter l'équation d'une courbe
+      - **Appartenance** : calculer $f(a)$ et le comparer à $b$.
+      - **Ordonnée d'un point d'abscisse connue** : calculer $f(a)$.
+      - **Abscisse(s) d'un point d'ordonnée connue** : résoudre $f(x) = b$.
+      - **Intersection avec l'axe des abscisses** : résoudre $f(x) = 0$ ; avec l'axe des ordonnées : calculer $f(0)$.
+
+      **Exemple.** $\mathcal{C}$ : $y = x^2 - 4x$. $A(1 ; -3) \in \mathcal{C}$ car $1 - 4 = -3$ ; $B(2 ; 1) \notin \mathcal{C}$ car $4 - 8 = -4 \neq 1$.
+
+      ## 2. Résoudre graphiquement
+      > **Propriété.**
+      > - Les solutions de $f(x) = k$ sont les abscisses des points de $\mathcal{C}_f$ d'ordonnée $k$.
+      > - Les solutions de $f(x) < k$ sont les abscisses des points de $\mathcal{C}_f$ situés strictement **en dessous** de la droite d'équation $y = k$.
+      > - Les solutions de $f(x) = g(x)$ sont les abscisses des points d'intersection de $\mathcal{C}_f$ et $\mathcal{C}_g$ ; celles de $f(x) < g(x)$ sont les abscisses des points où $\mathcal{C}_f$ est strictement **en dessous** de $\mathcal{C}_g$.
+
+      ### Méthode
+      1. Tracer la droite $y = k$ (ou repérer la seconde courbe).
+      2. Repérer les points d'intersection et lire leurs abscisses.
+      3. Pour une inéquation, repérer la partie de la courbe au-dessus ou en dessous, et écrire l'ensemble des solutions comme intervalle ou réunion d'intervalles, en soignant les crochets.
+
+      **Choisir sa méthode.** Une lecture graphique donne des valeurs **approchées** ; le calcul algébrique donne des valeurs exactes quand on sait résoudre ; un logiciel (calculatrice, tableur, géométrie dynamique, Python) aide quand l'équation est trop difficile, par exemple en traçant les courbes et en zoomant sur les points d'intersection.
+
+      **Exemple complet.** $f(x) = x^2$ et $g(x) = x + 2$. Graphiquement, la parabole et la droite se coupent en deux points d'abscisses $-1$ et $2$. Vérification par le calcul : $(-1)^2 = 1 = -1 + 2$ et $2^2 = 4 = 2 + 2$. Entre ces deux abscisses, la parabole est sous la droite : l'ensemble des solutions de $f(x) < g(x)$ est $]-1 ; 2[$.
+
+      ## 3. Courbe, tableau de variations et extremums
+      - Si, quand on parcourt la courbe de gauche à droite, elle **monte** sur un intervalle, $f$ y est **croissante** ; si elle **descend**, $f$ y est **décroissante**.
+      - Le **maximum** de $f$ sur un intervalle est l'ordonnée du point le plus haut de la courbe sur cet intervalle ; le **minimum** celle du point le plus bas. On précise la valeur de $x$ où il est atteint.
+
+      On résume ces informations dans un **tableau de variations** : première ligne les valeurs de $x$ où le sens change (et les bornes), seconde ligne des flèches et les images correspondantes. Inversement, un tableau de variations permet d'esquisser l'allure de la courbe.
+
+      ## 4. Erreurs fréquentes
+      - Lire les solutions de $f(x) = k$ sur l'axe des ordonnées : les solutions sont des **abscisses**.
+      - Confondre « au-dessus » et « en dessous » pour une inéquation.
+      - Présenter une lecture graphique comme une valeur exacte sans vérification.
+      - Dans un tableau de variations, confondre le maximum (une valeur de $y$) et l'endroit où il est atteint (une valeur de $x$).
+    questions:
+      - code: 2NDE-COURBE-01
+        difficulte: 1
+        type: qcm
+        enonce: 'Le point $A(2 ; 5)$ appartient-il à la courbe de $f(x) = x^2 + 1$ ? A) oui  B) non'
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - '$f(2) = 2^2 + 1 = 5 = y_A$ : $A$ est sur la courbe.'
+          resultat: A
+      - code: 2NDE-COURBE-02
+        difficulte: 2
+        type: numerique
+        enonce: 'Le point $B(k ; 7)$ appartient à la courbe de $f(x) = 2x + 1$. Donner $k$.'
+        solution: 3
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $2k + 1 = 7$, donc $k = 3$.
+          resultat: 3
+      - code: 2NDE-COURBE-03
+        difficulte: 3
+        type: numerique
+        enonce: 'Quelle est l''abscisse du point d''intersection de la courbe de $f(x) = 2x - 4$ avec l''axe des abscisses ?'
+        solution: 2
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Sur l'axe des abscisses, l'ordonnée est nulle.
+          etapes:
+          - 'Un point de l''axe des abscisses a une ordonnée nulle : on cherche $x$ tel que $f(x) = 0$.'
+          - 'On résout $2x - 4 = 0$ : $2x = 4$, donc $x = 2$.'
+          - 'La courbe coupe l''axe des abscisses au point $(2 ; 0)$ : l''abscisse cherchée est $2$.'
+          resultat: 2
+      - code: 2NDE-COURBE-04
+        difficulte: 4
+        type: numerique
+        enonce: 'Les courbes de $f(x) = x^2$ et $g(x) = x + 2$ se coupent en deux points. Donner la plus grande de leurs abscisses.'
+        solution: 2
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $x^2 = x + 2$ équivaut à $x^2 - x - 2 = 0$, soit $(x - 2)(x + 1) = 0$.
+          - 'Abscisses : $-1$ et $2$ ; la plus grande est $2$.'
+          resultat: 2
+      - code: 2NDE-COURBE-05
+        difficulte: 5
+        type: qcm
+        enonce: 'Quel est l''ensemble de définition de $f(x) = \dfrac{1}{x - 3}$ ? A) $\mathbb{R}$  B) $\mathbb{R} \setminus \{3\}$  C) $]3 ; +\infty[$'
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - 'Un quotient n''est défini que si son dénominateur est non nul : il faut $x - 3 \neq 0$.'
+          - '$x - 3 = 0 \iff x = 3$ : la seule valeur interdite est $3$.'
+          - 'L''ensemble de définition est donc $\mathbb{R} \setminus \{3\} = ]-\infty ; 3[ \cup ]3 ; +\infty[$ : réponse B. La réponse C oublie tous les réels inférieurs à $3$.'
+          resultat: B

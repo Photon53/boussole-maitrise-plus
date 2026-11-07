@@ -1,0 +1,98 @@
+# Textes officiels conservés dans le dépôt : chaque référentiel s'appuie sur l'un d'eux.
+# Annexes des arrêtés du 26 février 2026, publiées au BO n° 14 du 2 avril 2026.
+# Le numéro en fin de nom de fichier est celui du document sur le site du ministère.
+# L'empreinte est vérifiée à chaque chargement : un PDF remplacé doit être déclaré ici.
+- code: bo-2026-14-2nde-gt
+  titre: Programme d'enseignement de mathématiques de la classe de seconde générale et technologique
+  bulletin: BO n° 14 du 2 avril 2026
+  fichier: bo-2026-14-2nde-gt-515402.pdf
+  sha256: 05c5403d45bfc3631fa13b5c334822de09bcd68d850d0611044045cddba270de
+  obtenu_le: 2026-10-31
+- code: bo-2026-14-1re-enseignement-scientifique
+  titre: Programme de mathématiques intégré à l'enseignement scientifique en classe de première générale
+  bulletin: BO n° 14 du 2 avril 2026
+  fichier: bo-2026-14-1re-enseignement-scientifique-515405.pdf
+  sha256: 7e48c40413ca57a5dcf66230648ea69eaef55d40e620736f0c7eff7bbc82069f
+  obtenu_le: 2026-10-31
+- code: bo-2026-14-1re-specialite
+  titre: Programme d'enseignement de spécialité de mathématiques de la classe de première de la voie générale
+  bulletin: BO n° 14 du 2 avril 2026
+  fichier: bo-2026-14-1re-specialite-515408.pdf
+  sha256: 5303df0fcf6335f06d00c969a61dcd82cc3fdfd105271ae5c2ef580ff49b6c08
+  obtenu_le: 2026-10-31
+- code: bo-2026-14-1re-technologique
+  titre: Programme d'enseignement de mathématiques de la classe de première de la voie technologique
+  bulletin: BO n° 14 du 2 avril 2026
+  fichier: bo-2026-14-1re-technologique-515411.pdf
+  sha256: 9ba787513e326fc9e8fe803a6324cff91289a77d8a0f64835e3bd25cbb425dff
+  obtenu_le: 2026-10-31
+- code: bo-2026-14-tle-specialite
+  titre: Programme de l'enseignement de spécialité de mathématiques de la classe terminale de la voie générale
+  bulletin: BO n° 14 du 2 avril 2026
+  fichier: bo-2026-14-tle-specialite-515414.pdf
+  sha256: 9c99a32bb3e5f14d8906783f86a9a0fd86a99543b032a20fe388841d024ed4a5
+  obtenu_le: 2026-10-31
+- code: bo-2026-14-tle-complementaires
+  titre: Programme de l'enseignement optionnel de mathématiques complémentaires de la classe terminale de la voie générale
+  bulletin: BO n° 14 du 2 avril 2026
+  fichier: bo-2026-14-tle-complementaires-515417.pdf
+  sha256: 24d24d6cbf25bab57cbcf91daba46b6286b0b602ee3cda4c6606c8d2b8dfe1d4
+  obtenu_le: 2026-10-31
+- code: bo-2026-14-tle-technologique
+  titre: Programme d'enseignement de mathématiques de la classe terminale de la voie technologique
+  bulletin: BO n° 14 du 2 avril 2026
+  fichier: bo-2026-14-tle-technologique-515420.pdf
+  sha256: df8f8b860960adfed1c9dbbf069f99f091e96f5b901d10dfcb4cbdeacaab67aa
+  obtenu_le: 2026-10-31
+- code: bo-2019-8-tle-expertes
+  titre: Programme de l'enseignement optionnel de mathématiques expertes de la classe terminale de la voie générale
+  bulletin: BO spécial n° 8 du 25 juillet 2019
+  fichier: bo-2019-8-tle-expertes-1158825.pdf
+  sha256: c491ac1ccb63dbce86f59767d6826f4d13afb3efa782ed1176621aa691329ebd
+  url: https://cache.media.education.gouv.fr/file/SPE8_MENJ_25_7_2019/82/5/spe264_annexe_1158825.pdf
+  obtenu_le: 2026-11-01
+# --- Collège (domaine Maths collège) : textes en vigueur en 2026-2027 ---------------------------------------
+# 6e : programme du cycle 3 de 2025 ; 5e : nouveau programme du cycle 4 de 2026 ; 4e et 3e : programme du cycle 4
+# de 2020 (modifié), réparti par niveau dans les repères annuels de progression et attendus de fin d'année de 2019.
+- code: bo-2025-16-cycle-3
+  titre: Programme de mathématiques pour le cycle 3 (annexe de l'arrêté du 10 avril 2025), appliqué en 6e depuis 2025-2026
+  bulletin: BO n° 16 du 17 avril 2025
+  fichier: bo-2025-16-cycle-3-439827.pdf
+  sha256: f3f79a75ca8be7f54409b8b7cee3eafd769c23d12e6c822a253454e2c703b508
+  url: https://www.education.gouv.fr/sites/default/files/programme-de-math-matiques-pour-le-cycle-3-439827.pdf
+  obtenu_le: 2026-11-04
+- code: bo-2026-10-cycle-4
+  titre: Programme de mathématiques pour le cycle 4 (annexe 2 de l'arrêté du 18 février 2026), appliqué en 5e en 2026-2027, en 4e en 2027-2028, en 3e en 2028-2029
+  bulletin: BO n° 10 du 5 mars 2026
+  fichier: bo-2026-10-cycle-4-480716.pdf
+  sha256: e20a05da6c68a08c4487fc63a3345c902f5249b4bf6e950765bfb9c2da0aadb9
+  url: https://www.education.gouv.fr/sites/default/files/document/Annexe%202%20%E2%80%93%20Programme%20de%20math%C3%A9matiques%20pour%20le%20cycle%204-480716.pdf
+  obtenu_le: 2026-11-04
+- code: bo-2020-31-cycle-4
+  titre: Programme du cycle 4 en vigueur à la rentrée 2020 (version consolidée, éduscol), encore appliqué en 4e et en 3e en 2026-2027
+  bulletin: BO n° 31 du 30 juillet 2020
+  fichier: bo-2020-31-cycle-4-consolide-621.pdf
+  sha256: de42e9816d7d012fd5d6b3349171cf43dd038c1e50fa0fe9e664bcc8521194b9
+  url: https://eduscol.education.fr/document/621/download
+  obtenu_le: 2026-11-04
+- code: bo-2019-22-cycle-4-reperes
+  titre: Repères annuels de progression en mathématiques au cycle 4 (annexe 26 de la note de service n° 2019-072)
+  bulletin: BO n° 22 du 29 mai 2019
+  fichier: bo-2019-22-cycle-4-reperes-74694.pdf
+  sha256: 643a239fb6cbe7f69d96e206da0d9aae06321b49789062fd84c770713f5b3426
+  url: https://eduscol.education.gouv.fr/sites/default/files/document/26-maths-c4-reperes-eduscol1114756pdf-74694.pdf
+  obtenu_le: 2026-11-04
+- code: bo-2019-22-4e-attendus
+  titre: Attendus de fin d'année de quatrième en mathématiques (note de service n° 2019-072)
+  bulletin: BO n° 22 du 29 mai 2019
+  fichier: bo-2019-22-4e-attendus-74682.pdf
+  sha256: d0edabd6a21d6345d36d32c5506ddcf225e819ddca25d27c1ecc3f97b87a8966
+  url: https://eduscol.education.gouv.fr/sites/default/files/document/16-maths-4e-attendus-eduscol1114746pdf-74682.pdf
+  obtenu_le: 2026-11-04
+- code: bo-2019-22-3e-attendus
+  titre: Attendus de fin d'année de troisième en mathématiques (note de service n° 2019-072)
+  bulletin: BO n° 22 du 29 mai 2019
+  fichier: bo-2019-22-3e-attendus-74688.pdf
+  sha256: 49ccdca4d97ba4cf25875dfc731474e84d0332985c15396d3abfb9107f5f545a
+  url: https://eduscol.education.gouv.fr/sites/default/files/document/18-maths-3e-attendus-eduscol1114748pdf-74688.pdf
+  obtenu_le: 2026-11-04
