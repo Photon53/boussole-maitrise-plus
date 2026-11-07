@@ -25,7 +25,7 @@ jobs:
 
       - name: Copier sans modifier le dépôt source
         run: |
-          rsync -a --exclude='.git' --exclude='LICENSE' "$RUNNER_TEMP/source/" ./
+          rsync -a --exclude='.git' --exclude='LICENSE' --exclude='.github/workflows/' "$RUNNER_TEMP/source/" ./
           if [ -f pkp-math-lycee.code-workspace ]; then
             mv pkp-math-lycee.code-workspace boussole-maitrise-plus.code-workspace
           fi
