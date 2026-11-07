@@ -1,0 +1,269 @@
+import pytest
+
+from app.security import creer_jeton
+from tests.conftest import competences_de, connecter_admin, connecter_eleve, connecter_enseignant, corps_connexion, entete
+
+
+def solutions(client) -> dict[int, str]:
+    r = client.get("/enseignants/questions?archivees=true", headers=connecter_enseignant(client))
+    return {q["id"]: q["solution"] for q in r.json()}
+
+
+def questions_du_niveau(client, niveau: str) -> list[dict]:
+    """Questions (archivées comprises) des compétences d'un niveau, vues par l'enseignant de démo."""
+    h = connecter_enseignant(client)
+    ids = {c["id"] for c in client.get("/enseignants/competences", headers=h).json() if c["niveau"] == niveau}
+    toutes = client.get("/enseignants/questions?archivees=true", headers=h).json()
+    return [q for q in toutes if q["competence_id"] in ids]
+
+
+def nouvelle_seance(client, h) -> int:
+    r = client.post("/seances", headers=h)
+    assert r.status_code == 201
+    return r.json()["id"]
+
+
+class TestConnexion:
+    def test_eleve_existant(self, client):
+        r = client.post("/eleves/connexion", json=corps_connexion("Lina"))
+        assert r.status_code == 200
+        assert r.json()["eleve"] == {
+            "id": 1, "prenom": "Lina", "identifiant": "lina-demo", "code_classe": "2NDE-A-DEMO", "niveau": "2nde",
+            "parcours": "tronc-commun",
+        }
+
+    @pytest.mark.parametrize(
+        ("prenom", "code", "code_personnel"),
+        [("  lina ", "2nde-a-demo", "pkp222"), ("LINA", " 2NDE-A-DEMO ", "PKP-222"), ("Lina", "2NDE-A-DEMO", " pkp 222 ")],
+    )
+    def test_saisie_normalisee(self, client, prenom, code, code_personnel):
+        r = client.post("/eleves/connexion", json=corps_connexion(prenom, code, code_personnel))
+        assert r.json()["eleve"]["id"] == 1
+
+    @pytest.mark.parametrize(
+        "corps",
+        [
+            corps_connexion("Lina", code_personnel="PKP333"),  # code d'un autre élève
+            corps_connexion("Lina", "NOPE"),  # classe inconnue
+            corps_connexion("Inconnu", code_personnel="PKP222"),  # élève inconnu
+        ],
+    )
+    def test_echec_avec_un_message_unique(self, client, corps):
+        r = client.post("/eleves/connexion", json=corps)
+        assert r.status_code == 401
+        assert r.json()["detail"] == "Prénom, code classe ou code personnel incorrect."
+
+    def test_plus_de_creation_a_la_premiere_connexion(self, client, session):
+        from app.db import models
+
+        r = client.post("/eleves/connexion", json=corps_connexion("Nouveau", code_personnel="ABCDEF"))
+        assert r.status_code == 401
+        assert session.query(models.Eleve).filter_by(prenom="Nouveau").count() == 0
+
+    def test_code_personnel_obligatoire(self, client):
+        r = client.post("/eleves/connexion", json={"prenom": "Lina", "code_classe": "2NDE-A-DEMO"})
+        assert r.status_code == 422
+
+    @pytest.mark.parametrize("prenom", ["", "   ", "R2D2", "<script>", "a" * 51])
+    def test_prenom_invalide(self, client, prenom):
+        r = client.post("/eleves/connexion", json=corps_connexion(prenom))
+        assert r.status_code == 422
+
+
+class TestAuthentification:
+    def test_sans_jeton(self, client):
+        assert client.get("/eleves/moi").status_code == 401
+
+    @pytest.mark.parametrize("jeton", ["n'importe quoi", "abc.def", ""])
+    def test_jeton_invalide(self, client, jeton):
+        assert client.get("/eleves/moi", headers=entete(jeton)).status_code == 401
+
+    def test_jeton_falsifie(self, client):
+        charge, signature = connecter_eleve(client)["Authorization"].removeprefix("Bearer ").split(".")
+        autre = creer_jeton("eleve", 2, 1).split(".")[0]
+        assert client.get("/eleves/moi", headers=entete(f"{autre}.{signature}")).status_code == 401
+
+    def test_jeton_expire(self, client):
+        assert client.get("/eleves/moi", headers=entete(creer_jeton("eleve", 1, -1))).status_code == 401
+
+    def test_jeton_enseignant_refuse_cote_eleve(self, client):
+        assert client.get("/eleves/moi", headers=connecter_enseignant(client)).status_code == 401
+
+    def test_moi(self, client):
+        assert client.get("/eleves/moi", headers=connecter_eleve(client, "Hugo", "1RE-B-DEMO")).json()["niveau"] == "1re"
+
+
+class TestConnexionIdentifiant:
+    """Identifiant + code personnel (carte de l'élève), avec « rester connecté » pour la maison."""
+
+    def _jeton(self, client, identifiant="lina-demo", code="PKP222", rester_connecte=False):
+        return client.post(
+            "/eleves/connexion/identifiant",
+            json={"identifiant": identifiant, "code_personnel": code, "rester_connecte": rester_connecte},
+        )
+
+    def test_connexion(self, client):
+        r = self._jeton(client)
+        assert r.status_code == 200
+        assert r.json()["eleve"]["prenom"] == "Lina" and r.json()["eleve"]["code_classe"] == "2NDE-A-DEMO"
+        assert client.get("/eleves/moi", headers=entete(r.json()["jeton"])).status_code == 200
+
+    def test_saisie_normalisee(self, client):
+        assert self._jeton(client, "  LINA-Demo ", "pkp 222").status_code == 200
+
+    @pytest.mark.parametrize(("identifiant", "code"), [("lina-demo", "PKP333"), ("inconnu-zzzz", "PKP222")])
+    def test_echec_avec_un_message_unique(self, client, identifiant, code):
+        r = self._jeton(client, identifiant, code)
+        assert r.status_code == 401
+        assert r.json()["detail"] == "Identifiant ou code personnel incorrect."
+
+    def test_rester_connecte_allonge_la_session(self, client):
+        from app.security import lire_jeton
+
+        def expiration(jeton):
+            import base64
+
+            charge = jeton.split(".")[0]
+            return int(base64.urlsafe_b64decode(charge + "=" * (-len(charge) % 4)).decode().split(":")[2])
+
+        courte = expiration(self._jeton(client).json()["jeton"])
+        longue = self._jeton(client, rester_connecte=True).json()["jeton"]
+        assert lire_jeton(longue, "eleve") is not None
+        assert expiration(longue) - courte > 20 * 24 * 3600
+
+    def test_nouveau_code_invalide_la_session_longue(self, client):
+        jeton = self._jeton(client, rester_connecte=True).json()["jeton"]
+        client.post("/enseignants/eleves/1/code", headers=connecter_enseignant(client))
+        assert client.get("/eleves/moi", headers=entete(jeton)).status_code == 401
+
+    def test_identifiant_attribue_a_l_inscription(self, client):
+        h = connecter_enseignant(client)
+        classe_id = client.get("/enseignants/classes", headers=h).json()[0]["id"]
+        crees = client.post(f"/enseignants/classes/{classe_id}/eleves", headers=h, json={"prenoms": ["Éloïse", "Noé"]}).json()["crees"]
+        identifiants = [c["identifiant"] for c in crees]
+        assert identifiants[0].startswith("eloise-") and identifiants[1].startswith("noe-")
+        r = self._jeton(client, identifiants[0], crees[0]["code"])
+        assert r.json()["eleve"]["prenom"] == "Éloïse"
+
+    def test_cartes_de_toute_la_classe(self, client):
+        h = connecter_enseignant(client)
+        classe = next(c for c in client.get("/enseignants/classes", headers=h).json() if c["code"] == "2NDE-A-DEMO")
+        cartes = client.post(f"/enseignants/classes/{classe['id']}/cartes", headers=h).json()
+        assert [c["prenom"] for c in cartes] == sorted(c["prenom"] for c in cartes) and len(cartes) >= 2
+        lina = next(c for c in cartes if c["prenom"] == "Lina")
+        assert lina["identifiant"] == "lina-demo" and lina["code"] != "PKP222"
+        assert self._jeton(client, "lina-demo", "PKP222").status_code == 401  # ancien code invalidé
+        assert self._jeton(client, "lina-demo", lina["code"]).status_code == 200
+
+    def test_cartes_d_une_autre_classe_refusees(self, client):
+        h = connecter_enseignant(client)
+        assert client.post("/enseignants/classes/9999/cartes", headers=h).status_code == 404
+
+    def test_l_identifiant_ne_change_pas_avec_le_code(self, client):
+        h = connecter_enseignant(client)
+        nouveau = client.post("/enseignants/eleves/1/code", headers=h).json()
+        assert nouveau["identifiant"] == "lina-demo"
+        assert self._jeton(client, "lina-demo", nouveau["code"]).status_code == 200
+
+
+class TestParcours:
+    def test_question_publique_sans_solution(self, client):
+        h = connecter_eleve(client)
+        q = client.get(f"/seances/{nouvelle_seance(client, h)}/question", headers=h).json()
+        assert set(q) == {"id", "competence_id", "enonce", "type", "difficulte", "variable", "en_relecture"}
+
+    def test_redemander_renvoie_la_meme_question(self, client):
+        h = connecter_eleve(client)
+        s = nouvelle_seance(client, h)
+        ids = {client.get(f"/seances/{s}/question", headers=h).json()["id"] for _ in range(3)}
+        assert len(ids) == 1
+
+    def test_bonne_reponse(self, client):
+        sol = solutions(client)
+        h = connecter_eleve(client, "Inès")
+        s = nouvelle_seance(client, h)
+        q = client.get(f"/seances/{s}/question", headers=h).json()
+        r = client.post(f"/seances/{s}/reponses", headers=h, json={"question_id": q["id"], "reponse_donnee": sol[q["id"]]})
+        assert r.status_code == 200
+        corps = r.json()
+        assert corps["correcte"] is True
+        assert corps["solution"] == sol[q["id"]]
+        assert corps["maitrise"] == pytest.approx(0.5)
+        assert corps["maitrisee"] is False
+        # Renvois de la correction : la compétence et les titres de ses fiches méthode.
+        assert corps["competence_id"] == q["competence_id"]
+        assert isinstance(corps["methodes"], list) and all(isinstance(t, str) for t in corps["methodes"])
+
+    def test_mauvaise_reponse_revele_la_solution(self, client):
+        h = connecter_eleve(client, "Inès")
+        s = nouvelle_seance(client, h)
+        q = client.get(f"/seances/{s}/question", headers=h).json()
+        corps = client.post(f"/seances/{s}/reponses", headers=h, json={"question_id": q["id"], "reponse_donnee": "faux"}).json()
+        assert corps["correcte"] is False and corps["solution"] and corps["maitrise"] == 0.0
+
+    def test_repondre_sans_question_servie(self, client):
+        h = connecter_eleve(client)
+        s = nouvelle_seance(client, h)
+        r = client.post(f"/seances/{s}/reponses", headers=h, json={"question_id": 1, "reponse_donnee": "5/6"})
+        assert r.status_code == 409
+
+    def test_repondre_a_une_autre_question(self, client):
+        h = connecter_eleve(client)
+        s = nouvelle_seance(client, h)
+        q = client.get(f"/seances/{s}/question", headers=h).json()
+        r = client.post(f"/seances/{s}/reponses", headers=h, json={"question_id": q["id"] + 1, "reponse_donnee": "1"})
+        assert r.status_code == 409
+
+    def test_pas_deux_reponses_a_la_meme_question(self, client):
+        h = connecter_eleve(client)
+        s = nouvelle_seance(client, h)
+        q = client.get(f"/seances/{s}/question", headers=h).json()
+        corps = {"question_id": q["id"], "reponse_donnee": "1"}
+        assert client.post(f"/seances/{s}/reponses", headers=h, json=corps).status_code == 200
+        assert client.post(f"/seances/{s}/reponses", headers=h, json=corps).status_code == 409
+
+    def test_reponse_trop_longue(self, client):
+        h = connecter_eleve(client)
+        s = nouvelle_seance(client, h)
+        q = client.get(f"/seances/{s}/question", headers=h).json()
+        r = client.post(f"/seances/{s}/reponses", headers=h, json={"question_id": q["id"], "reponse_donnee": "1" * 201})
+        assert r.status_code == 422
+
+    def test_seance_d_un_autre_eleve(self, client):
+        s = nouvelle_seance(client, connecter_eleve(client, "Lina"))
+        assert client.get(f"/seances/{s}/question", headers=connecter_eleve(client, "Yanis")).status_code == 404
+
+    def test_seance_terminee(self, client):
+        h = connecter_eleve(client)
+        s = nouvelle_seance(client, h)
+        assert client.post(f"/seances/{s}/fin", headers=h).json()["fin"] is not None
+        assert client.get(f"/seances/{s}/question", headers=h).status_code == 409
+
+    def test_questions_du_niveau_et_jamais_archivees(self, client):
+        toutes = client.get("/enseignants/questions?archivees=true", headers=connecter_enseignant(client)).json()
+        archivees = {q["id"] for q in toutes if q["archivee"]}
+        de_premiere = {q["id"] for q in questions_du_niveau(client, "1re")}
+        h = connecter_eleve(client, "Hugo", "1RE-B-DEMO")
+        s = nouvelle_seance(client, h)
+        vues = set()
+        for _ in range(6):
+            q = client.get(f"/seances/{s}/question", headers=h).json()
+            vues.add(q["id"])
+            client.post(f"/seances/{s}/reponses", headers=h, json={"question_id": q["id"], "reponse_donnee": "x"})
+        assert vues <= de_premiere  # uniquement des questions de 1re
+        assert not vues & archivees
+
+    def test_aucune_question_pour_le_niveau(self, client):
+        h_admin = connecter_admin(client)
+        for q in questions_du_niveau(client, "1re"):  # toutes les questions de 1re
+            client.post(f"/admin/questions/{q['id']}/archivage", headers=h_admin, json={"archivee": True})
+        h = connecter_eleve(client, "Hugo", "1RE-B-DEMO")
+        assert client.get(f"/seances/{nouvelle_seance(client, h)}/question", headers=h).status_code == 204
+
+    def test_progression(self, client):
+        h = connecter_eleve(client)
+        progression = {p["code"]: p for p in client.get("/eleves/moi/progression", headers=h).json()}
+        assert list(progression) == competences_de("2nde", "tronc-commun")  # ordre du programme
+        assert list(progression)[:5] == ["2NDE-FRAC", "2NDE-PUIS", "2NDE-RAC", "2NDE-ENSEMBLES", "2NDE-ENCADR"]
+        assert progression["2NDE-FRAC"]["nb_reponses"] == 2
+        assert progression["2NDE-PUIS"] == {**progression["2NDE-PUIS"], "nb_reponses": 0, "maitrise": 0.0, "maitrisee": False}

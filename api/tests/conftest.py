@@ -1,0 +1,162 @@
+import shutil
+import time
+from pathlib import Path
+
+import pytest
+from alembic import command
+from alembic.config import Config
+from fastapi.testclient import TestClient
+from sqlalchemy.orm import Session, sessionmaker
+
+from app import limitation, security, statistiques
+from app.config import settings
+from app.contenu import charger
+from app.db.seed import CODES_DEMO, charger_demo
+from app.db.session import creer_moteur, get_session
+from app.main import app
+
+RACINE_API = Path(__file__).resolve().parents[1]
+
+# Taille de la banque versionnée dans contenu/ : les tests suivent le contenu sans compte codé en dur.
+_FICHIERS = [fichier for _, fichier in charger()]
+NB_CHAPITRES = len(_FICHIERS)
+COMPETENCES = [c for f in _FICHIERS for c in f.competences]
+NB_COMPETENCES = len(COMPETENCES)
+NB_LECONS = sum(c.cours is not None for c in COMPETENCES)
+NB_QUESTIONS = sum(len(c.questions) for c in COMPETENCES)
+NB_QUESTIONS_ACTIVES = sum(not q.archivee for c in COMPETENCES for q in c.questions)
+
+
+def nb_chapitres_de(niveau: str, parcours: str) -> int:
+    return sum(f.chapitre.niveau.value == niveau and f.chapitre.parcours.value == parcours for f in _FICHIERS)
+
+
+def competences_de(niveau: str, parcours: str) -> list[str]:
+    """Codes des compétences d'un niveau et d'un parcours, dans l'ordre du programme."""
+    fichiers = sorted(
+        (f for f in _FICHIERS if f.chapitre.niveau.value == niveau and f.chapitre.parcours.value == parcours),
+        key=lambda f: f.chapitre.ordre,
+    )
+    return [c.code for f in fichiers for c in f.competences]
+
+
+@pytest.fixture(autouse=True)
+def scrypt_rapide(monkeypatch):
+    """Coût scrypt minimal en test : les paramètres sont stockés dans l'empreinte."""
+    monkeypatch.setattr(security, "_N", 2**8)
+
+
+@pytest.fixture(autouse=True)
+def reglages_v2(monkeypatch, tmp_path):
+    """Statistiques recalculées à chaque test, PDF dans un dossier jetable, liens non appelés sur le réseau."""
+    statistiques.vider_cache()
+    monkeypatch.setattr(settings, "dossier_fichiers", str(tmp_path / "fichiers"))
+    monkeypatch.setattr(settings, "verifier_liens", False)
+
+
+@pytest.fixture(autouse=True)
+def limiteurs_vierges():
+    """Les compteurs de tentatives sont globaux au processus : on repart de zéro."""
+    for limiteur in limitation.TOUS:
+        limiteur.reinitialiser()
+        limiteur.horloge = time.monotonic
+    yield
+
+
+def config_alembic(url: str) -> Config:
+    config = Config(str(RACINE_API / "alembic.ini"))
+    config.set_main_option("sqlalchemy.url", url)
+    config.attributes["configure_logger"] = False
+    return config
+
+
+@pytest.fixture(scope="session")
+def bases_modeles(tmp_path_factory) -> tuple[Path, Path]:
+    """Préparées une seule fois : une base migrée, et la même chargée avec la banque et la démo.
+
+    Migrer et importer toute la banque (plus de 1 000 questions) prenait près de 10 s par test :
+    chaque test reçoit désormais une copie de fichier, qui prend quelques millisecondes.
+    """
+    dossier = tmp_path_factory.mktemp("modeles")
+    migree, demo = dossier / "migree.db", dossier / "demo.db"
+    command.upgrade(config_alembic(f"sqlite:///{migree}"), "head")
+    shutil.copyfile(migree, demo)
+    with pytest.MonkeyPatch.context() as mp:
+        mp.setattr(security, "_N", 2**8)  # comme `scrypt_rapide`, qui ne s'applique qu'aux tests
+        moteur = creer_moteur(f"sqlite:///{demo}")
+        with sessionmaker(bind=moteur, expire_on_commit=False)() as s:
+            charger_demo(s)
+        moteur.dispose()
+    return migree, demo
+
+
+@pytest.fixture
+def db_url(tmp_path, bases_modeles, request) -> str:
+    """Base SQLite migrée jusqu'à la dernière version ; avec les données de démo si le test utilise `client`."""
+    migree, demo = bases_modeles
+    fichier = tmp_path / "test.db"
+    shutil.copyfile(demo if "client" in request.fixturenames else migree, fichier)
+    return f"sqlite:///{fichier}"
+
+
+@pytest.fixture
+def fabrique(db_url):
+    moteur = creer_moteur(db_url)
+    yield sessionmaker(bind=moteur, expire_on_commit=False)
+    moteur.dispose()
+
+
+@pytest.fixture
+def session(fabrique) -> Session:
+    with fabrique() as s:
+        yield s
+
+
+@pytest.fixture
+def client(fabrique):
+    """Client HTTP sur une base migrée et chargée avec les données de démo (copie de `bases_modeles`)."""
+
+    def _session():
+        with fabrique() as s:
+            yield s
+
+    app.dependency_overrides[get_session] = _session
+    with TestClient(app) as c:
+        yield c
+    app.dependency_overrides.clear()
+
+
+def entete(jeton: str) -> dict[str, str]:
+    return {"Authorization": f"Bearer {jeton}"}
+
+
+def corps_connexion(prenom: str = "Lina", code: str = "2NDE-A-DEMO", code_personnel: str | None = None) -> dict:
+    """Corps de POST /eleves/connexion ; par défaut, le code personnel de démo de l'élève."""
+    return {"prenom": prenom, "code_classe": code, "code_personnel": code_personnel or CODES_DEMO.get(prenom, "XXXXXX")}
+
+
+def connecter_eleve(client, prenom: str = "Lina", code: str = "2NDE-A-DEMO", code_personnel: str | None = None) -> dict[str, str]:
+    r = client.post("/eleves/connexion", json=corps_connexion(prenom, code, code_personnel))
+    assert r.status_code == 200, r.text
+    return entete(r.json()["jeton"])
+
+
+def inscrire_eleves(client, classe_code: str, prenoms: list[str]) -> dict[str, str]:
+    """Inscrit des élèves comme le fait l'enseignant de démo ; renvoie {prénom: code personnel}."""
+    h = connecter_enseignant(client)
+    classe_id = next(c["id"] for c in client.get("/enseignants/classes", headers=h).json() if c["code"] == classe_code.upper())
+    r = client.post(f"/enseignants/classes/{classe_id}/eleves", headers=h, json={"prenoms": prenoms})
+    assert r.status_code == 201, r.text
+    return {e["prenom"]: e["code"] for e in r.json()["crees"]}
+
+
+def connecter_enseignant(client, email: str = "demo@pkp.test", mot_de_passe: str = "demo-pkp-2026") -> dict[str, str]:
+    r = client.post("/enseignants/connexion", json={"email": email, "mot_de_passe": mot_de_passe})
+    assert r.status_code == 200, r.text
+    return entete(r.json()["jeton"])
+
+
+def connecter_admin(client, email: str = "admin@pkp.test", mot_de_passe: str = "demo-pkp-2026", code_totp=None) -> dict[str, str]:
+    r = client.post("/admin/connexion", json={"email": email, "mot_de_passe": mot_de_passe, "code_totp": code_totp})
+    assert r.status_code == 200, r.text
+    return entete(r.json()["jeton"])

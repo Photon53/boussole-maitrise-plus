@@ -1,0 +1,265 @@
+chapitre:
+  code: 2NDE-ARITH
+  niveau: 2nde
+  parcours: tronc-commun
+  ordre: 4
+  titre: Multiples, diviseurs et nombres premiers
+
+competences:
+  - code: 2NDE-MULT
+    libelle: Utiliser multiples, diviseurs et parité
+    attendus: [2NDE-2026-ARITH-01, 2NDE-2026-ARITH-02, 2NDE-2026-ARITH-03, 2NDE-2026-ARITH-05, 2NDE-2026-ARITH-06]
+    cours_couvre: [2NDE-2026-ARITH-01, 2NDE-2026-ARITH-02, 2NDE-2026-ARITH-03, 2NDE-2026-ARITH-05, 2NDE-2026-ARITH-06]
+    objectifs:
+    - Reconnaitre multiples et diviseurs, et raisonner sur la parité.
+    methodes:
+    - titre: Démontrer une propriété de parité ou de divisibilité
+      etapes:
+      - 'Écrire les entiers sous forme littérale : pair $2k$, impair $2k + 1$, consécutifs $n$, $n + 1$, $n + 2$.'
+      - Calculer et factoriser par le diviseur voulu.
+      - Conclure avec la définition du multiple.
+      exemple:
+        enonce: Montrer que la somme de deux entiers impairs est paire.
+        resolution:
+        - $(2k + 1) + (2m + 1) = 2k + 2m + 2$.
+        - $= 2(k + m + 1)$, qui est un multiple de $2$.
+        resultat: La somme est paire.
+    erreurs_frequentes:
+    - erreur: Vérifier sur quelques exemples et croire avoir démontré.
+      explication: Des exemples rendent une propriété plausible ; seule l'écriture littérale la démontre pour tous les entiers.
+    resume: |
+      - $a$ est un **multiple** de $b$ (ou $b$ un **diviseur** de $a$) s'il existe un entier $k$ tel que $a = kb$.
+      - Un entier est **pair** s'il s'écrit $2k$, **impair** s'il s'écrit $2k + 1$, avec $k$ entier.
+      - La somme de deux multiples de $a$ est un multiple de $a$.
+      - Le carré d'un nombre impair est impair.
+      - Pour démontrer une propriété générale, on écrit les nombres avec une lettre ($2k$, $2k + 1$, $ka$…) : des exemples ne suffisent pas.
+    cours: |
+      ## 1. Ensembles $\mathbb{N}$ et $\mathbb{Z}$
+      $\mathbb{N}$ désigne l'ensemble des entiers naturels $\{0 ; 1 ; 2 ; \dots\}$ et $\mathbb{Z}$ celui des entiers relatifs $\{\dots ; -2 ; -1 ; 0 ; 1 ; 2 ; \dots\}$. On a $\mathbb{N} \subset \mathbb{Z}$.
+
+      ## 2. Multiples et diviseurs
+      > **Définition.** Soit $a$ et $b$ deux entiers relatifs. On dit que $a$ est un **multiple** de $b$ s'il existe un entier $k$ tel que $a = kb$. Si $b \neq 0$, on dit aussi que $b$ est un **diviseur** de $a$, ou que $b$ **divise** $a$.
+
+      Exemples : $42 = 6 \times 7$, donc $42$ est un multiple de $7$ et $7$ divise $42$. $0$ est un multiple de tout entier ($0 = 0 \times b$). $-15$ est un multiple de $5$ ($-15 = (-3) \times 5$).
+
+      > **Définition.** Un entier est **pair** s'il est multiple de $2$, c'est-à-dire s'il s'écrit $2k$ avec $k$ entier. Il est **impair** sinon ; il s'écrit alors $2k + 1$ avec $k$ entier.
+
+      ## 3. Deux démonstrations exigibles
+      > **Propriété.** Soit $a$ un entier. La somme de deux multiples de $a$ est un multiple de $a$.
+
+      **Démonstration.** Soit $m$ et $n$ deux multiples de $a$ : il existe des entiers $k$ et $k'$ tels que $m = ka$ et $n = k'a$. Alors $m + n = ka + k'a = (k + k')a$. Comme $k + k'$ est un entier, $m + n$ est un multiple de $a$. Par exemple avec $a = 7$ : $21 + 35 = 7 \times 3 + 7 \times 5 = 7 \times 8 = 56$.
+
+      > **Propriété.** Le carré d'un nombre impair est impair.
+
+      **Démonstration.** Soit $n$ un entier impair : $n = 2k + 1$ avec $k$ entier. Alors $n^2 = (2k + 1)^2 = 4k^2 + 4k + 1 = 2(2k^2 + 2k) + 1$. Comme $2k^2 + 2k$ est un entier, $n^2$ est de la forme $2K + 1$ : il est impair.
+
+      Conséquence (par contraposée) : si $n^2$ est pair, alors $n$ est pair. Ce résultat sert dans la démonstration de l'irrationalité de $\sqrt{2}$.
+
+      ## 4. Critères de divisibilité
+      Un entier est divisible par $2$ si son chiffre des unités est pair ; par $5$ s'il se termine par $0$ ou $5$ ; par $10$ s'il se termine par $0$ ; par $3$ (respectivement $9$) si la somme de ses chiffres est divisible par $3$ (respectivement $9$).
+
+      ## 5. Méthode : résoudre un problème avec multiples ou parité
+      1. Traduire l'énoncé avec des lettres : un multiple de $a$ s'écrit $ka$, un pair $2k$, un impair $2k + 1$, deux entiers consécutifs $n$ et $n + 1$.
+      2. Calculer et factoriser l'expression obtenue pour faire apparaître la forme voulue.
+      3. Conclure en justifiant que le facteur trouvé est bien un entier.
+
+      **Exemple complet.** Montrer que la somme de trois entiers consécutifs est un multiple de $3$.
+      - Trois entiers consécutifs s'écrivent $n$, $n + 1$ et $n + 2$, avec $n$ entier.
+      - Leur somme vaut $n + (n + 1) + (n + 2) = 3n + 3 = 3(n + 1)$.
+      - $n + 1$ est un entier, donc la somme est un multiple de $3$.
+
+      **Plus petit multiple commun.** Pour trouver le plus petit entier strictement positif multiple de $a$ et de $b$, on liste les multiples du plus grand et on s'arrête au premier divisible par l'autre. Exemple : multiples de $10$ : $10$, $20$, $30$ ; $30$ est divisible par $6$, donc c'est le plus petit multiple commun de $6$ et $10$.
+
+      ## 6. Erreurs fréquentes
+      - Croire que vérifier sur quelques exemples suffit à démontrer une propriété générale.
+      - Écrire deux impairs quelconques $2k + 1$ et $2k + 3$ : ce sont deux impairs **consécutifs** ; pour deux impairs quelconques, il faut deux lettres, $2k + 1$ et $2k' + 1$.
+      - Confondre « $a$ divise $b$ » et « $a$ est un multiple de $b$ ».
+      - Oublier que les multiples peuvent être négatifs ou nuls.
+    questions:
+      - code: 2NDE-MULT-01
+        difficulte: 1
+        type: qcm
+        enonce: 'Lequel de ces nombres est un multiple de 7 ? A) 54  B) 63  C) 71'
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $63 = 7 \times 9$ ; $54$ et $71$ ne sont pas divisibles par $7$.
+          resultat: B
+      - code: 2NDE-MULT-02
+        difficulte: 2
+        type: numerique
+        enonce: 'Combien le nombre 12 a-t-il de diviseurs positifs ?'
+        solution: 6
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - 'Diviseurs de $12$ : $1, 2, 3, 4, 6, 12$.'
+          - Il y en a 6.
+          resultat: 6
+      - code: 2NDE-MULT-03
+        difficulte: 3
+        type: qcm
+        enonce: 'Si $n$ est un entier impair, alors $n^2$ est : A) pair  B) impair  C) pair ou impair selon $n$'
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Écriture littérale d'un impair.
+          etapes:
+          - $n = 2k + 1$, donc $n^2 = 4k^2 + 4k + 1 = 2(2k^2 + 2k) + 1$.
+          - '$n^2$ s''écrit $2m + 1$ : il est impair.'
+          resultat: B
+      - code: 2NDE-MULT-04
+        difficulte: 4
+        type: numerique
+        enonce: 'Quel est le plus petit entier strictement positif qui est à la fois multiple de 6 et de 8 ?'
+        solution: 24
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - 'On liste les multiples strictement positifs du plus grand des deux nombres : $8$, $16$, $24$, $32$…'
+          - 'On teste la divisibilité par $6$ : $8 = 6 \times 1 + 2$ et $16 = 6 \times 2 + 4$ ne conviennent pas ; $24 = 6 \times 4$ convient.'
+          - 'Contrôle par les décompositions : $6 = 2 \times 3$ et $8 = 2^3$ ; un multiple commun contient au moins $2^3$ et $3$, soit $2^3 \times 3 = 24$.'
+          resultat: 24
+      - code: 2NDE-MULT-05
+        difficulte: 5
+        type: qcm
+        enonce: 'La somme de trois entiers consécutifs est toujours un multiple de : A) 2  B) 3  C) 6'
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Écrire les trois entiers consécutifs avec une seule lettre.
+          etapes:
+          - $(n - 1) + n + (n + 1) = 3n$.
+          - 'C''est toujours un multiple de $3$ (mais pas toujours de $2$ : $1 + 2 + 3 = 6$, $2 + 3 + 4 = 9$).'
+          resultat: B
+
+  - code: 2NDE-PREM
+    libelle: Utiliser les nombres premiers et la décomposition
+    attendus: [2NDE-2026-ARITH-04]
+    cours_couvre: [2NDE-2026-ARITH-04]
+    objectifs:
+    - Reconnaitre un nombre premier et décomposer un entier en facteurs premiers.
+    - Utiliser la décomposition pour simplifier une fraction.
+    prerequis:
+    - 2NDE-MULT
+    methodes:
+    - titre: Décomposer un entier en produit de facteurs premiers
+      etapes:
+      - Diviser par $2$ tant que c'est possible, puis par $3$, $5$, $7$…
+      - S'arrêter quand le quotient vaut 1, puis regrouper les facteurs égaux en puissances.
+      exemple:
+        enonce: Décomposer $90$.
+        resolution:
+        - $90 = 2 \times 45 = 2 \times 3 \times 15 = 2 \times 3 \times 3 \times 5$.
+        resultat: $90 = 2 \times 3^2 \times 5$
+    erreurs_frequentes:
+    - erreur: Laisser un facteur non premier, comme dans $2 \times 3 \times 14$.
+      explication: '$14 = 2 \times 7$ n''est pas premier : il faut continuer la décomposition.'
+    resume: |
+      - Un **nombre premier** a exactement deux diviseurs positifs : $1$ et lui-même ($2, 3, 5, 7, 11, 13, \dots$) ; $1$ n'est pas premier.
+      - Tout entier $n \geqslant 2$ se décompose en produit de facteurs premiers, de façon unique à l'ordre près.
+      - Pour tester si $n$ est premier, il suffit d'essayer les diviseurs premiers $p$ tels que $p^2 \leqslant n$.
+      - Une fraction est irréductible quand numérateur et dénominateur n'ont aucun facteur premier commun.
+    cours: |
+      ## 1. Nombres premiers
+      > **Définition.** Un entier naturel est **premier** s'il admet exactement deux diviseurs positifs distincts : $1$ et lui-même.
+
+      Les premiers nombres premiers sont $2, 3, 5, 7, 11, 13, 17, 19, 23, 29, \dots$ Le nombre $1$ n'est pas premier (il n'a qu'un seul diviseur) ; $2$ est le seul nombre premier pair.
+
+      > **Propriété (test de primalité).** Si un entier $n \geqslant 2$ n'est divisible par aucun nombre premier $p$ tel que $p^2 \leqslant n$, alors $n$ est premier.
+
+      En effet, si $n = ab$ avec $2 \leqslant a \leqslant b$, alors $a^2 \leqslant ab = n$ : $n$ aurait un diviseur au plus égal à $\sqrt{n}$.
+
+      **Exemple.** $97$ : on teste $2$, $3$, $5$, $7$ (car $11^2 = 121 > 97$). Aucun ne divise $97$, donc $97$ est premier.
+
+      ## 2. Décomposition en produit de facteurs premiers
+      > **Propriété.** Tout entier $n \geqslant 2$ s'écrit comme un produit de nombres premiers, et cette écriture est unique à l'ordre des facteurs près.
+
+      ### Méthode : décomposer un entier
+      1. Diviser par le plus petit nombre premier possible ($2$, puis $3$, $5$, $7$…).
+      2. Recommencer avec le quotient obtenu, tant qu'il n'est pas égal à $1$.
+      3. Écrire le produit des diviseurs trouvés, avec des puissances.
+
+      **Exemple.** $360 = 2 \times 180 = 2 \times 2 \times 90 = 2 \times 2 \times 2 \times 45 = 2^3 \times 3^2 \times 5$.
+
+      ## 3. Fractions irréductibles
+      > **Propriété.** Une fraction $\dfrac{a}{b}$ est irréductible si et seulement si $a$ et $b$ n'ont aucun facteur premier commun.
+
+      ### Méthode : rendre une fraction irréductible
+      1. Décomposer le numérateur et le dénominateur en produits de facteurs premiers.
+      2. Simplifier par tous les facteurs communs (avec la plus petite puissance commune).
+      3. Recomposer : il ne reste aucun facteur commun.
+
+      **Exemple complet.** Rendre irréductible $\dfrac{252}{360}$.
+      - $252 = 2^2 \times 3^2 \times 7$ et $360 = 2^3 \times 3^2 \times 5$.
+      - Les facteurs communs sont $2^2$ et $3^2$, soit $36$.
+      - $\dfrac{252}{360} = \dfrac{2^2 \times 3^2 \times 7}{2^2 \times 3^2 \times 2 \times 5} = \dfrac{7}{10}$.
+
+      La décomposition donne aussi le **plus petit multiple commun** : on prend chaque facteur premier avec sa plus grande puissance. Pour $12 = 2^2 \times 3$ et $18 = 2 \times 3^2$, c'est $2^2 \times 3^2 = 36$.
+
+      ## 4. Erreurs fréquentes
+      - Considérer $1$ comme un nombre premier.
+      - Croire que tout nombre impair est premier : $9$, $15$, $21$ ou $91 = 7 \times 13$ ne le sont pas.
+      - Arrêter la décomposition trop tôt, avec un facteur non premier comme $4$ ou $9$.
+      - Simplifier une fraction par un nombre qui ne divise pas à la fois le numérateur et le dénominateur.
+    questions:
+      - code: 2NDE-PREM-01
+        difficulte: 1
+        type: qcm
+        enonce: 'Lequel de ces nombres est premier ? A) 21  B) 27  C) 29'
+        solution: C
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $21 = 3 \times 7$ et $27 = 3 \times 9$.
+          - '$29$ n''est divisible ni par $2$, ni par $3$, ni par $5$ ($5^2 > 29$ suffit pour s''arrêter) : il est premier.'
+          resultat: C
+      - code: 2NDE-PREM-02
+        difficulte: 2
+        type: numerique
+        enonce: 'Combien y a-t-il de nombres premiers strictement inférieurs à 20 ?'
+        solution: 8
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $2, 3, 5, 7, 11, 13, 17, 19$.
+          - Il y en a 8.
+          resultat: 8
+          erreurs_frequentes:
+          - Compter $1$, qui n'est pas premier (il n'a qu'un seul diviseur).
+      - code: 2NDE-PREM-03
+        difficulte: 3
+        type: qcm
+        enonce: 'Quelle est la décomposition de 84 en facteurs premiers ? A) $2^2 \times 3 \times 7$  B) $2 \times 3 \times 14$  C) $2^3 \times 7$'
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $84 = 2 \times 42 = 2 \times 2 \times 21 = 2^2 \times 3 \times 7$.
+          - B contient $14$ et C oublie le facteur $3$ ($2^3 \times 7 = 56$).
+          resultat: A
+      - code: 2NDE-PREM-04
+        difficulte: 4
+        type: numerique
+        enonce: 'Écrire $\dfrac{84}{126}$ sous forme de fraction irréductible.'
+        solution: 2/3
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Décomposer numérateur et dénominateur, puis simplifier les facteurs communs.
+          etapes:
+          - $84 = 2^2 \times 3 \times 7$ et $126 = 2 \times 3^2 \times 7$.
+          - 'Facteurs communs : $2 \times 3 \times 7 = 42$. $\dfrac{84}{126} = \dfrac{2}{3}$.'
+          resultat: 2/3
+      - code: 2NDE-PREM-05
+        difficulte: 5
+        type: numerique
+        enonce: 'Quel est le plus petit entier $k > 0$ tel que $12k$ soit le carré d''un entier ?'
+        solution: 3
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Un carré parfait a tous les exposants de sa décomposition pairs.
+          etapes:
+          - '$12 = 2^2 \times 3$ : l''exposant de $3$ est impair.'
+          - 'Avec $k = 3$ : $36 = 2^2 \times 3^2 = 6^2$.'
+          resultat: 3

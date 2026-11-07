@@ -1,0 +1,224 @@
+chapitre:
+  code: TLE-LIMITES-FONCTIONS
+  niveau: Tle
+  parcours: specialite
+  ordre: 6
+  titre: Limites de fonctions
+
+competences:
+  - code: TLE-LIMF-OP
+    libelle: Calculer une limite par opérations et lever une indétermination
+    objectifs:
+    - Calculer une limite de fonction en un réel ou à l'infini, lever une indétermination.
+    prerequis:
+    - TLE-SUI-OPE
+    methodes:
+    - titre: Calculer une limite à l'infini d'une fonction rationnelle
+      etapes:
+      - Factoriser par le terme de plus haut degré en haut et en bas.
+      - Simplifier et utiliser $\dfrac{1}{x^k} \to 0$ en $\pm\infty$.
+      exemple:
+        enonce: Limite en $+\infty$ de $\dfrac{4x^3 - x}{2x^3 + 5}$.
+        resolution:
+        - $\dfrac{4 - \frac{1}{x^2}}{2 + \frac{5}{x^3}} \to \dfrac{4}{2}$.
+        resultat: $2$
+    erreurs_frequentes:
+    - erreur: Oublier le côté (0⁺ ou 0⁻) pour une limite de 1/x en 0.
+      explication: En 0⁺, 1/x tend vers +∞ ; en 0⁻, vers −∞.
+    resume: |
+      - Limites usuelles en $+\infty$ : $x^n \to +\infty$, $\sqrt{x} \to +\infty$, $\dfrac{1}{x^n} \to 0$, $e^x \to +\infty$, $\ln x \to +\infty$ ; en $-\infty$ : $e^x \to 0$.
+      - Opérations : somme, produit, quotient suivent les tableaux du cours ; **4 formes indéterminées** : $\infty - \infty$, $0 \times \infty$, $\dfrac{\infty}{\infty}$, $\dfrac{0}{0}$.
+      - En $\pm\infty$, un polynôme ou un quotient de polynômes : on **factorise par le terme de plus haut degré**.
+      - Pour $\sqrt{\dots} - \dots$, on multiplie par l'**expression conjuguée**.
+      - $\lim\limits_{x \to 0^+} \dfrac{1}{x} = +\infty$ et $\lim\limits_{x \to 0^-} \dfrac{1}{x} = -\infty$.
+    cours: |
+      ## 1. Limites des fonctions de référence
+
+      | $f(x)$ | en $+\infty$ | en $-\infty$ | en $0$ |
+      |---|:-:|:-:|:-:|
+      | $x^n$ ($n \geqslant 1$) | $+\infty$ | $+\infty$ si $n$ pair, $-\infty$ si $n$ impair | $0$ |
+      | $\dfrac{1}{x^n}$ ($n \geqslant 1$) | $0$ | $0$ | $0^+$ : $+\infty$ ; $0^-$ : $+\infty$ si $n$ pair, $-\infty$ si $n$ impair |
+      | $\sqrt{x}$ | $+\infty$ | — | $0$ |
+      | $e^x$ | $+\infty$ | $0$ | $1$ |
+      | $\ln x$ | $+\infty$ | — | $0^+$ : $-\infty$ |
+
+      ## 2. Opérations sur les limites
+
+      Dans les tableaux, $\ell$ et $\ell'$ sont des réels ; « FI » signale une **forme indéterminée** : on ne peut pas conclure directement, il faut transformer l'écriture.
+
+      **Somme** $f + g$ :
+
+      | $\lim f$ \ $\lim g$ | $\ell'$ | $+\infty$ | $-\infty$ |
+      |:-:|:-:|:-:|:-:|
+      | $\ell$ | $\ell + \ell'$ | $+\infty$ | $-\infty$ |
+      | $+\infty$ | $+\infty$ | $+\infty$ | **FI** |
+      | $-\infty$ | $-\infty$ | **FI** | $-\infty$ |
+
+      **Produit** $f \times g$ : $\ell \times \ell'$ si les deux limites sont finies ; si l'une est infinie et l'autre non nulle, le produit est infini avec la **règle des signes** ; $0 \times \infty$ est une **FI**.
+
+      **Quotient** $\dfrac{f}{g}$ :
+      - $\dfrac{\ell}{\ell'}$ si $\ell' \neq 0$ ;
+      - $\dfrac{\ell}{\pm\infty} = 0$ ;
+      - $\dfrac{\pm\infty}{\ell'}$ est infini (règle des signes) si $\ell' \neq 0$ ;
+      - $\dfrac{\ell}{0}$ avec $\ell \neq 0$ : infini, le signe dépend du signe de $\ell$ et de celui du dénominateur au voisinage ($0^+$ ou $0^-$) ;
+      - $\dfrac{\infty}{\infty}$ et $\dfrac{0}{0}$ sont des **FI**.
+
+      ## 3. Lever une indétermination
+
+      **Polynômes et quotients de polynômes en $\pm\infty$** : on factorise par le terme de plus haut degré.
+      $$\frac{3x^2 + 1}{x^2 - 2} = \frac{x^2\left(3 + \frac{1}{x^2}\right)}{x^2\left(1 - \frac{2}{x^2}\right)} \xrightarrow[x \to +\infty]{} 3$$
+      Règle pratique : en $\pm\infty$, un quotient de polynômes a la même limite que le quotient de ses termes de plus haut degré ; ainsi $\dfrac{2x + 1}{x^2 + 1} \to 0$.
+
+      **Racines : expression conjuguée.**
+      $$\sqrt{x^2 + x} - x = \frac{(\sqrt{x^2 + x} - x)(\sqrt{x^2 + x} + x)}{\sqrt{x^2 + x} + x} = \frac{x}{\sqrt{x^2 + x} + x} = \frac{1}{\sqrt{1 + \frac{1}{x}} + 1} \xrightarrow[x \to +\infty]{} \frac{1}{2}$$
+
+      **Limite en un réel où le dénominateur s'annule** : on étudie le signe du dénominateur de chaque côté. Par exemple $\lim\limits_{x \to 2^+} \dfrac{1}{x - 2} = +\infty$ et $\lim\limits_{x \to 2^-} \dfrac{1}{x - 2} = -\infty$.
+
+      ## 4. Croissances comparées (rappel)
+      $\lim\limits_{x \to +\infty} \dfrac{e^x}{x^n} = +\infty$, $\lim\limits_{x \to -\infty} x^n e^x = 0$, $\lim\limits_{x \to +\infty} \dfrac{\ln x}{x} = 0$, $\lim\limits_{x \to 0^+} x \ln x = 0$ : l'exponentielle « l'emporte » sur les puissances, qui l'emportent sur le logarithme.
+
+      ## 5. Erreur fréquente
+      Conclure « $\infty - \infty = 0$ » ou « $\dfrac{\infty}{\infty} = 1$ » : ce sont des formes indéterminées, il faut transformer l'écriture.
+    questions:
+      - code: TLE-LIMF-OP-01
+        difficulte: 1
+        type: qcm
+        enonce: 'Quelle est la limite de $x^2 + 3x$ en $+\infty$ ? A) $+\infty$  B) 0  C) $-\infty$'
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - Somme de deux termes qui tendent vers $+\infty$.
+          resultat: A
+      - code: TLE-LIMF-OP-02
+        difficulte: 2
+        type: numerique
+        enonce: 'Calculer la limite en $+\infty$ de $\dfrac{3x^2 + 1}{x^2 - 2}$.'
+        solution: 3
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $\dfrac{3 + \frac{1}{x^2}}{1 - \frac{2}{x^2}} \to 3$.
+          resultat: 3
+      - code: TLE-LIMF-OP-03
+        difficulte: 3
+        type: numerique
+        enonce: 'Calculer la limite en $+\infty$ de $\dfrac{2x + 1}{x^2 + 1}$.'
+        solution: 0
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $\dfrac{1}{x} \times \dfrac{2 + \frac{1}{x}}{1 + \frac{1}{x^2}} \to 0 \times 2 = 0$.
+          resultat: 0
+      - code: TLE-LIMF-OP-04
+        difficulte: 4
+        type: qcm
+        enonce: 'Quelle est la limite de $\dfrac{1}{x}$ quand $x$ tend vers 0 par valeurs positives ? A) $+\infty$  B) $-\infty$  C) 0'
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - Pour $x > 0$ très petit, $\dfrac{1}{x}$ est positif et très grand.
+          resultat: A
+      - code: TLE-LIMF-OP-05
+        difficulte: 5
+        type: numerique
+        enonce: 'Calculer la limite en $+\infty$ de $\sqrt{x^2 + x} - x$.'
+        solution: 1/2
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Quantité conjuguée.
+          etapes:
+          - $\sqrt{x^2 + x} - x = \dfrac{x}{\sqrt{x^2 + x} + x} = \dfrac{1}{\sqrt{1 + \frac{1}{x}} + 1}$.
+          - 'Limite : $\dfrac{1}{1 + 1} = \dfrac{1}{2}$.'
+          resultat: 1/2
+
+  - code: TLE-LIMF-ASYMP
+    libelle: Interpréter des limites (asymptotes, croissances comparées)
+    objectifs:
+    - Interpréter une limite par une asymptote.
+    - Utiliser les croissances comparées.
+    prerequis:
+    - TLE-LIMF-OP
+    - 1RE-EXP-ETU
+    methodes:
+    - titre: Lire les asymptotes d'une fonction
+      etapes:
+      - '$\lim_{x \to \pm\infty} f(x) = \ell$ : asymptote horizontale $y = \ell$.'
+      - '$\lim_{x \to a} f(x) = \pm\infty$ : asymptote verticale $x = a$ (souvent une valeur interdite).'
+      exemple:
+        enonce: Asymptotes de $f(x) = \dfrac{3x}{x + 2}$.
+        resolution:
+        - En $\pm\infty$, $f(x) \to 3$ ; en $-2$, le dénominateur s'annule et $|f(x)| \to +\infty$.
+        resultat: $y = 3$ et $x = -2$.
+    erreurs_frequentes:
+    - erreur: Penser que $\dfrac{e^x}{x^n}$ a une limite finie car « l'infini sur l'infini » donne 1.
+      explication: Par croissances comparées, l'exponentielle l'emporte sur toute puissance de x.
+    resume: |
+      - $\lim\limits_{x \to \pm\infty} f(x) = \ell$ : asymptote **horizontale** $y = \ell$.
+      - $\lim\limits_{x \to a} f(x) = \pm\infty$ : asymptote **verticale** $x = a$.
+      - Croissances comparées : $\lim\limits_{x \to +\infty} \dfrac{e^x}{x^n} = +\infty$ et $\lim\limits_{x \to -\infty} x^n e^x = 0$.
+      - $\lim\limits_{x \to 0} \dfrac{e^x - 1}{x} = 1$ (nombre dérivé de $\exp$ en $0$).
+    cours: |
+      ## Asymptotes
+      $f(x) = \dfrac{2x + 1}{x - 3}$ : $\lim\limits_{x \to \pm\infty} f(x) = 2$ et $\lim\limits_{x \to 3^+} f(x) = +\infty$.
+      La courbe a une asymptote horizontale $y = 2$ et une asymptote verticale $x = 3$.
+
+      ## Croissances comparées
+      « L'exponentielle l'emporte sur les puissances » : $\dfrac{e^x}{x^2} \to +\infty$ et $x e^{-x} = \dfrac{x}{e^x} \to 0$ en $+\infty$.
+
+      ## Taux d'accroissement
+      $\dfrac{e^x - 1}{x} = \dfrac{e^x - e^0}{x - 0}$ tend vers $\exp'(0) = 1$.
+    questions:
+      - code: TLE-LIMF-ASYMP-01
+        difficulte: 1
+        type: qcm
+        enonce: 'La courbe de $f(x) = \dfrac{2x + 1}{x - 3}$ admet pour asymptotes : A) $y = 2$ et $x = 3$  B) $y = 3$ et $x = 2$  C) $y = 2$ seulement'
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - 'En $\pm\infty$, $f(x) \to 2$ : asymptote $y = 2$.'
+          - 'En $3$, le dénominateur s''annule (numérateur $7 \neq 0$) : asymptote $x = 3$.'
+          resultat: A
+      - code: TLE-LIMF-ASYMP-02
+        difficulte: 2
+        type: qcm
+        enonce: 'Quelle est la limite de $\dfrac{e^x}{x^2}$ en $+\infty$ ? A) $+\infty$  B) 0  C) 1'
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - 'Croissances comparées : l''exponentielle l''emporte sur x².'
+          resultat: A
+      - code: TLE-LIMF-ASYMP-03
+        difficulte: 3
+        type: numerique
+        enonce: 'Calculer la limite en $+\infty$ de $x e^{-x}$.'
+        solution: 0
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - $xe^{-x} = \dfrac{x}{e^x}$ et, par croissances comparées, $\dfrac{e^x}{x} \to +\infty$.
+          resultat: 0
+      - code: TLE-LIMF-ASYMP-04
+        difficulte: 4
+        type: qcm
+        enonce: 'Quelle est la limite de $x e^x$ en $-\infty$ ? A) 0  B) $-\infty$  C) $+\infty$'
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          etapes:
+          - 'Croissances comparées : $\lim_{x \to -\infty} xe^x = 0$.'
+          resultat: A
+      - code: TLE-LIMF-ASYMP-05
+        difficulte: 5
+        type: numerique
+        enonce: 'Calculer la limite en 0 de $\dfrac{e^x - 1}{x}$.'
+        solution: 1
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Reconnaitre un taux d'accroissement.
+          etapes:
+          - $\dfrac{e^x - e^0}{x - 0}$ tend vers le nombre dérivé de $\exp$ en $0$, soit $e^0 = 1$.
+          resultat: 1
