@@ -25,7 +25,7 @@ case "$MODE" in
   deploy) echo "DEPLOY BLOQUE: ce script ne lance jamais terraform apply. Validation du plan, du budget et de l identite humaine requise avant une procedure distincte."; exit 2 ;;
   *) echo "Usage: bash scripts/boussole-dev.sh [auto|audit|setup|test|deploy]"; exit 2 ;;
 esac
-for tool in gcloud gh git; do need "$tool" || exit 1; done
+for tool in gcloud gh git python3 curl; do need "$tool" || exit 1; done
 say "Verifications initiales"
 ACTIVE="$(gcloud config get-value project 2>/dev/null || true)"
 if [[ "$ACTIVE" == "$PROJECT" ]]; then ok "Projet GCP actif: $PROJECT"; else
@@ -106,7 +106,51 @@ if [[ "$MODE" == auto && "${PLAN_OK:-0}" == 1 ]]; then
     else warn "Ancien acces WIF conserve a la demande de l utilisateur"; fi
   else ok "Ancien compte admin sans liaison WIF GitHub pour ce depot"; fi
 fi
+
+# Budget mensuel DEV : 30 EUR, alertes 50/80/100 %. Les alertes ne plafonnent pas les couts.
+budget_dev() {
+  say "Budget GCP DEV (30 EUR/mois)"
+  for tool in curl python3; do need "$tool" || return 1; done
+  local billing account token endpoint listing existing payload response check
+  billing="$(gcloud billing projects describe "$PROJECT" --format='value(billingAccountName)' 2>/dev/null || true)"
+  if [[ ! "$billing" =~ ^billingAccounts/[A-Za-z0-9-]+$ ]]; then
+    bad "Compte de facturation introuvable ou droits insuffisants"; return 1
+  fi
+  account="${billing#billingAccounts/}"
+  token="$(gcloud auth print-access-token 2>/dev/null || true)"
+  if [[ -z "$token" ]]; then bad "Authentification GCP manquante"; return 1; fi
+  endpoint="https://billingbudgets.googleapis.com/v1/$billing/budgets"
+  listing="$(curl --silent --show-error --fail --get --data-urlencode 'pageSize=1000' -H "Authorization: Bearer $token" "$endpoint" 2>/dev/null)" || {
+    bad "Lecture budgets impossible (API Billing Budgets ou permission billing.budgets.list manquante)"; return 1;
+  }
+  # Nom fixe + filtre projet pour eviter les doublons. Ne jamais modifier un budget preexistant automatiquement.
+  existing="$(printf '%s' "$listing" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=sys.argv[1]; print(next((x["name"] for x in d.get("budgets",[]) if x.get("displayName")=="Boussole DEV - 30 EUR" and ("projects/"+p) in x.get("budgetFilter",{}).get("projects",[])), ""))' "$NUMBER")"
+  if [[ -n "$existing" ]]; then
+    check="$(printf '%s' "$listing" | python3 -c 'import json,sys; d=json.load(sys.stdin); name=sys.argv[1]; b=next(x for x in d.get("budgets",[]) if x["name"]==name); a=b.get("amount",{}).get("specifiedAmount",{}); t=sorted(float(x["thresholdPercent"]) for x in b.get("thresholdRules",[])); print("ok" if a.get("currencyCode")=="EUR" and str(a.get("units"))=="30" and t==[0.5,0.8,1.0] and b.get("budgetFilter",{}).get("calendarPeriod")=="MONTH" else "mismatch")' "$existing")"
+    if [[ "$check" == ok ]]; then ok "Budget DEV existant conforme: 30 EUR/mois, 50/80/100"; else bad "Budget DEV existant non conforme; correction manuelle necessaire: $existing"; fi
+    return
+  fi
+  warn "Budget DEV absent (30 EUR/mois, alertes 15/24/30 EUR)"
+  if [[ "$MODE" != auto && "$MODE" != setup ]]; then return; fi
+  if ! ask "Creer le budget mensuel de 30 EUR sur le compte $account pour le projet $PROJECT (alertes, pas de plafond) ?"; then
+    warn "Creation du budget non autorisee"; return
+  fi
+  payload="$(python3 -c 'import json,sys; p=sys.argv[1]; print(json.dumps({"displayName":"Boussole DEV - 30 EUR","budgetFilter":{"projects":["projects/"+p],"calendarPeriod":"MONTH"},"amount":{"specifiedAmount":{"currencyCode":"EUR","units":"30"}},"thresholdRules":[{"thresholdPercent":0.5},{"thresholdPercent":0.8},{"thresholdPercent":1.0}]}))' "$NUMBER")"
+  response="$(curl --silent --show-error --fail -X POST -H "Authorization: Bearer $token" -H 'Content-Type: application/json' --data "$payload" "$endpoint" 2>&1)" || {
+    bad "Creation budget impossible: verifier API Billing Budgets et permission billing.budgets.create"; return 1;
+  }
+  if printf '%s' "$response" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("name") and d.get("amount",{}).get("specifiedAmount",{}).get("currencyCode")=="EUR" else 1)'; then
+    ok "Budget mensuel 30 EUR cree avec seuils 50/80/100"
+  else bad "Reponse inattendue apres creation du budget"; fi
+}
+
+budget_dev
+
+say "Tests avant deploiement"
+if [[ "${PLAN_OK:-0}" == 1 ]]; then ok "GitHub Actions PLAN confirme"; else warn "Relancer le mode auto pour confirmer le PLAN avant deploiement"; fi
+if [[ "$FAIL" == 0 ]]; then ok "Aucun echec detecte dans les controles executes"; else warn "Des controles ont echoue; aucun apply autorise"; fi
+
 say "Controle des risques restants"
 if [[ "${PLAN_OK:-0}" != 1 ]]; then warn "Retirer l ancien WIF seulement apres PLAN reussi"; fi
-warn "Budget GCP et alertes 50/80/100 a confirmer dans Cloud Billing (non modifie automatiquement)"
+warn "Verifier les notifications du budget dans Cloud Billing; alertes non bloquantes"
 warn "Aucun deploiement Terraform n est effectue par ce script"
