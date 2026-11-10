@@ -21,10 +21,50 @@ need(){ command -v "$1" >/dev/null 2>&1 || { bad "Commande absente: $1"; return 
 report(){ printf '\n====== RAPPORT BOUSSOLE DEV ======\n'; printf '%s\n' "${REPORT[@]}"; printf '=================================\n'; }
 trap 'report' EXIT
 case "$MODE" in
-  audit|setup|test|auto) ;;
+  audit|setup|test|auto|preflight) ;;
   deploy) echo "DEPLOY BLOQUE: ce script ne lance jamais terraform apply. Validation du plan, du budget et de l identite humaine requise avant une procedure distincte."; exit 2 ;;
-  *) echo "Usage: bash scripts/boussole-dev.sh [auto|audit|setup|test|deploy]"; exit 2 ;;
+  *) echo "Usage: bash scripts/boussole-dev.sh [preflight|auto|audit|setup|test|deploy]"; exit 2 ;;
 esac
+# Lecture seule: analyse du code Terraform, du workflow et des risques de cout.
+preflight() {
+  say "Audit pre-deploiement DEV - lecture seule"
+  local tf workflow startup tmpdir verdict reasons
+  tmpdir="$(mktemp -d)"
+  trap 'rm -rf "$tmpdir"; report' EXIT
+  for entry in "infrastructure/terraform/dev/main.tf:main.tf" ".github/workflows/gcp-dev-terraform.yml:workflow.yml" "infrastructure/terraform/dev/startup.sh:startup.sh"; do
+    local remote="${entry%%:*}" localfile="${entry##*:}"
+    if ! gh api -X GET "repos/$REPO/contents/$remote?ref=$BRANCH" --jq '.content' | tr -d '\n' | base64 -d > "$tmpdir/$localfile"; then
+      bad "Lecture GitHub impossible: $remote"; return 1
+    fi
+  done
+  if grep -Eq '^[[:space:]]*[^#[:space:]].*terraform[[:space:]]+apply' "$tmpdir/workflow.yml"; then bad "Workflow contient terraform apply"; else ok "Workflow sans terraform apply"; fi
+  if grep -q 'e2-standard-2' "$tmpdir/main.tf"; then warn "VM e2-standard-2 detectee: budget 30 EUR non demontre"; else ok "Type VM non standard-2 (prix a confirmer)"; fi
+  if grep -q 'google_compute_router_nat' "$tmpdir/main.tf"; then warn "Cloud NAT: cout horaire et traitement des donnees a chiffrer"; fi
+  if grep -q 'type  = "pd-balanced"' "$tmpdir/main.tf"; then warn "Disque pd-balanced: cout mensuel a chiffrer"; fi
+  if grep -q 'access_config' "$tmpdir/main.tf"; then bad "Configuration IP externe detectee"; else ok "Pas de bloc access_config explicite"; fi
+  if grep -q 'enable-oslogin = "TRUE"' "$tmpdir/main.tf"; then ok "OS Login active"; else warn "OS Login non confirme"; fi
+  if grep -q 'enable_secure_boot          = true' "$tmpdir/main.tf"; then ok "Secure Boot active"; else warn "Secure Boot non confirme"; fi
+  if grep -q 'roles/iap.tunnelResourceAccessor' "$tmpdir/main.tf"; then ok "Acces IAP prevu"; else warn "Acces IAP non confirme"; fi
+  if grep -q 'apt-get install' "$tmpdir/startup.sh"; then warn "Startup script installe des paquets au demarrage; reproductibilite a tester"; fi
+  warn "Prix temps reel non verifies: aucun GO budget sans estimation chiffree (region europe-west9, VM, disque, NAT, reseau)"
+  warn "Verification des ressources deja existantes et des quotas non realisee"
+  warn "Plan Terraform precedent reussi, mais contenu et cout du plan non audites ici"
+  verdict="NO-GO"
+  printf '\n====== RAPPORT GO / NO-GO ======\n'
+  printf 'Projet: %s | Branche: %s | Budget cible: 30 EUR/mois\n' "$PROJECT" "$BRANCH"
+  printf 'Decision: %s\n' "$verdict"
+  printf 'Motifs: cout mensuel non demontre; configuration VM + Cloud NAT a optimiser; plan detaille a examiner.\n'
+  printf 'Actions: chiffrer les ressources; optimiser taille/duree VM et NAT; examiner plan; obtenir approbation humaine.\n'
+  printf 'Aucun terraform apply execute.\n'
+  printf '===============================\n'
+  return 0
+}
+if [[ "$MODE" == preflight ]]; then
+  for tool in gh python3; do need "$tool" || exit 1; done
+  if ! gh auth status >/dev/null 2>&1; then bad "Authentification GitHub requise"; exit 1; fi
+  preflight
+  exit "$FAIL"
+fi
 for tool in gcloud gh git python3 curl; do need "$tool" || exit 1; done
 say "Verifications initiales"
 ACTIVE="$(gcloud config get-value project 2>/dev/null || true)"
