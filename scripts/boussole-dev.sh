@@ -39,9 +39,13 @@ preflight() {
     fi
   done
   if grep -Eq '^[[:space:]]*[^#[:space:]].*terraform[[:space:]]+apply' "$tmpdir/workflow.yml"; then bad "Workflow contient terraform apply"; else ok "Workflow sans terraform apply"; fi
-  if grep -q 'e2-standard-2' "$tmpdir/main.tf"; then warn "VM e2-standard-2 detectee: budget 30 EUR non demontre"; else ok "Type VM non standard-2 (prix a confirmer)"; fi
+  local vm_type disk_type disk_size
+  vm_type="$(sed -n '/variable "machine_type"/,/^}/s/^[[:space:]]*default[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$tmpdir/main.tf" | head -n 1)"
+  disk_type="$(sed -n '/initialize_params {/,/^[[:space:]]*}/s/^[[:space:]]*type[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$tmpdir/main.tf" | head -n 1)"
+  disk_size="$(sed -n '/initialize_params {/,/^[[:space:]]*}/s/^[[:space:]]*size[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$tmpdir/main.tf" | head -n 1)"
+  if [[ "$vm_type" == "e2-small" ]]; then ok "VM proposee: e2-small (cout a chiffrer)"; elif [[ -n "$vm_type" ]]; then warn "VM proposee: $vm_type (cout a chiffrer)"; else bad "Type VM non determine"; fi
+  if [[ -n "$disk_type" && -n "$disk_size" ]]; then ok "Disque propose: $disk_size Go $disk_type (cout a chiffrer)"; else bad "Disque non determine"; fi
   if grep -q 'google_compute_router_nat' "$tmpdir/main.tf"; then warn "Cloud NAT: cout horaire et traitement des donnees a chiffrer"; fi
-  if grep -q 'type  = "pd-balanced"' "$tmpdir/main.tf"; then warn "Disque pd-balanced: cout mensuel a chiffrer"; fi
   if grep -q 'access_config' "$tmpdir/main.tf"; then bad "Configuration IP externe detectee"; else ok "Pas de bloc access_config explicite"; fi
   if grep -q 'enable-oslogin = "TRUE"' "$tmpdir/main.tf"; then ok "OS Login active"; else warn "OS Login non confirme"; fi
   if grep -q 'enable_secure_boot          = true' "$tmpdir/main.tf"; then ok "Secure Boot active"; else warn "Secure Boot non confirme"; fi
