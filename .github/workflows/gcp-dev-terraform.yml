@@ -2,7 +2,6 @@ name: GCP DEV Terraform
 
 on:
   workflow_dispatch:
-    inputs:
 
 permissions:
   contents: read
