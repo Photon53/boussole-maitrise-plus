@@ -7,7 +7,7 @@ on:
         description: "Plan or apply (never destroy)"
         type: choice
         required: true
-        options: [plan, apply]
+        options: [plan]
         default: plan
       confirm_project:
         description: "For apply, type mer-boussole-dev"
@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   terraform:
-    if: github.ref == 'refs/heads/develop' && (inputs.action == 'plan' || inputs.confirm_project == 'mer-boussole-dev')
+    if: github.ref == 'refs/heads/develop' && inputs.action == 'plan'
     runs-on: ubuntu-latest
     environment: development
     defaults:
@@ -54,6 +54,3 @@ jobs:
           TF_VAR_project_id: ${{ vars.GCP_DEV_PROJECT_ID }}
           TF_VAR_admin_members: ${{ vars.GCP_DEV_ADMIN_MEMBERS_JSON }}
         run: terraform plan -input=false -out=tfplan
-      - name: Terraform apply (manual dispatch + project confirmation)
-        if: inputs.action == 'apply'
-        run: terraform apply -input=false tfplan
