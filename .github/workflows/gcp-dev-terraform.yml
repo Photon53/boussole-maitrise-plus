@@ -1,22 +1,30 @@
 name: GCP DEV Terraform
+
 on:
   workflow_dispatch:
     inputs:
       action:
-        description: "plan or apply (never destroy)"
+        description: "Plan or apply (never destroy)"
         type: choice
         required: true
-        options: [plan, apply]
+        options: [plan]
         default: plan
+      confirm_project:
+        description: "For apply, type mer-boussole-dev"
+        required: false
+        type: string
+
 permissions:
   contents: read
   id-token: write
+
 concurrency:
   group: gcp-dev-terraform
   cancel-in-progress: false
+
 jobs:
   terraform:
-    if: github.ref == 'refs/heads/infra/gcp-dev-bootstrap'
+    if: github.ref == 'refs/heads/develop' && inputs.action == 'plan'
     runs-on: ubuntu-latest
     environment: development
     defaults:
@@ -30,17 +38,19 @@ jobs:
           workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
           service_account: ${{ vars.GCP_DEV_SERVICE_ACCOUNT }}
           project_id: ${{ vars.GCP_DEV_PROJECT_ID }}
+      - name: Check DEV target
+        env:
+          PROJECT: ${{ vars.GCP_DEV_PROJECT_ID }}
+        run: |
+          test "$PROJECT" = "mer-boussole-dev"
       - name: Terraform init
         env:
           TF_STATE_BUCKET: ${{ vars.TF_STATE_BUCKET }}
-        run: terraform init -backend-config="bucket=$TF_STATE_BUCKET" -backend-config="prefix=dev"
-      - name: Validate
+        run: terraform init -input=false -backend-config="bucket=$TF_STATE_BUCKET" -backend-config="prefix=dev"
+      - name: Terraform fmt and validate
         run: terraform fmt -check && terraform validate
-      - name: Plan
+      - name: Terraform plan
         env:
           TF_VAR_project_id: ${{ vars.GCP_DEV_PROJECT_ID }}
           TF_VAR_admin_members: ${{ vars.GCP_DEV_ADMIN_MEMBERS_JSON }}
         run: terraform plan -input=false -out=tfplan
-      - name: Apply (explicit approval required)
-        if: inputs.action == 'apply'
-        run: terraform apply -input=false -auto-approve tfplan
