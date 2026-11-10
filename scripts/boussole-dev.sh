@@ -120,9 +120,34 @@ budget_dev() {
   token="$(gcloud auth print-access-token 2>/dev/null || true)"
   if [[ -z "$token" ]]; then bad "Authentification GCP manquante"; return 1; fi
   endpoint="https://billingbudgets.googleapis.com/v1/$billing/budgets"
-  listing="$(curl --silent --show-error --fail --get --data-urlencode 'pageSize=1000' -H "Authorization: Bearer $token" "$endpoint" 2>/dev/null)" || {
-    bad "Lecture budgets impossible (API Billing Budgets ou permission billing.budgets.list manquante)"; return 1;
+  local http_code body_file
+  body_file="$(mktemp)"
+  http_code="$(curl --silent --show-error --output "$body_file" --write-out '%{http_code}' --get --data-urlencode 'pageSize=1000' -H "Authorization: Bearer $token" "$endpoint")" || {
+    rm -f "$body_file"; bad "Erreur reseau lors de la lecture des budgets"; return 1;
   }
+  if [[ "$http_code" != 200 ]]; then
+    local error_msg
+    error_msg="$(python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("error",{}).get("message","Erreur inconnue"))' "$body_file" 2>/dev/null || true)"
+    rm -f "$body_file"
+    warn "API Billing Budgets HTTP $http_code: $error_msg"
+    if [[ "$http_code" == 403 && "$error_msg" == *"disabled"* || "$http_code" == 403 && "$error_msg" == *"has not been used"* ]]; then
+      if [[ "$MODE" == auto || "$MODE" == setup ]] && ask "Activer billingbudgets.googleapis.com dans $PROJECT ?"; then
+        if gcloud services enable billingbudgets.googleapis.com --project="$PROJECT"; then
+          ok "API Billing Budgets activee; nouvelle tentative"
+          http_code="$(curl --silent --show-error --output "$body_file" --write-out '%{http_code}' --get --data-urlencode 'pageSize=1000' -H "Authorization: Bearer $token" "$endpoint")" || http_code=000
+          if [[ "$http_code" != 200 ]]; then
+            warn "Nouvelle tentative HTTP $http_code (propagation possible)"
+            rm -f "$body_file"; return 1
+          fi
+        else bad "Activation API impossible"; return 1; fi
+      else bad "API Billing Budgets inactive"; return 1; fi
+    else
+      bad "Acces aux budgets refuse ou API indisponible. Verifier billing.budgets.list sur le compte de facturation; aucun droit ajoute automatiquement."
+      return 1
+    fi
+  fi
+  listing="$(cat "$body_file")"
+  rm -f "$body_file"
   # Nom fixe + filtre projet pour eviter les doublons. Ne jamais modifier un budget preexistant automatiquement.
   existing="$(printf '%s' "$listing" | python3 -c 'import json,sys; d=json.load(sys.stdin); p=sys.argv[1]; print(next((x["name"] for x in d.get("budgets",[]) if x.get("displayName")=="Boussole DEV - 30 EUR" and ("projects/"+p) in x.get("budgetFilter",{}).get("projects",[])), ""))' "$NUMBER")"
   if [[ -n "$existing" ]]; then
