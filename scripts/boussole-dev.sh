@@ -21,9 +21,9 @@ need(){ command -v "$1" >/dev/null 2>&1 || { bad "Commande absente: $1"; return 
 report(){ printf '\n====== RAPPORT BOUSSOLE DEV ======\n'; printf '%s\n' "${REPORT[@]}"; printf '=================================\n'; }
 trap 'report' EXIT
 case "$MODE" in
-  audit|setup|test|auto|preflight) ;;
+  audit|setup|test|auto|preflight|guarded) ;;
   deploy) echo "DEPLOY BLOQUE: ce script ne lance jamais terraform apply. Validation du plan, du budget et de l identite humaine requise avant une procedure distincte."; exit 2 ;;
-  *) echo "Usage: bash scripts/boussole-dev.sh [preflight|auto|audit|setup|test|deploy]"; exit 2 ;;
+  *) echo "Usage: bash scripts/boussole-dev.sh [guarded|preflight|auto|audit|setup|test|deploy]"; exit 2 ;;
 esac
 # Lecture seule: analyse du code Terraform, du workflow et des risques de cout.
 preflight() {
@@ -70,6 +70,72 @@ if [[ "$MODE" == preflight ]]; then
   preflight
   exit "$FAIL"
 fi
+guarded() {
+  say "Controle unique budget 150 EUR / 3 mois - aucun APPLY"
+  local tmp billing token endpoint code existing payload run
+  tmp="$(mktemp -d)"
+  trap 'rm -rf "${GUARD_TMP:-}"; report' EXIT
+  GUARD_TMP="$tmp"
+  for t in gh gcloud curl python3 base64; do need "$t" || return 1; done
+  [[ "$(gcloud config get-value project 2>/dev/null)" == "$PROJECT" ]] || { bad "Mauvais projet GCP"; return 1; }
+  gh auth status >/dev/null 2>&1 || { bad "gh non authentifie"; return 1; }
+  gh api -X GET "repos/$REPO/contents/infrastructure/terraform/dev/main.tf?ref=$BRANCH" --jq .content | tr -d "\n" | base64 -d > "$tmp/main.tf" || return 1
+  gh api -X GET "repos/$REPO/contents/.github/workflows/gcp-dev-terraform.yml?ref=$BRANCH" --jq .content | tr -d "\n" | base64 -d > "$tmp/workflow.yml" || return 1
+  if grep -Eq "^[[:space:]]*[^#[:space:]].*terraform[[:space:]]+apply" "$tmp/workflow.yml"; then bad "APPLY detecte dans workflow"; return 1; fi
+  grep -q 'default = "e2-medium"' "$tmp/main.tf" || { bad "VM e2-medium non confirmee"; return 1; }
+  ok "Terraform e2-medium et workflow PLAN ONLY"
+  billing="$(gcloud billing projects describe "$PROJECT" --format="value(billingAccountName)" 2>/dev/null || true)"
+  [[ "$billing" == billingAccounts/* ]] || { bad "Facturation inaccessible"; return 1; }
+  token="$(gcloud auth print-access-token)" || return 1
+  endpoint="https://billingbudgets.googleapis.com/v1/$billing/budgets"
+  code="$(curl -sS -o "$tmp/list.json" -w "%{http_code}" -G --data-urlencode pageSize=1000 -H "Authorization: Bearer $token" -H "x-goog-user-project: $PROJECT" "$endpoint")" || return 1
+  [[ "$code" == 200 ]] || { bad "Lecture budgets HTTP $code"; return 1; }
+  local number
+  number="$(gcloud projects describe "$PROJECT" --format="value(projectNumber)")"
+  existing="$(python3 - "$tmp/list.json" "$number" <<'PY'
+import json,sys
+b=json.load(open(sys.argv[1])).get("budgets",[])
+a=[x["name"] for x in b if x.get("displayName") in ("Boussole DEV - 30 EUR","Boussole DEV - 50 EUR") and x.get("budgetFilter",{}).get("projects")==["projects/"+sys.argv[2]]]
+print(a[0] if len(a)==1 else ("MULTIPLE" if len(a)>1 else ""))
+PY
+)"
+  [[ "$existing" != MULTIPLE ]] || { bad "Budgets multiples: intervention manuelle"; return 1; }
+  python3 - "$number" > "$tmp/payload.json" <<'PY'
+import json,sys
+print(json.dumps({"displayName":"Boussole DEV - 50 EUR","budgetFilter":{"projects":["projects/"+sys.argv[1]],"calendarPeriod":"MONTH"},"amount":{"specifiedAmount":{"currencyCode":"EUR","units":"50"}},"thresholdRules":[{"thresholdPercent":v} for v in (0.5,0.8,1.0)]}))
+PY
+  if ask "Configurer budget 50 EUR/mois avec alertes 25/40/50 EUR (NON BLOQUANTES) ?"; then
+    if [[ -n "$existing" ]]; then
+      python3 - "$tmp/list.json" "$existing" > "$tmp/payload.json" <<'PY'
+import json,sys
+b=next(x for x in json.load(open(sys.argv[1]))["budgets"] if x["name"]==sys.argv[2])
+b.update(displayName="Boussole DEV - 50 EUR",amount={"specifiedAmount":{"currencyCode":"EUR","units":"50"}},thresholdRules=[{"thresholdPercent":v} for v in (0.5,0.8,1.0)])
+print(json.dumps(b))
+PY
+      endpoint="https://billingbudgets.googleapis.com/v1/$existing?updateMask=displayName,amount,thresholdRules"
+      local method=PATCH
+    else local method=POST; fi
+    code="$(curl -sS -o "$tmp/result.json" -w "%{http_code}" -X "$method" -H "Authorization: Bearer $token" -H "x-goog-user-project: $PROJECT" -H "Content-Type: application/json" --data-binary @"$tmp/payload.json" "$endpoint")" || return 1
+    [[ "$code" == 200 ]] || { bad "Modification budget HTTP $code: $(cat "$tmp/result.json")"; return 1; }
+    python3 - "$tmp/result.json" <<'PY' || { bad "Reponse budget incorrecte"; return 1; }
+import json,sys
+b=json.load(open(sys.argv[1]));a=b.get("amount",{}).get("specifiedAmount",{})
+assert a.get("currencyCode")=="EUR" and str(a.get("units"))=="50"
+assert sorted(float(t["thresholdPercent"]) for t in b.get("thresholdRules",[]))==[0.5,0.8,1.0]
+PY
+    ok "Budget 50 EUR/mois et alertes API verifies"
+  else warn "Budget inchange"; fi
+  if ask "Declencher Terraform PLAN uniquement ?"; then
+    gh workflow run gcp-dev-terraform.yml --repo "$REPO" --ref "$BRANCH" || return 1
+    sleep 6
+    run="$(gh run list --repo "$REPO" --workflow gcp-dev-terraform.yml --branch "$BRANCH" --limit 1 --json databaseId --jq ".[0].databaseId")"
+    if gh run watch "$run" --repo "$REPO" --exit-status; then ok "PLAN reussi: $run"; else bad "PLAN echoue: $run"; fi
+  fi
+  warn "NO-GO APPLY: prix exact NAT/reseau et cout cumule 150 EUR non garantis"
+  warn "Budget et alertes ne constituent pas un plafond de facturation; notifications a verifier"
+  warn "Aucun terraform apply execute"
+}
+if [[ "$MODE" == guarded ]]; then guarded; exit "$FAIL"; fi
 for tool in gcloud gh git python3 curl; do need "$tool" || exit 1; done
 say "Verifications initiales"
 ACTIVE="$(gcloud config get-value project 2>/dev/null || true)"
