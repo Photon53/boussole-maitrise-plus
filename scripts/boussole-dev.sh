@@ -122,7 +122,7 @@ budget_dev() {
   endpoint="https://billingbudgets.googleapis.com/v1/$billing/budgets"
   local http_code body_file
   body_file="$(mktemp)"
-  http_code="$(curl --silent --show-error --output "$body_file" --write-out '%{http_code}' --get --data-urlencode 'pageSize=1000' -H "Authorization: Bearer $token" "$endpoint")" || {
+  http_code="$(curl --silent --show-error --output "$body_file" --write-out '%{http_code}' --get --data-urlencode 'pageSize=1000' -H "Authorization: Bearer $token" -H "x-goog-user-project: $PROJECT" "$endpoint")" || {
     rm -f "$body_file"; bad "Erreur reseau lors de la lecture des budgets"; return 1;
   }
   if [[ "$http_code" != 200 ]]; then
@@ -134,7 +134,7 @@ budget_dev() {
       if [[ "$MODE" == auto || "$MODE" == setup ]] && ask "Activer billingbudgets.googleapis.com dans $PROJECT ?"; then
         if gcloud services enable billingbudgets.googleapis.com --project="$PROJECT"; then
           ok "API Billing Budgets activee; nouvelle tentative"
-          http_code="$(curl --silent --show-error --output "$body_file" --write-out '%{http_code}' --get --data-urlencode 'pageSize=1000' -H "Authorization: Bearer $token" "$endpoint")" || http_code=000
+          http_code="$(curl --silent --show-error --output "$body_file" --write-out '%{http_code}' --get --data-urlencode 'pageSize=1000' -H "Authorization: Bearer $token" -H "x-goog-user-project: $PROJECT" "$endpoint")" || http_code=000
           if [[ "$http_code" != 200 ]]; then
             warn "Nouvelle tentative HTTP $http_code (propagation possible)"
             rm -f "$body_file"; return 1
@@ -142,7 +142,7 @@ budget_dev() {
         else bad "Activation API impossible"; return 1; fi
       else bad "API Billing Budgets inactive"; return 1; fi
     else
-      bad "Acces aux budgets refuse ou API indisponible. Verifier billing.budgets.list sur le compte de facturation; aucun droit ajoute automatiquement."
+      bad "Acces aux budgets refuse ou API indisponible. Si 403 persiste avec x-goog-user-project, verifier serviceusage.services.use sur le projet quota et billing.budgets.list sur le compte de facturation; aucun droit ajoute automatiquement."
       return 1
     fi
   fi
@@ -161,7 +161,7 @@ budget_dev() {
     warn "Creation du budget non autorisee"; return
   fi
   payload="$(python3 -c 'import json,sys; p=sys.argv[1]; print(json.dumps({"displayName":"Boussole DEV - 30 EUR","budgetFilter":{"projects":["projects/"+p],"calendarPeriod":"MONTH"},"amount":{"specifiedAmount":{"currencyCode":"EUR","units":"30"}},"thresholdRules":[{"thresholdPercent":0.5},{"thresholdPercent":0.8},{"thresholdPercent":1.0}]}))' "$NUMBER")"
-  response="$(curl --silent --show-error --fail -X POST -H "Authorization: Bearer $token" -H 'Content-Type: application/json' --data "$payload" "$endpoint" 2>&1)" || {
+  response="$(curl --silent --show-error --fail -X POST -H "Authorization: Bearer $token" -H "x-goog-user-project: $PROJECT" -H 'Content-Type: application/json' --data "$payload" "$endpoint" 2>&1)" || {
     bad "Creation budget impossible: verifier API Billing Budgets et permission billing.budgets.create"; return 1;
   }
   if printf '%s' "$response" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("name") and d.get("amount",{}).get("specifiedAmount",{}).get("currencyCode")=="EUR" else 1)'; then
