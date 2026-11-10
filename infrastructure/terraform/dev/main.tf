@@ -21,7 +21,7 @@ variable "zone" {
 // Profil DEV economique. L arret programme et les couts doivent etre valides avant apply.
 variable "machine_type" {
   type    = string
-  default = "e2-small"
+  default = "e2-medium"
 }
 variable "admin_members" {
   type        = list(string)
