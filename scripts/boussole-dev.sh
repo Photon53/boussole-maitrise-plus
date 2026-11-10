@@ -21,22 +21,22 @@ need(){ command -v "$1" >/dev/null 2>&1 || { bad "Commande absente: $1"; return 
 report(){ printf '\n====== RAPPORT BOUSSOLE DEV ======\n'; printf '%s\n' "${REPORT[@]}"; printf '=================================\n'; }
 trap 'report' EXIT
 case "$MODE" in
-  audit|setup|test) ;;
+  audit|setup|test|auto) ;;
   deploy) echo "DEPLOY BLOQUE: ce script ne lance jamais terraform apply. Validation du plan, du budget et de l identite humaine requise avant une procedure distincte."; exit 2 ;;
-  *) echo "Usage: bash scripts/boussole-dev.sh [audit|setup|test|deploy]"; exit 2 ;;
+  *) echo "Usage: bash scripts/boussole-dev.sh [auto|audit|setup|test|deploy]"; exit 2 ;;
 esac
 for tool in gcloud gh git; do need "$tool" || exit 1; done
 say "Verifications initiales"
 ACTIVE="$(gcloud config get-value project 2>/dev/null || true)"
 if [[ "$ACTIVE" == "$PROJECT" ]]; then ok "Projet GCP actif: $PROJECT"; else
   warn "Projet actif: $ACTIVE (attendu: $PROJECT)"
-  if [[ "$MODE" == setup ]] && ask "Basculer sur $PROJECT ?"; then gcloud config set project "$PROJECT"; else bad "Selectionner le bon projet avant de continuer"; exit 1; fi
+  if [[ "$MODE" == setup || "$MODE" == auto ]] && ask "Basculer sur $PROJECT ?"; then gcloud config set project "$PROJECT"; else bad "Selectionner le bon projet avant de continuer"; exit 1; fi
 fi
 if gh auth status >/dev/null 2>&1; then ok "GitHub CLI authentifie"; else bad "gh auth login necessaire"; exit 1; fi
 if ! gh repo view "$REPO" --json viewerPermission --jq '.viewerPermission' >/dev/null 2>&1; then bad "Acces GitHub au depot absent"; exit 1; else ok "Acces GitHub au depot"; fi
 if gcloud iam service-accounts describe "$PLAN_SA" --project="$PROJECT" >/dev/null 2>&1; then ok "Compte PLAN existe"; else
   warn "Compte PLAN absent"
-  if [[ "$MODE" == setup ]] && ask "Creer le compte PLAN ?"; then
+  if [[ "$MODE" == setup || "$MODE" == auto ]] && ask "Creer le compte PLAN ?"; then
     gcloud iam service-accounts create boussole-dev-tf-plan --project="$PROJECT" --display-name="Boussole DEV Terraform Plan"
   else bad "Compte PLAN requis"; fi
 fi
@@ -47,7 +47,7 @@ for role in roles/compute.viewer roles/artifactregistry.reader roles/iam.service
     ok "$role attribue au PLAN"
   else
     warn "$role absent"
-    if [[ "$MODE" == setup ]] && ask "Attribuer $role au compte PLAN ?"; then
+    if [[ "$MODE" == setup || "$MODE" == auto ]] && ask "Attribuer $role au compte PLAN ?"; then
       gcloud projects add-iam-policy-binding "$PROJECT" --member="serviceAccount:$PLAN_SA" --role="$role" --quiet
     fi
   fi
@@ -58,7 +58,7 @@ if printf '%s' "$BP" | python3 -c 'import json,sys; p=json.load(sys.stdin); sa=s
   ok "Acces backend GCS du PLAN"
 else
   warn "Acces backend GCS absent"
-  if [[ "$MODE" == setup ]] && ask "Accorder storage.objectAdmin sur ce bucket au PLAN (ecriture possible sur etat Terraform) ?"; then
+  if [[ "$MODE" == setup || "$MODE" == auto ]] && ask "Accorder storage.objectAdmin sur ce bucket au PLAN (ecriture possible sur etat Terraform) ?"; then
     gcloud storage buckets add-iam-policy-binding "gs://$BUCKET" --member="serviceAccount:$PLAN_SA" --role="roles/storage.objectAdmin"
   fi
 fi
@@ -70,7 +70,7 @@ PRINCIPAL="principalSet://iam.googleapis.com/projects/$NUMBER/locations/global/w
 SA_POLICY="$(gcloud iam service-accounts get-iam-policy "$PLAN_SA" --project="$PROJECT" --format=json 2>/dev/null || echo '{}')"
 if printf '%s' "$SA_POLICY" | python3 -c 'import json,sys; p=json.load(sys.stdin); m=sys.argv[1]; sys.exit(0 if any(b["role"]=="roles/iam.workloadIdentityUser" and m in b.get("members",[]) for b in p.get("bindings",[])) else 1)' "$PRINCIPAL"; then ok "GitHub autorise a utiliser PLAN"; else
   warn "Liaison WIF du PLAN absente"
-  if [[ "$MODE" == setup && "$CONDITION" == *"assertion.ref=='refs/heads/$BRANCH'"* ]] && ask "Autoriser le depot GitHub a utiliser PLAN ?"; then
+  if [[ ( "$MODE" == setup || "$MODE" == auto ) && "$CONDITION" == *"assertion.ref=='refs/heads/$BRANCH'"* ]] && ask "Autoriser le depot GitHub a utiliser PLAN ?"; then
     gcloud iam service-accounts add-iam-policy-binding "$PLAN_SA" --project="$PROJECT" --role=roles/iam.workloadIdentityUser --member="$PRINCIPAL"
   fi
 fi
@@ -82,7 +82,7 @@ if gh api "repos/$REPO/contents/.github/workflows/gcp-dev-terraform.yml?ref=$BRA
 else bad "Impossible de lire le workflow"; fi
 ENVJSON="$(gh api "repos/$REPO/environments/development-apply" 2>/dev/null || echo '{}')"
 if printf '%s' "$ENVJSON" | python3 -c 'import json,sys; p=json.load(sys.stdin); sys.exit(0 if p.get("can_admins_bypass") is False and p.get("deployment_branch_policy",{}).get("custom_branch_policies") is True else 1)'; then ok "Environnement apply restreint (sans approbation native)"; else warn "Verifier environnement development-apply"; fi
-if [[ "$MODE" == test ]]; then
+if [[ "$MODE" == test || "$MODE" == auto ]]; then
   say "Lancement du workflow PLAN uniquement"
   if ask "Lancer GitHub Actions terraform plan sur develop ?"; then
     gh workflow run gcp-dev-terraform.yml --repo "$REPO" --ref "$BRANCH"
@@ -90,12 +90,23 @@ if [[ "$MODE" == test ]]; then
     RUN="$(gh run list --repo "$REPO" --workflow gcp-dev-terraform.yml --branch "$BRANCH" --limit 1 --json databaseId --jq '.[0].databaseId')"
     if [[ -n "$RUN" ]]; then
       say "Attente du run $RUN"
-      if gh run watch "$RUN" --repo "$REPO" --exit-status; then ok "Workflow PLAN reussi"; else bad "Workflow PLAN en echec"; fi
+      if gh run watch "$RUN" --repo "$REPO" --exit-status; then ok "Workflow PLAN reussi"; PLAN_OK=1; else bad "Workflow PLAN en echec"; PLAN_OK=0; fi
       echo "https://github.com/$REPO/actions/runs/$RUN"
     fi
   fi
 fi
+if [[ "$MODE" == auto && "${PLAN_OK:-0}" == 1 ]]; then
+  say "Durcissement IAM apres test PLAN reussi"
+  OLD_POLICY="$(gcloud iam service-accounts get-iam-policy "$OLD_SA" --project="$PROJECT" --format=json 2>/dev/null || echo '{}')"
+  if printf '%s' "$OLD_POLICY" | python3 -c 'import json,sys; p=json.load(sys.stdin); m=sys.argv[1]; sys.exit(0 if any(b["role"]=="roles/iam.workloadIdentityUser" and m in b.get("members",[]) for b in p.get("bindings",[])) else 1)' "$PRINCIPAL"; then
+    if ask "Retirer l ancien acces WIF GitHub du compte Terraform administrateur ?"; then
+      if gcloud iam service-accounts remove-iam-policy-binding "$OLD_SA" --project="$PROJECT" --role=roles/iam.workloadIdentityUser --member="$PRINCIPAL" --quiet; then
+        ok "Ancien acces WIF retire"
+      else bad "Echec retrait ancien acces WIF"; fi
+    else warn "Ancien acces WIF conserve a la demande de l utilisateur"; fi
+  else ok "Ancien compte admin sans liaison WIF GitHub pour ce depot"; fi
+fi
 say "Controle des risques restants"
-warn "Verifier et retirer la liaison WIF de l ancien compte admin seulement APRES un PLAN reussi"
-warn "Budget GCP et alertes 50/80/100 a confirmer dans Cloud Billing"
+if [[ "${PLAN_OK:-0}" != 1 ]]; then warn "Retirer l ancien WIF seulement apres PLAN reussi"; fi
+warn "Budget GCP et alertes 50/80/100 a confirmer dans Cloud Billing (non modifie automatiquement)"
 warn "Aucun deploiement Terraform n est effectue par ce script"
