@@ -18,9 +18,10 @@ variable "zone" {
   type    = string
   default = "europe-west9-a"
 }
+// Profil DEV economique. L arret programme et les couts doivent etre valides avant apply.
 variable "machine_type" {
   type    = string
-  default = "e2-standard-2"
+  default = "e2-small"
 }
 variable "admin_members" {
   type        = list(string)
@@ -72,8 +73,8 @@ resource "google_compute_instance" "dev" {
   boot_disk {
     initialize_params {
       image = "projects/ubuntu-os-cloud/global/images/family/ubuntu-2404-lts-amd64"
-      size  = 40
-      type  = "pd-balanced"
+      size  = 30
+      type  = "pd-standard"
     }
   }
   network_interface { subnetwork = google_compute_subnetwork.dev.id }
