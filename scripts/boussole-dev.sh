@@ -30,7 +30,8 @@ preflight() {
   say "Audit pre-deploiement DEV - lecture seule"
   local tf workflow startup tmpdir verdict reasons
   tmpdir="$(mktemp -d)"
-  trap 'rm -rf "$tmpdir"; report' EXIT
+  trap 'rm -rf "${PREFLIGHT_TMPDIR:-}"; report' EXIT
+  PREFLIGHT_TMPDIR="$tmpdir"
   for entry in "infrastructure/terraform/dev/main.tf:main.tf" ".github/workflows/gcp-dev-terraform.yml:workflow.yml" "infrastructure/terraform/dev/startup.sh:startup.sh"; do
     local remote="${entry%%:*}" localfile="${entry##*:}"
     if ! gh api -X GET "repos/$REPO/contents/$remote?ref=$BRANCH" --jq '.content' | tr -d '\n' | base64 -d > "$tmpdir/$localfile"; then
