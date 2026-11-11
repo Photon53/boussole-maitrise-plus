@@ -51,7 +51,11 @@ if gcloud storage cat "$VERROU" > "$TRAVAIL/verrou.json" 2>/dev/null; then
   echo "  Verrou présent : ID=$ID, opération=$OPERATION, créé le $CREE"
   [[ "$OPERATION" == "OperationTypeApply" ]] || echec "Verrou inattendu ($OPERATION) : quelqu'un d'autre utilise peut-être Terraform. Ne rien forcer."
   [[ -f errored.tfstate ]] || echec "Verrou d'apply présent mais errored.tfstate introuvable dans $DOSSIER : ne rien forcer, me contacter."
-  terraform force-unlock -force "$ID"
+  # Backend GCS : force-unlock attend le numéro de génération de l'objet verrou, pas l'ID du JSON.
+  GENERATION="$(gcloud storage objects describe "$VERROU" --format='value(generation)')"
+  [[ "$GENERATION" =~ ^[0-9]+$ ]] || echec "Génération du verrou illisible : '$GENERATION'"
+  echo "  Génération de l'objet verrou : $GENERATION"
+  terraform force-unlock -force "$GENERATION"
   ok "Verrou retiré"
 else
   ok "Aucun verrou"
