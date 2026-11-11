@@ -1,0 +1,63 @@
+# Claude Code déclenché par « @claude » dans un ticket ou une PR (ticket #63).
+#
+# ACTIVATION : les événements issue_comment, issues et pull_request_review exécutent la version de
+# ce fichier présente sur la BRANCHE PAR DÉFAUT (main). Fusionné dans develop seulement, il reste
+# inactif pour les tickets. Plan d'activation distinct : docs/exploitation/activation-claude-github.md.
+#
+# GARDE-FOUS
+# - Seul Photon53 peut déclencher Claude.
+# - Les branches de Claude partent de develop et les PR visent develop. Fusion toujours humaine.
+# - AUCUNE étape d'authentification GCP ne doit être ajoutée ici (pas de google-github-actions/auth).
+#   Le fournisseur WIF GCP n'accepte que gcp-dev-terraform.yml (voir #63).
+name: Claude
+
+on:
+  issue_comment:
+    types: [created]
+  pull_request_review_comment:
+    types: [created]
+  pull_request_review:
+    types: [submitted]
+  issues:
+    types: [opened, assigned]
+
+# Aucun droit par défaut ; droits accordés au seul job ci-dessous.
+permissions: {}
+
+concurrency:
+  group: claude-${{ github.event.issue.number || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  claude:
+    if: >-
+      github.actor == 'Photon53' && (
+        (github.event_name == 'issue_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review_comment' && contains(github.event.comment.body, '@claude')) ||
+        (github.event_name == 'pull_request_review' && contains(github.event.review.body, '@claude')) ||
+        (github.event_name == 'issues' && (contains(github.event.issue.body, '@claude') || contains(github.event.issue.title, '@claude')))
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write        # créer la branche claude/… et y pousser
+      pull-requests: write   # ouvrir et commenter la PR
+      issues: write          # répondre dans le ticket
+      actions: read          # lire les résultats de la CI
+      # Utilisé uniquement par l'action Claude pour obtenir le jeton de l'application GitHub Claude.
+      # Ne donne aucun accès GCP : aucune étape GCP ici, et le WIF GCP refuse ce workflow.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: anthropics/claude-code-action@4fa93a88de49bbef68b10eb15aabedf28ca0e1ed # v1.0.271
+        with:
+          # Secret à créer dans Settings → Secrets and variables → Actions.
+          # Variante clé API : remplacer par  anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          base_branch: develop
+          branch_prefix: claude/
+          additional_permissions: |
+            actions: read
