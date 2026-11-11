@@ -3,7 +3,7 @@
 # Cloud Shell, propriétaire du projet. Usage :  bash scripts/reprise-terraform-dev.sh
 #
 # Enchaîne, en s'arrêtant à la moindre anomalie :
-#   1. identifiants gcloud + identifiants Terraform (ADC), connexion interactive si nécessaire ;
+#   1. identifiants gcloud (connexion interactive si nécessaire), jeton transmis à Terraform ;
 #   2. retrait du verrou d'état laissé par l'apply interrompu (seulement s'il s'agit bien d'un apply) ;
 #   3. renvoi de errored.tfstate vers le bucket d'état (copie conservée dans ~/.boussole-terraform) ;
 #   4. nouveau plan : il doit être « 3 to add, 0 to change, 0 to destroy » (liaisons IAM déjà présentes dans GCP) ;
@@ -35,14 +35,10 @@ if ! gcloud auth print-access-token >/dev/null 2>&1; then
 fi
 gcloud auth print-access-token >/dev/null 2>&1 || echec "Connexion gcloud impossible"
 ok "gcloud : $(gcloud config get-value account 2>/dev/null)"
-# Terraform utilise les identifiants par défaut (ADC), distincts de ceux de gcloud.
-if ! gcloud auth application-default print-access-token >/dev/null 2>&1; then
-  warn "Identifiants Terraform (ADC) absents : connexion."
-  gcloud auth application-default login
-fi
-gcloud auth application-default print-access-token >/dev/null 2>&1 || echec "Identifiants Terraform (ADC) indisponibles"
-gcloud auth application-default set-quota-project "$PROJECT" >/dev/null 2>&1 || true
-ok "Identifiants Terraform (ADC) disponibles"
+# Terraform reçoit directement le jeton de gcloud (valable 1 h) : dans Cloud Shell, il ignore sinon les
+# identifiants de gcloud et interroge le serveur de métadonnées, qui peut être indisponible.
+export GOOGLE_OAUTH_ACCESS_TOKEN="$(gcloud auth print-access-token)"
+ok "Jeton transmis à Terraform"
 
 cd "$DOSSIER"
 terraform init -input=false -reconfigure -backend-config="bucket=$BUCKET" -backend-config="prefix=dev" >/dev/null

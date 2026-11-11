@@ -21,6 +21,10 @@ echec() { printf '\033[31m[ECHEC]\033[0m %s\n' "$*"; exit 1; }
 case "$MODE" in plan|apply) ;; *) sed -n '2,9p' "$0" | sed 's/^# \{0,1\}//'; exit 2 ;; esac
 command -v terraform >/dev/null || echec "terraform absent (préinstallé dans Cloud Shell)"
 [[ "$(gcloud config get-value project 2>/dev/null)" == "$PROJECT" ]] || echec "Projet gcloud actif différent de $PROJECT (gcloud config set project $PROJECT)"
+# Jeton gcloud frais (1 h) transmis à Terraform : dans Cloud Shell, Terraform interroge sinon le serveur de
+# métadonnées, parfois indisponible (« invalid token JSON from metadata: EOF »).
+GOOGLE_OAUTH_ACCESS_TOKEN="$(gcloud auth print-access-token 2>/dev/null)" || echec "Aucun compte gcloud actif : gcloud auth login"
+export GOOGLE_OAUTH_ACCESS_TOKEN
 mkdir -p "$TRAVAIL" && chmod 700 "$TRAVAIL"
 
 # Membres IAP/OS Login : même valeur que la variable GitHub GCP_DEV_ADMIN_MEMBERS_JSON.
