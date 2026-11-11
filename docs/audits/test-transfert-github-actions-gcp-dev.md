@@ -8,7 +8,7 @@
 
 ## Verdict
 
-**Transfert GitHub Actions → GCP DEV : BLOQUÉ (partiellement démontré).**
+**Transfert GitHub Actions → GCP DEV : authentification et PLAN démontrés côté GCP le 11/11 (voir la mise à jour en fin de tableau) ; déploiement applicatif BLOQUÉ (pipeline inexistant).**
 
 - La **fédération d'identité GitHub OIDC → GCP** est en place, restreinte à `develop`, sans clé longue durée. Elle a déjà été utilisée avec succès par le workflow Terraform PLAN (jetons émis le 10/11/2026 entre 17:38 et 18:03 UTC, d'après Cloud Audit Logs).
 - **Aucun pipeline applicatif** (build → Artifact Registry → déploiement DEV) n'existe encore : le dépôt Artifact Registry `boussole-dev` est vide.
