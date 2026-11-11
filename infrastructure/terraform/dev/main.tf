@@ -107,6 +107,27 @@ resource "google_artifact_registry_repository" "dev" {
   repository_id = "boussole-dev"
   format        = "DOCKER"
   description   = "Development images only"
+
+  // Ticket #65 : simulation d'abord (aucune suppression réelle tant que dry_run = true).
+  // Seules les images SANS tag sont candidates ; les tags SHA (versions active, précédente,
+  // figée) ne sont jamais supprimés par ces règles. Le retrait des anciens tags SHA sera un
+  // mécanisme explicite et documenté (PR 4), après démonstration.
+  cleanup_policy_dry_run = true
+  cleanup_policies {
+    id     = "supprimer-sans-tag-7j"
+    action = "DELETE"
+    condition {
+      tag_state  = "UNTAGGED"
+      older_than = "604800s"
+    }
+  }
+  cleanup_policies {
+    id     = "garder-20-dernieres"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = 20
+    }
+  }
 }
 output "vm_name" { value = google_compute_instance.dev.name }
 output "registry" { value = google_artifact_registry_repository.dev.id }
