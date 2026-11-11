@@ -8,7 +8,7 @@
 
 ## Verdict
 
-**Transfert GitHub Actions → GCP DEV : authentification et PLAN démontrés côté GCP le 11/11 (voir la mise à jour en fin de tableau) ; déploiement applicatif BLOQUÉ (pipeline inexistant).**
+**Transfert GitHub Actions → GCP DEV : authentification et PLAN démontrés côté GCP le 11/11 (voir « Mise à jour du 11/11/2026, 13:05 UTC ») ; déploiement applicatif BLOQUÉ (pipeline inexistant).**
 
 - La **fédération d'identité GitHub OIDC → GCP** est en place, restreinte à `develop`, sans clé longue durée. Elle a déjà été utilisée avec succès par le workflow Terraform PLAN (jetons émis le 10/11/2026 entre 17:38 et 18:03 UTC, d'après Cloud Audit Logs).
 - **Aucun pipeline applicatif** (build → Artifact Registry → déploiement DEV) n'existe encore : le dépôt Artifact Registry `boussole-dev` est vide.
@@ -30,6 +30,22 @@
 | 6c | Coûts et quotas | **PASS partiel** | Budget « Boussole DEV - 50 EUR », alertes à 50, 80 et 100 % (non bloquantes). Coût réel non mesuré dans ce test. Postes de coût actifs : VM e2-medium 24 h/24, disque de 30 Go, Cloud NAT et son IP (`NAT_AUTO`). Quotas non audités. |
 | 7 | Blocages documentés, corrections en PR en brouillon | **PASS** | Voir « Prochaines actions ». Les corrections d'infrastructure (nouveau compte de déploiement) demandent un `terraform apply` approuvé : elles ne font pas partie de cette PR. |
 | 8 | Rollback et données d'élèves | **PASS partiel** | Code : retour arrière en redéployant un commit antérieur (`deployer-dev-iap.sh` vérifie le commit). `.env` et le volume PostgreSQL sont conservés à chaque relance. **Pas de sauvegarde PostgreSQL hors VM** ni de restauration testée. Données : base DEV neuve, contenu pédagogique uniquement, **aucune donnée d'élève réelle importée**. |
+
+## Mise à jour du 11/11/2026, 13:05 UTC : Terraform PLAN corrigé et relancé
+
+Les deux runs `GCP DEV Terraform` ont été lancés manuellement par le propriétaire sur `develop`. Vérifications faites côté GCP, dans les journaux d'audit Cloud Logging :
+
+| Heure (UTC) | Événement | Constat |
+|---|---|---|
+| 12:47:49 → 12:47:55 | 4 × `GenerateAccessToken` → `boussole-dev-tf-plan` | 1er run : **authentification WIF réussie** |
+| 13:01:31 | `SetIamPolicy` sur le projet (par le propriétaire) | **Correction** : ajout de `roles/browser` à `boussole-dev-tf-plan` |
+| 13:02:05 → 13:02:14 | 4 × `GenerateAccessToken` → `boussole-dev-tf-plan` | 2e run : **authentification WIF réussie** |
+| Toute la journée | Appels de `boussole-dev-tf-plan` en erreur | **Aucun** |
+| — | `gs://mer-boussole-dev-tfstate/dev/default.tfstate` | Inchangé depuis le 10/11 à 20:05 UTC : **aucun apply** |
+
+**Effet sur le test 5 :** le volet GitHub Actions → authentification GCP (OIDC/WIF) → Terraform PLAN en lecture seule est **démontré côté GCP (PASS)**. Restent non vérifiables depuis le poste, faute d'accès à Actions avec le jeton : la conclusion du run et la sortie du plan (attendu : `No changes`). Le pipeline applicatif (build → Artifact Registry → déploiement) reste **BLOQUÉ**, car il n'existe pas.
+
+Rôles actuels de `boussole-dev-tf-plan` : `artifactregistry.reader`, `browser`, `compute.viewer`, `iam.serviceAccountViewer`, plus `storage.objectAdmin` sur le seul bucket d'état. Tous sont en lecture, sauf l'écriture sur l'état, qui est nécessaire au verrou Terraform.
 
 ## Constats de sécurité annexes (DEV)
 
