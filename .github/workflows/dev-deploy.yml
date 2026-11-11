@@ -168,4 +168,4 @@ jobs:
           API_DIGEST: ${{ steps.api.outputs.digest || steps.existant.outputs.api_digest }}
           WEB_DIGEST: ${{ steps.web.outputs.digest || steps.existant.outputs.web_digest }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
-        run: bash scripts/dev-publier-version.sh
+        run: bash scripts/dev-publier-version.sh publier
