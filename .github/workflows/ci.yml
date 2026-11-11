@@ -53,3 +53,20 @@ jobs:
         run: npm audit --omit=dev --audit-level=high
       - run: npm test
       - run: npm run build
+
+  terraform:
+    name: Terraform DEV (format et validation, sans accès GCP)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infrastructure/terraform/dev
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive
+      # -backend=false : aucun état, aucun identifiant ; seul le registre des fournisseurs est contacté.
+      - run: terraform init -input=false -backend=false
+      - run: terraform validate
+      - name: Scripts shell (syntaxe)
+        working-directory: .
+        run: for f in scripts/*.sh deploy/*.sh infrastructure/terraform/dev/*.sh; do bash -n "$f"; done
