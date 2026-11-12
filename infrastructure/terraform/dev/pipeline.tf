@@ -99,10 +99,8 @@ resource "google_storage_bucket" "deploiement" {
   }
 }
 
-// storage.objects.list porte sur le bucket : resource.name y vaut projects/_/buckets/<bucket> et la
-// condition par préfixe d'objet ne s'y applique pas. Or « gcloud storage cp » liste la destination avant
-// d'écrire. La liste est donc autorisée uniquement pour le préfixe demandé (attribut objectListPrefix),
-// sans exposer les autres noms du bucket.
+// Les conditions IAM par préfixe ne s'appliquent pas à storage.objects.list (opération sur le bucket) :
+// la liste est donc refusée à ces comptes ; les scripts lisent des noms d'objets connus.
 
 // Publication : créer / lire / remplacer (précondition de génération) dans releases/ uniquement.
 resource "google_storage_bucket_iam_member" "deployer_releases" {
@@ -112,7 +110,7 @@ resource "google_storage_bucket_iam_member" "deployer_releases" {
   condition {
     title       = "releases-seulement"
     description = "Manifestes immuables releases/<sha>.json et pointeur releases/desired.json"
-    expression  = "resource.name.startsWith(\"${local.objets_releases}\") || api.getAttribute(\"storage.googleapis.com/objectListPrefix\", \"\").startsWith(\"releases/\")"
+    expression  = "resource.name.startsWith(\"${local.objets_releases}\")"
   }
 }
 
@@ -124,7 +122,7 @@ resource "google_storage_bucket_iam_member" "vm_lecture" {
   condition {
     title       = "releases-et-backups-lecture"
     description = "Lecture du pointeur, des manifestes et des sauvegardes"
-    expression  = "resource.name.startsWith(\"${local.objets_releases}\") || resource.name.startsWith(\"${local.objets_backups}\") || api.getAttribute(\"storage.googleapis.com/objectListPrefix\", \"\").startsWith(\"releases/\") || api.getAttribute(\"storage.googleapis.com/objectListPrefix\", \"\").startsWith(\"backups/\")"
+    expression  = "resource.name.startsWith(\"${local.objets_releases}\") || resource.name.startsWith(\"${local.objets_backups}\")"
   }
 }
 
