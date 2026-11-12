@@ -99,41 +99,78 @@ resource "google_storage_bucket" "deploiement" {
   }
 }
 
-// Les conditions IAM par préfixe ne s'appliquent pas à storage.objects.list (opération sur le bucket) :
-// la liste est donc refusée à ces comptes ; les scripts lisent des noms d'objets connus.
+// --- Politique IAM du bucket : faisant autorité (ticket #65, PR 3a) -----------------------------
+//
+// La politique ci-dessous REMPLACE toute la politique du bucket. Elle retire les liaisons historiques
+// créées par défaut (projectViewer -> legacyBucketReader / legacyObjectReader, projectEditor et
+// projectOwner -> legacyBucketOwner / legacyObjectOwner) : sans cela, tout compte ayant roles/viewer
+// ou roles/editor sur le projet (boussole-dev-tf-plan, compte Compute par défaut) pourrait lire les
+// sauvegardes de backups/. Tout ajout de droit sur ce bucket passe désormais par ce bloc : une liaison
+// créée ailleurs (console, gcloud, autre ressource Terraform) serait retirée au prochain apply.
+//
+// storage.objects.list porte sur le bucket : la condition par préfixe d'objet ne s'y applique pas, la
+// liste est donc refusée à ces comptes ; les scripts accèdent aux objets par leur nom exact.
+data "google_iam_policy" "deploiement" {
+  // Publication : créer / lire / remplacer (précondition de génération) dans releases/ uniquement.
+  binding {
+    role    = "roles/storage.objectUser"
+    members = ["serviceAccount:${google_service_account.deployer.email}"]
+    condition {
+      title       = "releases-seulement"
+      description = "Manifestes immuables releases/<sha>.json et pointeur releases/desired.json"
+      expression  = "resource.name.startsWith(\"${local.objets_releases}\")"
+    }
+  }
 
-// Publication : créer / lire / remplacer (précondition de génération) dans releases/ uniquement.
-resource "google_storage_bucket_iam_member" "deployer_releases" {
-  bucket = google_storage_bucket.deploiement.name
-  role   = "roles/storage.objectUser"
-  member = "serviceAccount:${google_service_account.deployer.email}"
-  condition {
-    title       = "releases-seulement"
-    description = "Manifestes immuables releases/<sha>.json et pointeur releases/desired.json"
-    expression  = "resource.name.startsWith(\"${local.objets_releases}\")"
+  // VM : lecture des versions et des sauvegardes (restauration).
+  binding {
+    role    = "roles/storage.objectViewer"
+    members = ["serviceAccount:${google_service_account.vm.email}"]
+    condition {
+      title       = "releases-et-backups-lecture"
+      description = "Lecture du pointeur, des manifestes et des sauvegardes"
+      expression  = "resource.name.startsWith(\"${local.objets_releases}\") || resource.name.startsWith(\"${local.objets_backups}\")"
+    }
+  }
+
+  // VM : écriture des sauvegardes sans suppression ni remplacement.
+  binding {
+    role    = "roles/storage.objectCreator"
+    members = ["serviceAccount:${google_service_account.vm.email}"]
+    condition {
+      title       = "backups-ecriture"
+      description = "Création des sauvegardes ; la rétention est gérée par le cycle de vie du bucket"
+      expression  = "resource.name.startsWith(\"${local.objets_backups}\")"
+    }
   }
 }
 
-// VM : lecture des versions et des sauvegardes (restauration), écriture des sauvegardes sans suppression.
-resource "google_storage_bucket_iam_member" "vm_lecture" {
-  bucket = google_storage_bucket.deploiement.name
-  role   = "roles/storage.objectViewer"
-  member = "serviceAccount:${google_service_account.vm.email}"
-  condition {
-    title       = "releases-et-backups-lecture"
-    description = "Lecture du pointeur, des manifestes et des sauvegardes"
-    expression  = "resource.name.startsWith(\"${local.objets_releases}\") || resource.name.startsWith(\"${local.objets_backups}\")"
+resource "google_storage_bucket_iam_policy" "deploiement" {
+  bucket      = google_storage_bucket.deploiement.name
+  policy_data = data.google_iam_policy.deploiement.policy_data
+}
+
+// Les trois liaisons étaient gérées une à une jusqu'à la PR 3a. Elles sortent de l'état SANS être
+// détruites : sinon Terraform pourrait retirer ces droits après la pose de la politique ci-dessus.
+// La politique faisant autorité les reprend à l'identique.
+removed {
+  from = google_storage_bucket_iam_member.deployer_releases
+  lifecycle {
+    destroy = false
   }
 }
 
-resource "google_storage_bucket_iam_member" "vm_sauvegardes" {
-  bucket = google_storage_bucket.deploiement.name
-  role   = "roles/storage.objectCreator"
-  member = "serviceAccount:${google_service_account.vm.email}"
-  condition {
-    title       = "backups-ecriture"
-    description = "Création des sauvegardes ; la rétention est gérée par le cycle de vie du bucket"
-    expression  = "resource.name.startsWith(\"${local.objets_backups}\")"
+removed {
+  from = google_storage_bucket_iam_member.vm_lecture
+  lifecycle {
+    destroy = false
+  }
+}
+
+removed {
+  from = google_storage_bucket_iam_member.vm_sauvegardes
+  lifecycle {
+    destroy = false
   }
 }
 
