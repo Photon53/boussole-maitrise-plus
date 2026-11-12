@@ -22,6 +22,8 @@ BUCKET="${P}-deploiement"
 controle() {   # controle <libellé> <commande...>
   local libelle="$1" sortie rc; shift
   sortie="$("$@" 2>&1)"; rc=$?
+  # Messages informatifs sans résultat (liste vide, avertissement de région Dataflow) : ignorés.
+  sortie="$(grep -vE '^Listed 0 items\.$|^`--region` not set' <<<"$sortie" || true)"
   if (( rc != 0 )); then printf '[INCOMPLET] %s\n             %s\n' "$libelle" "$(tail -1 <<<"$sortie")"
   elif [[ -z "${sortie//[[:space:]]/}" ]]; then printf '[RIEN]      %s\n' "$libelle"
   else printf '[TROUVÉ]    %s\n' "$libelle"; sed 's/^/             /' <<<"$sortie"; fi
@@ -39,6 +41,7 @@ controle "Rôles de tf-plan sur le projet" gcloud projects get-iam-policy "$P" -
 for r in $(gcloud projects get-iam-policy "$P" --flatten=bindings --filter="bindings.members:serviceAccount:$TFPLAN" --format='value(bindings.role)' 2>/dev/null); do
   controle "$r : storage.buckets.get / getIamPolicy" bash -c "gcloud iam roles describe '$r' --format=json | python3 -c 'import json,sys; print(\"\\n\".join(p for p in json.load(sys.stdin).get(\"includedPermissions\",[]) if p in (\"storage.buckets.get\",\"storage.buckets.getIamPolicy\")))'"
 done
+controle "roles/storage.bucketViewer (prévu pour tf-plan, PR 3a) : permissions storage.* — attendu : aucun storage.objects.*" permissions_storage roles/storage.bucketViewer
 controle "Liaisons de tf-plan sur le bucket $BUCKET" bash -c "gcloud storage buckets get-iam-policy gs://$BUCKET --format=json | grep -n '$TFPLAN' || true"
 
 echo; echo "=== 3. Compte Compute par défaut : rôles, état, clés, emprunt"
@@ -57,7 +60,13 @@ controle "Cloud Build : déclencheurs" gcloud builds triggers list --project="$P
 controle "Cloud Run services (compte vide = compte Compute par défaut)" gcloud run services list --project="$P" --format='table(metadata.name,region,spec.template.spec.serviceAccountName)'
 controle "Cloud Run jobs" gcloud run jobs list --project="$P" --format='table(metadata.name,spec.template.spec.template.spec.serviceAccountName)'
 controle "Cloud Functions" gcloud functions list --project="$P" --format='table(name,serviceConfig.serviceAccountEmail)'
-controle "App Engine" gcloud app describe --project="$P" --format='value(serviceAccount)'
+# Absence d'application App Engine : constat établi (RIEN), pas un échec du contrôle.
+app_engine() {
+  local s rc; s="$(gcloud app describe --project="$P" --format='value(serviceAccount)' 2>&1)"; rc=$?
+  if (( rc != 0 )) && grep -q 'does not contain an App Engine application' <<<"$s"; then return 0; fi
+  printf '%s\n' "$s"; return "$rc"
+}
+controle "App Engine" app_engine
 controle "GKE" gcloud container clusters list --project="$P"
 controle "Cloud Scheduler (europe-west9)" gcloud scheduler jobs list --project="$P" --location=europe-west9
 controle "Dataflow" gcloud dataflow jobs list --project="$P" --status=active

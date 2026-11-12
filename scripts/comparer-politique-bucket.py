@@ -27,4 +27,4 @@ for titre, ens in (("RETIRÉES par l'apply", A - B), ("AJOUTÉES par l'apply", B
     for role, m, t, e in sorted(ens):
         print(f"  {role:42} {m}" + (f"   [condition : {t}]" if t else ""))
 if B - A:
-    print("\n[ATTENTION] le plan ajoute des liaisons absentes aujourd'hui : ne pas appliquer sans les comprendre.")
+    print("\n[À VÉRIFIER] liaisons ajoutées : attendu, uniquement roles/storage.bucketViewer pour boussole-dev-tf-plan.")

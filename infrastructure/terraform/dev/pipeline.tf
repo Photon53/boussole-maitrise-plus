@@ -18,6 +18,12 @@ variable "backup_retention_days" {
   description = "Durée de conservation des sauvegardes PostgreSQL et fichiers (préfixe backups/)"
 }
 
+variable "tf_plan_service_account" {
+  type        = string
+  default     = ""
+  description = "Compte du workflow Terraform PLAN (créé hors Terraform) ; vide = boussole-dev-tf-plan@<projet>"
+}
+
 data "google_project" "dev" {}
 
 locals {
@@ -25,6 +31,7 @@ locals {
   deploiement_name = "${var.project_id}-deploiement"
   objets_releases  = "projects/_/buckets/${local.deploiement_name}/objects/releases/"
   objets_backups   = "projects/_/buckets/${local.deploiement_name}/objects/backups/"
+  tf_plan_email    = var.tf_plan_service_account != "" ? var.tf_plan_service_account : "boussole-dev-tf-plan@${var.project_id}.iam.gserviceaccount.com"
 }
 
 // --- Identité de publication (GitHub Actions dev-deploy.yml) -----------------------------------
@@ -111,6 +118,14 @@ resource "google_storage_bucket" "deploiement" {
 // storage.objects.list porte sur le bucket : la condition par préfixe d'objet ne s'y applique pas, la
 // liste est donc refusée à ces comptes ; les scripts accèdent aux objets par leur nom exact.
 data "google_iam_policy" "deploiement" {
+  // PLAN Terraform : lecture des métadonnées du bucket (storage.buckets.get), qu'il tenait jusqu'ici de la
+  // liaison historique projectViewer -> legacyBucketReader. Aucun accès aux objets ; la lecture de la
+  // politique IAM (storage.buckets.getIamPolicy) vient de roles/iam.securityReviewer sur le projet.
+  binding {
+    role    = "roles/storage.bucketViewer"
+    members = ["serviceAccount:${local.tf_plan_email}"]
+  }
+
   // Publication : créer / lire / remplacer (précondition de génération) dans releases/ uniquement.
   binding {
     role    = "roles/storage.objectUser"
