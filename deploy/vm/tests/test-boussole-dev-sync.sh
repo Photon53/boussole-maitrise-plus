@@ -354,11 +354,12 @@ initialiser
 publier v1 "$META_0031"; pointer v1
 sync --adopter; sync --appliquer
 publier v6 "$META_0031"; pointer v6
-etat_py "e['tuer_si'] = 'alembic upgrade'"
+etat_py "e['dump_ko'] = True" "e['tuer_si'] = 'pg_dump'"
 sync --appliquer
-verif "Interruption brutale au lancement de la migration (rien d'appliqué)" 137 "" '[[ "$(jv "$E/etat/en-cours.json" etape)" == migration ]]'
+verif "Interruption brutale pendant la sauvegarde (avant toute migration)" 137 "" '[[ "$(jv "$E/etat/en-cours.json" etape)" == sauvegarde ]]'
+etat_py "e['dump_ko'] = False"
 sync --appliquer
-verif "Reprise : base et données inchangées, version précédente rétablie, version rejetée" 1 "Version précédente" \
+verif "Reprise : interruption avant la migration, base et données inchangées : version précédente rétablie" 1 "Version précédente" \
   '[[ "$(jv "$E/etat/active.json" sha)" == "$SHA_v1" && "$(jv "$E/etat/rejetee.json" sha)" == "$SHA_v6" && ! -f "$E/etat/en-cours.json" ]] && curl -fsS "http://127.0.0.1:$PORT/api/health" | grep -q ok'
 
 initialiser
@@ -370,6 +371,58 @@ sync --appliquer
 verif "Interruption pendant le préchargement : aucune maintenance commencée" 137 "" '[[ ! -f "$E/etat/en-cours.json" ]]'
 sync --appliquer
 verif "Reprise après interruption avant maintenance : déploiement normal" 0 "ACTIVE" '[[ "$(jv "$E/etat/active.json" sha)" == "$SHA_v7" ]]'
+
+# ===================================================================================================================
+echo "== Blocage migration/import : retour interdit même si révision et empreinte sont inchangées"
+# Chaque cas : version de même révision (0031) dont l'import ne change rien ; l'échec ou l'interruption survient
+# PENDANT la migration ou l'import. On vérifie que révision et empreinte sont restées identiques (la règle des
+# phases, et elle seule, interdit le retour), qu'aucune relance de la version précédente n'a lieu, et que les
+# services restent arrêtés.
+inchanges() { [[ "$(lire_py "e[\"db\"][\"revision\"]")" == 0031 && "$(lire_py "e[\"db\"][\"empreinte\"]")" == E0 ]]; }
+arretes()   { [[ "$(lire_py "[e[\"conteneurs\"][s][\"running\"] for s in (\"api\",\"purge\",\"web\")]")" == "[False, False, False]" ]]; }
+preparer_v1() { initialiser; publier v1 "$META_0031"; pointer v1; sync --adopter; sync --appliquer; }
+
+preparer_v1
+publier m1 '{"head": "0031", "revisions": ["0030", "0031"], "migration_ko": true}'; pointer m1
+marquer; sync --appliquer
+verif "Échec PENDANT la migration (révision et empreinte inchangées) : retour interdit" 2 "pendant la phase « migration »" \
+  'inchanges && arretes && [[ "$(jv "$E/etat/intervention-requise.json" etape)" == migration ]] && ! appels_depuis | grep -q images-relance.env'
+
+preparer_v1
+publier m2 '{"head": "0031", "revisions": ["0030", "0031"], "import_ko": true}'; pointer m2
+marquer; sync --appliquer
+verif "Échec PENDANT l'import (révision et empreinte inchangées) : retour interdit" 2 "pendant la phase « import »" \
+  'inchanges && arretes && [[ "$(jv "$E/etat/intervention-requise.json" etape)" == import ]] && ! appels_depuis | grep -q images-relance.env'
+
+preparer_v1
+publier m3 "$META_0031"; pointer m3
+etat_py "e['tuer_si'] = 'alembic upgrade'"
+sync --appliquer
+verif "Interruption brutale PENDANT la migration" 137 "" '[[ "$(jv "$E/etat/en-cours.json" etape)" == migration ]]'
+marquer; sync --appliquer
+verif "Reprise après interruption pendant la migration (révision et empreinte inchangées) : retour interdit" 2 "pendant la phase « migration »" \
+  'inchanges && arretes && [[ ! -f "$E/etat/en-cours.json" ]] && ! appels_depuis | grep -qE "images-relance.env|^pull|alembic upgrade"'
+
+preparer_v1
+publier m4 "$META_0031"; pointer m4
+etat_py "e['tuer_si'] = 'app.contenu importer'"
+sync --appliquer
+verif "Interruption brutale PENDANT l'import" 137 "" '[[ "$(jv "$E/etat/en-cours.json" etape)" == import ]]'
+marquer; sync --appliquer
+verif "Reprise après interruption pendant l'import (révision et empreinte inchangées) : retour interdit" 2 "pendant la phase « import »" \
+  'inchanges && arretes && [[ ! -f "$E/etat/en-cours.json" ]] && ! appels_depuis | grep -qE "images-relance.env|^pull|app.contenu importer"'
+
+preparer_v1
+publier m5 "$META_0031"; pointer m5
+etat_py "e['tuer_si'] = 'alembic upgrade'"
+sync --appliquer; sync --appliquer
+marquer; sync --appliquer
+verif "Après ce blocage, aucune action automatique aux passages suivants" 2 "Intervention requise" '! appels_depuis | grep -qE "^(stop|pull)|compose"'
+
+preparer_v1
+publier m6 '{"head": "0031", "revisions": ["0030", "0031"], "cassee": true}'; pointer m6
+sync --appliquer
+verif "Témoin : migration et import TERMINÉS, échec aux contrôles : retour permis" 1 "Version précédente" 'inchanges'
 
 # ===================================================================================================================
 echo "== Manifeste invalide, sécurité, journal"

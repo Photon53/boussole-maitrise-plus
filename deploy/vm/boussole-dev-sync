@@ -21,7 +21,8 @@
 # migration ; web, api et purge arrêtés pendant sauvegarde, migration et import ; contrôles AVANT ouverture avec
 # l'API seule et un front de contrôle sans port publié (ni purge ni accès utilisateur : aucune écriture) ; puis
 # ouverture (web publié, purge). Retour automatique aux images précédentes SEULEMENT si l'échec précède
-# l'ouverture, si la révision réelle est inchangée ET attendue par la version précédente, si les données
+# l'ouverture, hors de la migration et de l'import (un échec ou une interruption PENDANT ces phases l'interdit
+# toujours), si la révision réelle est inchangée ET attendue par la version précédente, si les données
 # importées sont inchangées et si aucune transformation n'est déclarée (dès la migration) ; sinon arrêt, purge
 # suspendue, intervention requise. Un cycle interrompu (arrêt, délai, redémarrage) est détecté au lancement
 # suivant et traité par la même règle. Une version rejetée n'est pas réessayée automatiquement. Aucune
@@ -370,6 +371,11 @@ echec_deploiement() {   # echec_deploiement <sha> <raison> <rév. avant> <emprei
   rejeter "$sha" "$raison"
   # Retour automatique : TOUTES les conditions, sinon arrêt et intervention.
   [[ "$etape" != exposition ]]        || motifs+=("échec après l'ouverture du service (écritures possibles)")
+  # Échec ou interruption PENDANT la migration ou l'import : effets partiels possibles hors de la révision et des
+  # tables suivies (migrations de données, import interrompu). Retour interdit même si révision et empreinte
+  # paraissent inchangées. Une migration et un import TERMINÉS avec succès passent à l'étape « controles ».
+  case "$etape" in migration|import)
+    motifs+=("échec ou interruption pendant la phase « $etape » : état des données incertain") ;; esac
   [[ "$rev_apres" == "$rev_avant" ]]  || motifs+=("révision réelle modifiée ($rev_avant -> $rev_apres)")
   [[ "$rev_active" == "$rev_apres" ]] || motifs+=("la version précédente attend la révision $rev_active, la base est en $rev_apres")
   [[ "$emp_apres" == "$emp_avant" ]]  || motifs+=("données importées modifiées ou illisibles")
@@ -662,7 +668,7 @@ PY
   info "Restauration isolée de $nom conforme ; base et volume temporaires supprimés, base active intacte"
 }
 
-usage() { sed -n '2,31p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+usage() { sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 
 main() {
   [[ $# -ge 1 ]] || usage 3
