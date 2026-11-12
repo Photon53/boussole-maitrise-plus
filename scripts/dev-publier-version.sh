@@ -24,7 +24,11 @@ MODE="${1:?mode existant|publier}"
 MANIFESTE="gs://$BUCKET/releases/$SHA.json"
 POINTEUR="gs://$BUCKET/releases/desired.json"
 TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
+# GCS_API n'est substituable qu'en test local (faux serveur) : le jeton d'accès est envoyé à cette adresse.
 GCS_API="${GCS_API:-https://storage.googleapis.com}"
+if [[ -n "${GITHUB_ACTIONS:-}" && "$GCS_API" != "https://storage.googleapis.com" ]]; then
+  echo "::error::GCS_API ne peut pas être redéfini dans GitHub Actions ($GCS_API)"; exit 1
+fi
 resume() { [[ -n "${GITHUB_STEP_SUMMARY:-}" ]] && printf '%s\n' "$@" >> "$GITHUB_STEP_SUMMARY"; printf '%s\n' "$@"; }
 
 # --- Accès GCS par objet (API JSON) -----------------------------------------------------------------
@@ -38,7 +42,7 @@ encode() { python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.arg
 # gcs_http <sortie> <méthode> <url> [args curl...] : écrit le corps dans <sortie>, affiche le code HTTP.
 gcs_http() {
   local sortie="$1" methode="$2" url="$3"; shift 3
-  curl -sS --retry 3 --retry-connrefused -X "$methode" -o "$sortie" -w '%{http_code}' \
+  curl -sS --connect-timeout 10 --max-time 60 --retry 3 --retry-connrefused --retry-max-time 120 -X "$methode" -o "$sortie" -w '%{http_code}' \
     -H "Authorization: Bearer $JETON" "$@" "$url"
 }
 

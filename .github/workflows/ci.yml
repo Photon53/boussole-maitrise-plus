@@ -70,3 +70,6 @@ jobs:
       - name: Scripts shell (syntaxe)
         working-directory: .
         run: for f in scripts/*.sh deploy/*.sh infrastructure/terraform/dev/*.sh; do bash -n "$f"; done
+      - name: Publication DEV contre un faux GCS (sans accès GCP)
+        working-directory: .
+        run: bash scripts/test-dev-publier-version.sh
