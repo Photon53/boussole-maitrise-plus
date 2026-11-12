@@ -13,10 +13,15 @@ Comportement des images du registre (« meta ») :
   migration_ko    alembic upgrade échoue (après avoir posé une révision intermédiaire si « rev_partielle »)
   import_ko       l'import pédagogique échoue
   import_modifie  l'import modifie les données (nouvelle empreinte)
+  echec_publie    contrôles internes réussis, application publiée en échec (échec après ouverture)
+
+Interruption : si l'état contient « tuer_si » et que la commande appelée le contient, tout le groupe de
+processus (boussole-dev-sync lancé par setsid) est tué, comme lors d'un arrêt brutal de la VM.
 """
 import io
 import json
 import os
+import signal
 import sys
 import tarfile
 
@@ -155,10 +160,20 @@ def compose(e, args):
     sys.exit(f"faux docker compose : sous-commande inconnue {cmd}")
 
 
+def api_saine(e):
+    c = e["conteneurs"].get("api")
+    return bool(c and c["running"] and not meta(e, c["image"]).get("cassee"))
+
+
 def main():
     args = sys.argv[1:]
     e = charger()
-    e.setdefault("appels", []).append(" ".join(args))
+    ligne = " ".join(args)
+    e.setdefault("appels", []).append(ligne)
+    if e.get("tuer_si") and e["tuer_si"] in ligne:
+        e["tuer_si"] = None
+        sauver(e)
+        os.killpg(os.getpgid(0), signal.SIGKILL)
     sauver(e)
     cmd = args[0]
 
@@ -199,7 +214,13 @@ def main():
             iid = image_id(e, args[-1])
             if iid is None:
                 sys.exit(1)
-            print(json.dumps(e["images"][iid]["digests"]))
+            modele = args[args.index("-f") + 1]
+            if ".Id" in modele:
+                print(iid)
+            elif ".Created" in modele:
+                print(e["images"][iid].get("cree", "2026-11-12T00:00:00.000000000Z"))
+            else:
+                print(json.dumps(e["images"][iid]["digests"]))
             return
         if args[1] == "prune":
             return
@@ -240,6 +261,17 @@ def main():
             vols.remove(args[2])
         sauver(e)
         return
+    if cmd == "run" and "-d" in args and args[args.index("--name") + 1].startswith("boussole-controle-web-"):
+        nom = args[args.index("--name") + 1]
+        if "-p" in args or "--publish" in args:
+            sys.exit("faux docker : le conteneur de contrôle ne doit publier aucun port")
+        iid = image_id(e, args[-1])
+        if iid is None:
+            sys.exit(1)
+        e.setdefault("controles", {})[nom] = {"image": iid}
+        sauver(e)
+        print(nom)
+        return
     if cmd == "run" and "-d" in args:   # base temporaire de restauration
         nom = args[args.index("--name") + 1]
         e.setdefault("restaurations", {})[nom] = {"revision": None, "empreinte": None}
@@ -248,11 +280,31 @@ def main():
         return
     if cmd == "rm":
         e.get("restaurations", {}).pop(args[-1], None)
+        e.get("controles", {}).pop(args[-1], None)
         sauver(e)
         return
     if cmd == "exec":
         pos = [a for a in args[1:] if not a.startswith("-")]
         cid, commande = pos[0], args[args.index(pos[0]) + 1:]
+        if cid in e.get("controles", {}):   # front de contrôle (Caddy) : page et fichiers servis, /api relayé
+            url = commande[-1]
+            web_ok = not meta(e, e["controles"][cid]["image"]).get("cassee")
+            if url.endswith("/api/health"):
+                if api_saine(e):
+                    print('{"status":"ok"}')
+                    return
+                sys.exit(1)
+            if not web_ok:
+                sys.exit(1)
+            if url.endswith("/"):
+                print('<!doctype html><script type="module" src="/assets/index-abc123.js"></script>')
+            return
+        s_api, c_api = conteneur_par_id(e, cid)
+        if s_api == "api" and commande[0] == "python":   # /health interne de l'API
+            if api_saine(e):
+                print('{"status":"ok"}')
+                return
+            sys.exit(1)
         if cid in e.get("restaurations", {}):   # base temporaire
             r = e["restaurations"][cid]
             if commande[0] == "pg_isready":

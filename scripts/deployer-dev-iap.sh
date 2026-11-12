@@ -238,6 +238,9 @@ if [[ "$MODE" != synchro && -e "$MARQUEUR_SYNCHRO" ]]; then
 fi
 
 etape "Code dans $DIR"
+# Commit en place AVANT la mise à jour : transmis à --adopter, qui le confronte au commit en place à la
+# construction des images en service (reflog). La mise à jour du code ne change pas la provenance adoptée.
+HEAD_AVANT="$(git -C "$DIR" rev-parse HEAD 2>/dev/null || true)"
 if [[ -d "$DIR/.git" ]]; then
   [[ -z "$(git -C "$DIR" status --porcelain --untracked-files=no)" ]] \
     || { git -C "$DIR" status --short --untracked-files=no; echec "Fichiers suivis modifiés sur la VM (git stash dans $DIR)"; }
@@ -294,7 +297,7 @@ if [[ "$MODE" == synchro ]]; then
     ok "Version active déjà enregistrée : adoption inutile"
   else
     etape "Adoption du déploiement manuel en place"
-    /usr/local/sbin/boussole-dev-sync --adopter || echec "Adoption impossible (voir ci-dessus) : rien n'a été modifié dans les conteneurs"
+    /usr/local/sbin/boussole-dev-sync --adopter "$HEAD_AVANT" || echec "Adoption impossible (voir ci-dessus) : rien n'a été modifié dans les conteneurs"
   fi
   etape "Simulation du prochain déploiement (aucun arrêt)"
   /usr/local/sbin/boussole-dev-sync --simulation || warn "Simulation en échec : ne pas lancer --appliquer avant d'avoir compris la cause"

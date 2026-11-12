@@ -37,10 +37,18 @@ initialiser() {   # environnement neuf : déploiement manuel en service (révisi
   printf 'PKP_DOMAINE=:80\nPKP_SECRET_KEY=secret-de-test-ne-doit-pas-fuiter\nPKP_DB_MOT_DE_PASSE=mdp-de-test\n' > "$E/deploy/.env"
   cp "$COMPOSE_SOURCE" "$E/compose/docker-compose.dev.yml"
   echo "# compose manuel (simulé)" > "$E/deploy/docker-compose.dev-iap.yml"
-  git -C "$E/depot" init -q && git -C "$E/depot" -c user.email=t@example.invalid -c user.name=t commit -q --allow-empty -m manuel
+  # Historique du dépôt de la VM : A en place à la construction des images (10/11 20:52), puis B (mise à jour
+  # du code le 12/11, sans reconstruction). La provenance adoptée doit être A, pas le HEAD actuel B.
+  git -C "$E/depot" init -q
+  GIT_COMMITTER_DATE="2026-11-10T18:00:00Z" GIT_AUTHOR_DATE="2026-11-10T18:00:00Z" \
+    git -C "$E/depot" -c user.email=t@example.invalid -c user.name=t commit -q --allow-empty -m "A : construit"
+  COMMIT_A="$(git -C "$E/depot" rev-parse HEAD)"
+  GIT_COMMITTER_DATE="2026-11-12T10:00:00Z" GIT_AUTHOR_DATE="2026-11-12T10:00:00Z" \
+    git -C "$E/depot" -c user.email=t@example.invalid -c user.name=t commit -q --allow-empty -m "B : mis à jour"
+  COMMIT_B="$(git -C "$E/depot" rev-parse HEAD)"
   cat > "$E/docker.json" <<EOF
 {"images": {
-  "img-manuel-api": {"tags": ["pkp-api:latest"], "digests": [], "meta": {"head": "0031", "revisions": ["0030", "0031"]}},
+  "img-manuel-api": {"tags": ["pkp-api:latest"], "digests": [], "cree": "2026-11-10T20:52:11.123456789Z", "meta": {"head": "0031", "revisions": ["0030", "0031"]}},
   "img-manuel-web": {"tags": ["boussole-web"], "digests": [], "meta": {}},
   "img-postgres": {"tags": ["postgres:16-alpine"], "digests": [], "meta": {}}},
  "registre": {},
@@ -59,9 +67,9 @@ EOF
   PORT="$(cat "$E/port")"
 }
 
-publier() {   # publier <nom> <meta JSON de l'image API> : manifeste releases/<sha>.json, images au registre
+publier() {   # publier <nom> <meta JSON de l'image API> [sha imposé] : manifeste releases/<sha>.json, images au registre
   local nom="$1" metajson="$2" sha api web head transfo
-  sha="$(sha_de "$nom")"; api="$REGISTRY/api@sha256:$(digest_de "$nom-api")"; web="$REGISTRY/web@sha256:$(digest_de "$nom-web")"
+  sha="${3:-$(sha_de "$nom")}"; api="$REGISTRY/api@sha256:$(digest_de "$nom-api")"; web="$REGISTRY/web@sha256:$(digest_de "$nom-web")"
   head="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["head"])' "$metajson")"
   transfo="$(python3 -c 'import json,sys; print(json.dumps(json.loads(sys.argv[1]).get("transformations", [])))' "$metajson")"
   etat_py "e['registre']['$api'] = json.loads('''$metajson''')" "e['registre']['$web'] = {}"
@@ -73,7 +81,7 @@ publier() {   # publier <nom> <meta JSON de l'image API> : manifeste releases/<s
 EOF
   eval "SHA_${nom}=$sha API_${nom}=$api WEB_${nom}=$web"
 }
-pointer() { printf '{"schema": 1, "sha": "%s"}\n' "$(sha_de "$1")" > "$E/gcs/releases/desired.json"; }
+pointer() { local v="SHA_$1"; printf '{"schema": 1, "sha": "%s"}\n' "${!v}" > "$E/gcs/releases/desired.json"; }
 
 sync() {   # sync <args…> : sortie dans $T/sortie, code dans $CODE
   CODE=0
@@ -81,7 +89,7 @@ sync() {   # sync <args…> : sortie dans $T/sortie, code dans $CODE
     VERROU="$E/verrou" COMPOSE_DEV="$E/compose/docker-compose.dev.yml" ENV_FILE="$E/deploy/.env" DEPOT="$E/depot" \
     GCS_API="http://127.0.0.1:$PORT" METADATA_URL="http://127.0.0.1:$PORT" APP_URL="http://127.0.0.1:$PORT" \
     DOCKER="$E/docker" DELAI_SANTE=3 PAUSE_SANTE=0.2 FAUX_DOCKER_ETAT="$E/docker.json" \
-    bash "$SYNC" "$@" > "$T/sortie" 2>&1 || CODE=$?
+    setsid -w bash "$SYNC" "$@" > "$T/sortie" 2>&1 || CODE=$?   # groupe de processus propre (interruptions)
 }
 marquer() { MARQUE="$(lire_py 'len(e["appels"])')"; }
 appels_depuis() { python3 -c 'import json,sys; print("\n".join(json.load(open(sys.argv[1]))["appels"][int(sys.argv[2]):]))' "$E/docker.json" "$MARQUE"; }
@@ -241,6 +249,127 @@ initialiser
 publier v8 '{"head": "0032", "revisions": ["0030", "0031", "0032"]}'; pointer v8
 sync --adopter; sync --appliquer; sync --retour-manuel
 verif "--retour-manuel refusé si la révision a changé" 3 "retour impossible sans restauration"
+
+# ===================================================================================================================
+echo "== Revue 1 — provenance de l'adoption"
+initialiser
+sync --adopter
+verif "Provenance : commit en place à la construction des images (A), pas le HEAD actuel (B)" 0 "construites le" \
+  '[[ "$(jv "$E/etat/active.json" sha)" == "$COMMIT_A" && "$(jv "$E/etat/active.json" commit_depot_actuel)" == "$COMMIT_B" ]]'
+initialiser
+sync --adopter "$COMMIT_B"
+verif "Provenance : commit déclaré (B) contredit par le reflog (A) : adoption refusée" 3 "Provenance incohérente" '[[ ! -f "$E/etat/active.json" ]]'
+sync --adopter "$COMMIT_A"
+verif "Provenance : commit déclaré confirmé par le reflog : adoption acceptée" 0 "Aucun conteneur modifié"
+publier vA "$META_0031" "$COMMIT_A"; pointer vA
+sync --appliquer
+verif "Version publiée de même SHA que le déploiement manuel : déployée quand même (images différentes)" 0 "ACTIVE" \
+  '[[ "$(jv "$E/etat/active.json" source)" == synchro && "$(lire_py "e[\"images\"][e[\"conteneurs\"][\"api\"][\"image\"]][\"digests\"][0]")" == "$API_vA" ]]'
+initialiser
+etat_py "e['conteneurs']['purge']['image'] = 'img-postgres'"
+sync --adopter
+verif "Adoption refusée si api et purge n'ont pas la même image" 3 "même image"
+
+# ===================================================================================================================
+echo "== Revue 3 — aucune écriture pendant les contrôles"
+initialiser
+publier v1 "$META_0031"; pointer v1
+sync --adopter
+marquer; sync --appliquer
+ordre() { appels_depuis | grep -nE "up -d --no-deps api$|run -d --rm --name boussole-controle-web|up -d --no-deps web purge$" | cut -d: -f1 | tr '\n' ' '; }
+verif "Ordre : API seule, puis front de contrôle sans port, puis seulement web publié et purge" 0 "Contrôles avant ouverture réussis" \
+  '[[ "$(appels_depuis | grep -E "up -d --no-deps api$|run -d --rm --name boussole-controle-web|up -d --no-deps web purge$" | sed -E "s/.*(api|controle-web|web purge).*/\1/" | tr "\n" " ")" == "api controle-web web purge " ]]'
+verif "Front de contrôle supprimé après les contrôles" 0 "" '[[ "$(lire_py "len(e.get(\"controles\", {}))")" == 0 ]]'
+publier v2 '{"head": "0031", "revisions": ["0030", "0031"], "cassee": true}'; pointer v2
+marquer; sync --appliquer
+verif "Version cassée : ni purge ni web publié démarrés avec la version candidate" 1 "contrôles avant ouverture en échec" \
+  '! appels_depuis | grep -q "images-candidat.env .*up -d --no-deps web purge"'
+
+# ===================================================================================================================
+echo "== Revue 2 — conditions du retour automatique"
+initialiser
+publier v1 "$META_0031"; pointer v1
+sync --adopter; sync --appliquer
+python3 - "$E/etat/active.json" <<'PY'
+import json, sys
+f = sys.argv[1]; d = json.load(open(f)); d["alembic"] = "0030"; json.dump(d, open(f, "w"))
+PY
+publier v2 '{"head": "0031", "revisions": ["0030", "0031"], "cassee": true}'; pointer v2
+sync --appliquer
+verif "Retour interdit si la version précédente n'attend pas la révision réelle" 2 "attend la révision 0030" '[[ -f "$E/etat/intervention-requise.json" ]]'
+
+initialiser
+publier v1 "$META_0031"; pointer v1
+sync --adopter; sync --appliquer
+publier v3 '{"head": "0031", "revisions": ["0030", "0031"], "echec_publie": true}'; pointer v3
+marquer; sync --appliquer
+verif "Échec après l'ouverture : retour interdit (écritures possibles), services arrêtés" 2 "après l'ouverture du service" \
+  '[[ "$(lire_py "[e[\"conteneurs\"][s][\"running\"] for s in (\"api\",\"purge\",\"web\")]")" == "[False, False, False]" ]] && ! appels_depuis | grep -q "images-relance.env"'
+
+initialiser
+publier v1 "$META_0031"; pointer v1
+sync --adopter; sync --appliquer
+publier v4 '{"head": "0031", "revisions": ["0030", "0031"], "transformations": ["recalcul"]}'; pointer v4
+etat_py "e['dump_ko'] = True"
+sync --appliquer
+verif "Transformation déclarée mais échec avant migration : retour permis" 1 "Version précédente" '[[ "$(jv "$E/etat/active.json" sha)" == "$SHA_v1" ]]'
+
+# ===================================================================================================================
+echo "== Revue 4 — retour manuel sans effets implicites"
+initialiser
+publier v1 "$META_0031"; pointer v1
+sync --adopter; sync --appliquer
+marquer; sync --retour-manuel
+verif "Retour manuel : Compose DEV (Uvicorn seul), sans migration, sans import, sans tag" 0 "Déploiement manuel rétabli" \
+  'appels_depuis | grep -q "docker-compose.dev.yml up -d --no-deps api$" && ! appels_depuis | grep -qE "^tag |dev-iap.yml|alembic upgrade|app.contenu importer"'
+verif "Retour manuel : images adoptées (identifiants) en service, VM figée « manuel » et annoncée" 0 "figée « manuel »" \
+  '[[ "$(lire_py "e[\"conteneurs\"][\"api\"][\"image\"]")" == img-manuel-api && "$(cat "$E/etat/figee")" == manuel ]]'
+initialiser
+publier v9 '{"head": "0031", "revisions": ["0030", "0031"], "import_modifie": "E9"}'; pointer v9
+sync --adopter; sync --appliquer
+marquer; sync --retour-manuel
+verif "Retour manuel refusé si les données importées ont changé (aucun arrêt)" 3 "Données importées différentes" '! appels_depuis | grep -q "^stop"'
+initialiser
+publier v1 "$META_0031"; pointer v1
+sync --adopter; sync --appliquer
+tag_api="$(jv "$E/etat/adoption/etat-manuel.json" image_locale_api)"   # le tag d'adoption est déplacé sur une autre image
+etat_py "e['images']['img-manuel-api']['tags'].remove('$tag_api')" "e['images']['img-postgres']['tags'].append('$tag_api')"
+marquer; sync --retour-manuel
+verif "Retour manuel refusé si le tag d'adoption ne désigne plus l'image adoptée" 3 "ne désigne plus l'image adoptée" '! appels_depuis | grep -q "^stop"'
+
+# ===================================================================================================================
+echo "== Revue 5 — reprise après interruption"
+initialiser
+publier v1 "$META_0031"; pointer v1
+sync --adopter; sync --appliquer
+publier v5 '{"head": "0032", "revisions": ["0030", "0031", "0032"]}'; pointer v5
+etat_py "e['tuer_si'] = 'app.contenu importer'"
+sync --appliquer
+verif "Interruption brutale pendant l'import (après migration 0032)" 137 "" '[[ -f "$E/etat/en-cours.json" && "$(jv "$E/etat/en-cours.json" etape)" == import ]]'
+marquer; sync --appliquer
+verif "Reprise : cycle interrompu détecté, révision changée : intervention, aucun nouveau déploiement" 2 "cycle interrompu à l'étape import" \
+  '[[ -f "$E/etat/intervention-requise.json" && ! -f "$E/etat/en-cours.json" ]] && ! appels_depuis | grep -qE "^pull|alembic upgrade|images-relance.env"'
+
+initialiser
+publier v1 "$META_0031"; pointer v1
+sync --adopter; sync --appliquer
+publier v6 "$META_0031"; pointer v6
+etat_py "e['tuer_si'] = 'alembic upgrade'"
+sync --appliquer
+verif "Interruption brutale au lancement de la migration (rien d'appliqué)" 137 "" '[[ "$(jv "$E/etat/en-cours.json" etape)" == migration ]]'
+sync --appliquer
+verif "Reprise : base et données inchangées, version précédente rétablie, version rejetée" 1 "Version précédente" \
+  '[[ "$(jv "$E/etat/active.json" sha)" == "$SHA_v1" && "$(jv "$E/etat/rejetee.json" sha)" == "$SHA_v6" && ! -f "$E/etat/en-cours.json" ]] && curl -fsS "http://127.0.0.1:$PORT/api/health" | grep -q ok'
+
+initialiser
+publier v1 "$META_0031"; pointer v1
+sync --adopter; sync --appliquer
+publier v7 "$META_0031"; pointer v7
+etat_py "e['tuer_si'] = 'pull -q'"
+sync --appliquer
+verif "Interruption pendant le préchargement : aucune maintenance commencée" 137 "" '[[ ! -f "$E/etat/en-cours.json" ]]'
+sync --appliquer
+verif "Reprise après interruption avant maintenance : déploiement normal" 0 "ACTIVE" '[[ "$(jv "$E/etat/active.json" sha)" == "$SHA_v7" ]]'
 
 # ===================================================================================================================
 echo "== Manifeste invalide, sécurité, journal"

@@ -37,7 +37,8 @@ def app_en_sante():
     c = e["conteneurs"]
     if not all(s in c and c[s]["running"] for s in ("api", "web")):
         return False
-    return not e["images"][c["api"]["image"]].get("meta", {}).get("cassee")
+    m = e["images"][c["api"]["image"]].get("meta", {})
+    return not m.get("cassee") and not m.get("echec_publie")
 
 
 class Gestionnaire(BaseHTTPRequestHandler):
