@@ -14,7 +14,7 @@ CE="$NUM-compute@developer.gserviceaccount.com"; VM="boussole-dev-vm@$P.iam.gser
 lancer() {   # lancer <scénario JSON> : sortie dans $T/sortie, code dans $CODE
   printf '%s' "$1" > "$T/scenario.json"; : > "$T/journal"
   CODE=0
-  env PATH="$T/bin:$PATH" FAUX_GCLOUD_SCENARIO="$T/scenario.json" FAUX_GCLOUD_JOURNAL="$T/journal" \
+  env PATH="$T/bin:$PATH" HOME="$T" FAUX_GCLOUD_SCENARIO="$T/scenario.json" FAUX_GCLOUD_JOURNAL="$T/journal" \
     bash "$SCRIPT" > "$T/sortie" 2>&1 || CODE=$?
 }
 verif() {   # verif <libellé> <code attendu> <motif attendu>
@@ -38,6 +38,15 @@ verif "tf-plan peut LIRE le contenu (rôle au niveau du projet) : non conforme, 
 
 lancer '{"bucket": "apres", "troubleshooter": true}'
 verif "Troubleshooter activé et cohérent : conforme et confirmé (code 0)" 0 "confirmé par Policy Troubleshooter pour chaque contrôle"
+
+lancer '{"bucket": "apres", "troubleshooter": true, "ts_style": "v1"}'
+verif "Troubleshooter au format v1 (access : GRANTED / NOT_GRANTED) : conforme et confirmé" 0 "confirmé par Policy Troubleshooter pour chaque contrôle"
+
+lancer '{"bucket": "apres", "troubleshooter": true, "ts_style": "sans_etat"}'
+verif "Réponse Troubleshooter sans état d'accès : erreur explicite (clés reçues), jamais conforme" 1 "état d'accès introuvable (clés reçues : accessTuple, explainedPolicies"
+if [[ "$(wc -l < "$T/controle-acces-troubleshooter.jsonl")" -eq 16 ]]; then
+  echo "OK    Réponses brutes de Troubleshooter conservées pour diagnostic (16)"; reussis=$((reussis + 1))
+else echo "ECHEC journal de diagnostic Troubleshooter absent ou incomplet"; echecs=$((echecs + 1)); fi
 
 lancer "{\"bucket\": \"apres\", \"troubleshooter\": true, \"ts_contredit\": [\"$CE|storage.objects.get|$O/backups/temoin\"]}"
 verif "Troubleshooter contredit l'analyse (Compute lit une sauvegarde) : non conforme" 1 "CONTRADICTION ou erreur Troubleshooter : CAN_ACCESS"

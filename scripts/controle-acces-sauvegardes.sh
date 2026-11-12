@@ -12,6 +12,8 @@
 #    contrôle est soumis ; son résultat entre dans le verdict (contradiction ou erreur = non conforme).
 #
 # Aucune API activée (invites désactivées), aucune politique modifiée, aucun objet lu ni créé.
+# Réponses brutes de Troubleshooter (diagnostic) : ~/controle-acces-troubleshooter.jsonl, réécrit à chaque
+# exécution (contient des explications de politiques IAM, dont des adresses : ne pas le publier).
 # Verdicts par contrôle : ACCORDÉ, REFUSÉ, INDÉTERMINÉ (jamais compté comme un refus).
 #
 # EXCEPTION D5 (décision du propriétaire, ticket #65, DEV) : boussole-dev-tf-plan peut LISTER les objets du
@@ -197,19 +199,37 @@ def analyser(email, permission, ressource):
         return "INDÉTERMINÉ", doutes
     return "REFUSÉ", []
 
-ETATS_TS = {"CAN_ACCESS": "ACCORDÉ", "CANNOT_ACCESS": "REFUSÉ"}
+# États d'accès selon la version de l'API utilisée par gcloud : v3 (overallAccessState) ou v1 (access).
+ETATS_TS = {"CAN_ACCESS": "ACCORDÉ", "GRANTED": "ACCORDÉ", "CANNOT_ACCESS": "REFUSÉ", "NOT_GRANTED": "REFUSÉ"}
+CHAMPS_TS = ("overallAccessState", "overall_access_state", "access")
+JOURNAL_TS = os.path.join(os.path.expanduser("~"), "controle-acces-troubleshooter.jsonl")
+if TS == "oui":
+    open(JOURNAL_TS, "w").close()
 def troubleshooter(email, permission, ressource):
+    """Réponse complète en JSON (aucun format d'extraction supposé) ; état d'accès cherché sous ses deux noms."""
     objet = "/objects/" in ressource
     cmd = ["gcloud", "policy-troubleshoot", "iam", f"//storage.googleapis.com/{SEAU}", f"--principal-email={email}",
            f"--permission={permission}", f"--resource-name={ressource}", "--resource-service=storage.googleapis.com",
-           f"--resource-type=storage.googleapis.com/{'Object' if objet else 'Bucket'}", "--format=value(overallAccessState)"]
+           f"--resource-type=storage.googleapis.com/{'Object' if objet else 'Bucket'}", "--format=json"]
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
     except (OSError, subprocess.TimeoutExpired) as exc:
         return "ERREUR", str(exc)
-    etat = r.stdout.strip().splitlines()[-1].strip() if r.stdout.strip() else ""
-    if r.returncode != 0 or not etat:
-        return "ERREUR", (r.stderr.strip().splitlines() or ["sortie vide"])[-1]
+    with open(JOURNAL_TS, "a") as j:
+        j.write(json.dumps({"principal": email, "permission": permission, "ressource": ressource, "code": r.returncode,
+                            "sortie": r.stdout[:20000], "erreur": r.stderr[-2000:]}, ensure_ascii=False) + "\n")
+    if r.returncode != 0:
+        return "ERREUR", (r.stderr.strip().splitlines() or [f"code {r.returncode}"])[-1]
+    try:
+        d = json.loads(r.stdout) if r.stdout.strip() else None
+    except ValueError:
+        return "ERREUR", "réponse non JSON (voir le journal de diagnostic)"
+    if isinstance(d, list) and len(d) == 1:
+        d = d[0]
+    etat = next((d[c] for c in CHAMPS_TS if isinstance(d, dict) and isinstance(d.get(c), str)), None)
+    if etat is None:
+        cles = ", ".join(sorted(d)) if isinstance(d, dict) else type(d).__name__
+        return "ERREUR", f"état d'accès introuvable (clés reçues : {cles or 'aucune'} ; voir {JOURNAL_TS})"
     return ETATS_TS.get(etat, "INDÉTERMINÉ"), etat
 
 print()

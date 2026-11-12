@@ -12,6 +12,8 @@ Le scénario est lu dans le fichier JSON désigné par FAUX_GCLOUD_SCENARIO :
   groupe_bucket     true : ajoute une liaison objectViewer à un groupe sur le bucket
   sans_liste_tf     true : iam.securityReviewer sans storage.objects.list (droits réduits, option B)
   tf_lecteur_projet true : tf-plan reçoit roles/storage.objectViewer au niveau du projet (lecture du contenu)
+  ts_style          "v3" (overallAccessState, défaut) | "v1" (access : GRANTED / NOT_GRANTED) | "sans_etat" (JSON
+                    sans champ d'accès, comme une réponse dont le champ attendu n'existe pas)
 Chaque appel est ajouté à FAUX_GCLOUD_JOURNAL.
 """
 import json
@@ -120,12 +122,22 @@ elif cmd.startswith("policy-troubleshoot iam"):
     texte = "|".join(cle)
     if texte in sc.get("ts_erreur", []):
         sys.exit("ERROR: (gcloud.policy-troubleshoot.iam) INVALID_ARGUMENT")
+    if "--format=json" not in args:
+        print("")   # un format d'extraction sur un champ absent donne une sortie vide (cas réel du 13/11)
+        sys.exit(0)
+    style = sc.get("ts_style", "v3")
     if texte in sc.get("ts_inconnu", []):
-        print("UNKNOWN_CONDITIONAL")
+        etat = "UNKNOWN_CONDITIONAL"
     else:
         acces = cle in ACCES_REELS
         if texte in sc.get("ts_contredit", []):
             acces = not acces
-        print("CAN_ACCESS" if acces else "CANNOT_ACCESS")
+        etat = ("GRANTED" if acces else "NOT_GRANTED") if style == "v1" else ("CAN_ACCESS" if acces else "CANNOT_ACCESS")
+    if style == "sans_etat":
+        print(json.dumps({"accessTuple": {"principal": cle[0]}, "explainedPolicies": []}))
+    elif style == "v1":
+        print(json.dumps({"access": etat, "explainedPolicies": []}))
+    else:
+        print(json.dumps({"overallAccessState": etat, "accessTuple": {"principal": cle[0]}}))
 else:
     sys.exit(f"faux gcloud : commande non simulée : {cmd}")
