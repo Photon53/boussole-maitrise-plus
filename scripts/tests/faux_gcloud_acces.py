@@ -13,7 +13,8 @@ Le scénario est lu dans le fichier JSON désigné par FAUX_GCLOUD_SCENARIO :
   sans_liste_tf     true : iam.securityReviewer sans storage.objects.list (droits réduits, option B)
   tf_lecteur_projet true : tf-plan reçoit roles/storage.objectViewer au niveau du projet (lecture du contenu)
   ts_style          "v3" (overallAccessState, défaut) | "v1" (access : GRANTED / NOT_GRANTED) | "sans_etat" (JSON
-                    sans champ d'accès, comme une réponse dont le champ attendu n'existe pas)
+                    sans champ d'accès) | "texte" (réponse non JSON) | "valeur_inconnue" (état NOUVEL_ETAT)
+                    | "fuite_jeton" (v3, mais un jeton apparaît dans la sortie et les erreurs)
 Chaque appel est ajouté à FAUX_GCLOUD_JOURNAL.
 """
 import json
@@ -112,6 +113,8 @@ elif cmd.startswith("iam policies list"):
         print("[]")
 elif cmd.startswith("iam roles describe"):
     print(json.dumps({"includedPermissions": PERMS[args[3]]}))
+elif cmd.startswith("version"):
+    print(json.dumps({"Google Cloud SDK": "999.0.0-faux", "core": "2026.11.01"}))
 elif cmd.startswith("services list"):
     if sc.get("troubleshooter"):
         print("policytroubleshooter.googleapis.com")
@@ -133,7 +136,14 @@ elif cmd.startswith("policy-troubleshoot iam"):
         if texte in sc.get("ts_contredit", []):
             acces = not acces
         etat = ("GRANTED" if acces else "NOT_GRANTED") if style == "v1" else ("CAN_ACCESS" if acces else "CANNOT_ACCESS")
-    if style == "sans_etat":
+    if style == "fuite_jeton":
+        print("WARNING: Authorization: Bearer ya29.JETON-SECRET-DE-TEST", file=sys.stderr)
+        print(json.dumps({"overallAccessState": etat, "debug": {"access_token": "ya29.JETON-SECRET-DE-TEST"}}))
+    elif style == "texte":
+        print(f"overallAccessState: {etat}")
+    elif style == "valeur_inconnue":
+        print(json.dumps({"overallAccessState": "NOUVEL_ETAT"}))
+    elif style == "sans_etat":
         print(json.dumps({"accessTuple": {"principal": cle[0]}, "explainedPolicies": []}))
     elif style == "v1":
         print(json.dumps({"access": etat, "explainedPolicies": []}))

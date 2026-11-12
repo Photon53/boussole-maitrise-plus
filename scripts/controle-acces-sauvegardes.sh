@@ -5,6 +5,14 @@
 #   set -o pipefail
 #   bash scripts/controle-acces-sauvegardes.sh 2>&1 | tee ~/controle-acces.txt
 #
+# Mode diagnostic (UN seul appel à Policy Troubleshooter, API déjà activée par décision séparée) :
+#   bash scripts/controle-acces-sauvegardes.sh --diagnostic-troubleshooter
+# Il conserve dans ~/diagnostic-troubleshooter.json (mode 600) la réponse JSON brute, les erreurs, le code de
+# sortie de l'appel, la version de gcloud et la structure de la réponse ; jetons masqués. Codes de sortie :
+#   0 réponse compatible, accès accordé (attendu)   7 réponse compatible : VÉRITABLE REFUS d'accès
+#   8 réponse compatible, non concluante           5 FORMAT INATTENDU (le script doit être adapté)
+#   6 ERREUR D'API (appel en échec)                 4 API non activée : aucun appel effectué
+#
 # 1. Analyse des politiques : politiques IAM d'autorisation (bucket, projet, dossiers et organisation parents),
 #    politiques de REFUS à tous ces niveaux, permissions de chaque rôle ; évaluation de 15 accès sur des objets
 #    témoins de backups/ et releases/ et sur le bucket.
@@ -14,7 +22,9 @@
 # Aucune API activée (invites désactivées), aucune politique modifiée, aucun objet lu ni créé.
 # Réponses brutes de Troubleshooter (diagnostic) : ~/controle-acces-troubleshooter.jsonl, réécrit à chaque
 # exécution (contient des explications de politiques IAM, dont des adresses : ne pas le publier).
-# Verdicts par contrôle : ACCORDÉ, REFUSÉ, INDÉTERMINÉ (jamais compté comme un refus).
+# Verdicts par contrôle : ACCORDÉ, REFUSÉ, INDÉTERMINÉ (jamais compté comme un refus). Troubleshooter peut aussi
+# répondre INCOMPATIBLE (format inattendu) ou ERREUR (appel en échec) : écart, jamais un refus (classement commun
+# avec le diagnostic : scripts/troubleshooter_iam.py).
 #
 # EXCEPTION D5 (décision du propriétaire, ticket #65, DEV) : boussole-dev-tf-plan peut LISTER les objets du
 # bucket et leurs métadonnées (storage.objects.list, via roles/iam.securityReviewer au niveau du projet). Il ne
@@ -22,7 +32,7 @@
 # l'exception n'est valable que si ces contrôles sont conformes. L'exception tolère la liste sans l'exiger :
 # une réduction ultérieure des droits (option B, ticket #74) reste conforme.
 # Codes de sortie :
-#   0  conforme, confirmé par Policy Troubleshooter pour les 15 contrôles
+#   0  conforme, confirmé par Policy Troubleshooter pour les 16 contrôles
 #   3  conforme selon l'analyse des politiques SEULEMENT (Troubleshooter non activé) : pas une preuve d'accès
 #   1  non conforme, indéterminé, lecture incomplète, ou erreur / contradiction de Troubleshooter
 #   2  projet illisible
@@ -30,6 +40,23 @@ set -uo pipefail
 export CLOUDSDK_CORE_DISABLE_PROMPTS=1
 P="${PROJECT:-mer-boussole-dev}"
 B="${P}-deploiement"
+ICI="$(cd "$(dirname "$0")" && pwd)"
+
+api_troubleshooter_active() {   # lecture seule : jamais d'activation
+  gcloud services list --enabled --project="$P" --filter='config.name=policytroubleshooter.googleapis.com' \
+    --format='value(config.name)' 2>/dev/null | grep -q policytroubleshooter
+}
+if [[ "${1:-}" == --diagnostic-troubleshooter ]]; then
+  if ! api_troubleshooter_active; then
+    echo "API Policy Troubleshooter non activée : AUCUN appel effectué (ce script ne l'active jamais)."
+    echo "Décision séparée : activer l'API, relancer ce diagnostic, puis la désactiver."
+    exit 4
+  fi
+  exec python3 "$ICI/troubleshooter_iam.py" diagnostic "$P" "projects/_/buckets/$B" "$HOME/diagnostic-troubleshooter.json"
+elif [[ $# -gt 0 ]]; then
+  echo "Option inconnue : $1 (seule option : --diagnostic-troubleshooter)"; exit 2
+fi
+
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
 : > "$T/incomplet.txt"; : > "$T/autorisations.jsonl"; : > "$T/refus.jsonl"; : > "$T/permissions.jsonl"
 
@@ -94,12 +121,13 @@ done < "$T/roles.txt"
 
 # Policy Troubleshooter : utilisé seulement s'il est DÉJÀ activé.
 TROUBLESHOOTER=non
-if gcloud services list --enabled --project="$P" --filter='config.name=policytroubleshooter.googleapis.com' \
-     --format='value(config.name)' 2>/dev/null | grep -q policytroubleshooter; then TROUBLESHOOTER=oui; fi
+if api_troubleshooter_active; then TROUBLESHOOTER=oui; fi
 
-python3 - "$T" "$P" "$NUM" "$B" "$TROUBLESHOOTER" <<'PY'
+python3 - "$T" "$P" "$NUM" "$B" "$TROUBLESHOOTER" "$ICI" <<'PY'
 import json, os, re, subprocess, sys
-t, P, NUM, B, TS = sys.argv[1:]
+t, P, NUM, B, TS, ICI = sys.argv[1:]
+sys.path.insert(0, ICI)
+import troubleshooter_iam as tsi
 autorisations = [json.loads(l) for l in open(os.path.join(t, "autorisations.jsonl")) if l.strip()]
 refus = [json.loads(l) for l in open(os.path.join(t, "refus.jsonl")) if l.strip()]
 perms = {}
@@ -199,38 +227,18 @@ def analyser(email, permission, ressource):
         return "INDÉTERMINÉ", doutes
     return "REFUSÉ", []
 
-# États d'accès selon la version de l'API utilisée par gcloud : v3 (overallAccessState) ou v1 (access).
-ETATS_TS = {"CAN_ACCESS": "ACCORDÉ", "GRANTED": "ACCORDÉ", "CANNOT_ACCESS": "REFUSÉ", "NOT_GRANTED": "REFUSÉ"}
-CHAMPS_TS = ("overallAccessState", "overall_access_state", "access")
+# Policy Troubleshooter : appel et classement communs avec le mode diagnostic (scripts/troubleshooter_iam.py).
 JOURNAL_TS = os.path.join(os.path.expanduser("~"), "controle-acces-troubleshooter.jsonl")
 if TS == "oui":
-    open(JOURNAL_TS, "w").close()
+    ancien = os.umask(0o077); open(JOURNAL_TS, "w").close(); os.umask(ancien)
 def troubleshooter(email, permission, ressource):
-    """Réponse complète en JSON (aucun format d'extraction supposé) ; état d'accès cherché sous ses deux noms."""
-    objet = "/objects/" in ressource
-    cmd = ["gcloud", "policy-troubleshoot", "iam", f"//storage.googleapis.com/{SEAU}", f"--principal-email={email}",
-           f"--permission={permission}", f"--resource-name={ressource}", "--resource-service=storage.googleapis.com",
-           f"--resource-type=storage.googleapis.com/{'Object' if objet else 'Bucket'}", "--format=json"]
-    try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-    except (OSError, subprocess.TimeoutExpired) as exc:
-        return "ERREUR", str(exc)
+    rep = tsi.interroger(SEAU, email, permission, ressource)
+    classe, etat, detail = tsi.classer(rep)
     with open(JOURNAL_TS, "a") as j:
-        j.write(json.dumps({"principal": email, "permission": permission, "ressource": ressource, "code": r.returncode,
-                            "sortie": r.stdout[:20000], "erreur": r.stderr[-2000:]}, ensure_ascii=False) + "\n")
-    if r.returncode != 0:
-        return "ERREUR", (r.stderr.strip().splitlines() or [f"code {r.returncode}"])[-1]
-    try:
-        d = json.loads(r.stdout) if r.stdout.strip() else None
-    except ValueError:
-        return "ERREUR", "réponse non JSON (voir le journal de diagnostic)"
-    if isinstance(d, list) and len(d) == 1:
-        d = d[0]
-    etat = next((d[c] for c in CHAMPS_TS if isinstance(d, dict) and isinstance(d.get(c), str)), None)
-    if etat is None:
-        cles = ", ".join(sorted(d)) if isinstance(d, dict) else type(d).__name__
-        return "ERREUR", f"état d'accès introuvable (clés reçues : {cles or 'aucune'} ; voir {JOURNAL_TS})"
-    return ETATS_TS.get(etat, "INDÉTERMINÉ"), etat
+        j.write(json.dumps({"principal": email, "permission": permission, "ressource": ressource, "code": rep["code"],
+                            "classement": classe, "sortie": rep["sortie"][:20000], "erreur": rep["erreur"][-2000:]},
+                           ensure_ascii=False) + "\n")
+    return classe, detail
 
 print()
 print(f"Policy Troubleshooter : {'ACTIVÉ — chaque contrôle lui est soumis' if TS == 'oui' else 'non activé — analyse des politiques seulement'}")
@@ -254,8 +262,10 @@ for compte, perm, res, lib, attendu in CONTROLES:
     if compte == "boussole-dev-tf-plan" and perm == "storage.objects.get":
         lecture_tf_plan_refusee &= ok
     remarques = list(detail)
-    if TS == "oui" and ts != v:
-        remarques.append(f"CONTRADICTION ou erreur Troubleshooter : {ts_detail}")
+    if TS == "oui" and ts in ("ACCORDÉ", "REFUSÉ") and ts != v:
+        remarques.append(f"CONTRADICTION : Troubleshooter {ts}, analyse {v}")
+    elif TS == "oui" and ts not in ("ACCORDÉ", "REFUSÉ"):
+        remarques.append(f"Troubleshooter {ts} : {ts_detail}")
     if attendu == EXCEPTION_D5 and ok:
         remarques.insert(0, "exception D5 acceptée" if v == "ACCORDÉ" else "exception D5 non utilisée (liste refusée)")
     ecarts += not ok
