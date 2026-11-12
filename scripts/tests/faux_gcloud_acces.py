@@ -15,6 +15,8 @@ Le scénario est lu dans le fichier JSON désigné par FAUX_GCLOUD_SCENARIO :
   ts_style          "v3" (overallAccessState, défaut) | "v1" (access : GRANTED / NOT_GRANTED) | "sans_etat" (JSON
                     sans champ d'accès) | "texte" (réponse non JSON) | "valeur_inconnue" (état NOUVEL_ETAT)
                     | "fuite_jeton" (v3, mais un jeton apparaît dans la sortie et les erreurs)
+                    | "v1_reel" (structure de la réponse réelle du 13/11 : access, errors, explainedPolicies,
+                      adresses en noms de clés et en membres)
 Chaque appel est ajouté à FAUX_GCLOUD_JOURNAL.
 """
 import json
@@ -136,7 +138,18 @@ elif cmd.startswith("policy-troubleshoot iam"):
         if texte in sc.get("ts_contredit", []):
             acces = not acces
         etat = ("GRANTED" if acces else "NOT_GRANTED") if style == "v1" else ("CAN_ACCESS" if acces else "CANNOT_ACCESS")
-    if style == "fuite_jeton":
+    if style == "v1_reel":
+        explication = {"access": "NOT_GRANTED", "relevance": "NORMAL", "fullResourceName": f"//storage.googleapis.com/projects/_/buckets/{B}",
+                       "bindingExplanations": [{"access": "NOT_GRANTED", "relevance": "NORMAL", "role": "roles/storage.bucketViewer",
+                                                "rolePermission": "ROLE_PERMISSION_NOT_INCLUDED", "rolePermissionRelevance": "NORMAL",
+                                                "memberships": {f"serviceAccount:{TF}": {"membership": "MEMBERSHIP_NOT_INCLUDED", "relevance": "NORMAL"}}}],
+                       "policy": {"bindings": [{"members": ["user:personne@example.invalid"], "role": "roles/storage.legacyBucketOwner"}], "version": 1}}
+        print(json.dumps({"access": "NOT_GRANTED",
+                          "errors": [{"code": 7, "message": "Policy of user:personne@example.invalid not readable",
+                                      "details": [{"@type": "type.googleapis.com/google.rpc.ErrorInfo",
+                                                   "domain": "policytroubleshooter.googleapis.com", "reason": "RAISON_DE_TEST"}]}],
+                          "explainedPolicies": [explication, explication]}))
+    elif style == "fuite_jeton":
         print("WARNING: Authorization: Bearer ya29.JETON-SECRET-DE-TEST", file=sys.stderr)
         print(json.dumps({"overallAccessState": etat, "debug": {"access_token": "ya29.JETON-SECRET-DE-TEST"}}))
     elif style == "texte":

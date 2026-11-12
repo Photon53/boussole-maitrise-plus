@@ -12,6 +12,7 @@
 #   0 réponse compatible, accès accordé (attendu)   7 réponse compatible : VÉRITABLE REFUS d'accès
 #   8 réponse compatible, non concluante           5 FORMAT INATTENDU (le script doit être adapté)
 #   6 ERREUR D'API (appel en échec)                 4 API non activée : aucun appel effectué
+#   9 ÉVALUATION INCOMPLÈTE : la réponse contient des erreurs (champ « errors ») ; l'état annoncé n'est pas un verdict
 #
 # 1. Analyse des politiques : politiques IAM d'autorisation (bucket, projet, dossiers et organisation parents),
 #    politiques de REFUS à tous ces niveaux, permissions de chaque rôle ; évaluation de 15 accès sur des objets
@@ -23,7 +24,8 @@
 # Réponses brutes de Troubleshooter (diagnostic) : ~/controle-acces-troubleshooter.jsonl, réécrit à chaque
 # exécution (contient des explications de politiques IAM, dont des adresses : ne pas le publier).
 # Verdicts par contrôle : ACCORDÉ, REFUSÉ, INDÉTERMINÉ (jamais compté comme un refus). Troubleshooter peut aussi
-# répondre INCOMPATIBLE (format inattendu) ou ERREUR (appel en échec) : écart, jamais un refus (classement commun
+# répondre INCOMPATIBLE (format inattendu), ERREUR (appel en échec) ou INCOMPLET (réponse avec erreurs) : écart,
+# jamais un refus (classement commun
 # avec le diagnostic : scripts/troubleshooter_iam.py).
 #
 # EXCEPTION D5 (décision du propriétaire, ticket #65, DEV) : boussole-dev-tf-plan peut LISTER les objets du

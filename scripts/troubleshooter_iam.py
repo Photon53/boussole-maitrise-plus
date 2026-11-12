@@ -8,9 +8,14 @@ Classement d'une réponse (une seule source de vérité pour le contrôle et le 
   ACCORDÉ        état d'accès reconnu : CAN_ACCESS (API v3) ou GRANTED (API v1)
   REFUSÉ         état d'accès reconnu : CANNOT_ACCESS (v3) ou NOT_GRANTED (v1) — véritable refus
   INDÉTERMINÉ    état reconnu mais non concluant (UNKNOWN_CONDITIONAL, UNKNOWN_INFO…)
+  INCOMPLET      la réponse contient des erreurs (champ « errors ») : l'évaluation est incomplète, l'état annoncé
+                 (même NOT_GRANTED / CANNOT_ACCESS) n'est PAS un verdict
   INCOMPATIBLE   réponse reçue (code 0) mais format inattendu : vide, non JSON, état absent ou valeur inconnue
   ERREUR         l'appel a échoué (code de sortie non nul : API, droits, réseau, délai)
-Seuls ACCORDÉ et REFUSÉ sont des verdicts ; les trois autres ne valent jamais un refus.
+Seuls ACCORDÉ et REFUSÉ sont des verdicts ; les autres ne valent jamais un refus.
+
+Adresses : les adresses électroniques sont masquées dans tout ce qui est AFFICHÉ (structure, y compris les noms
+de clés, et messages d'erreur). Le rapport local garde la réponse brute (jetons masqués) : à transmettre en privé.
 
 Jetons : toute chaîne ressemblant à un jeton OAuth (ya29.…), à un en-tête « Bearer … » ou à un champ
 access_token / refresh_token / id_token est masquée avant affichage ou enregistrement.
@@ -31,6 +36,13 @@ MOTIFS_SECRETS = [
     (re.compile(r"(?i)bearer\s+[A-Za-z0-9._\-~+/=]+"), "Bearer [JETON MASQUÉ]"),
     (re.compile(r'(?i)("?(?:access|refresh|id)_token"?\s*[:=]\s*"?)[^"\s,}]+'), r"\1[JETON MASQUÉ]"),
 ]
+
+
+ADRESSE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
+
+
+def sans_adresse(texte):
+    return ADRESSE.sub("<adresse masquée>", texte)
 
 
 def masquer(texte):
@@ -77,6 +89,9 @@ def classer(rep):
     etat = next((d[c] for c in CHAMPS_ETAT if isinstance(d.get(c), str)), None)
     if etat is None:
         return "INCOMPATIBLE", None, f"format inattendu : état d'accès absent (clés reçues : {', '.join(sorted(d)) or 'aucune'})"
+    erreurs = d.get("errors")
+    if erreurs:
+        return "INCOMPLET", etat, f"évaluation incomplète : état annoncé {etat}, mais {resume_erreurs(erreurs)}"
     if etat in ACCORDE:
         return "ACCORDÉ", etat, etat
     if etat in REFUSE:
@@ -84,6 +99,19 @@ def classer(rep):
     if etat in NON_CONCLUANT:
         return "INDÉTERMINÉ", etat, f"Troubleshooter non concluant : {etat}"
     return "INCOMPATIBLE", etat, f"format inattendu : valeur d'état inconnue « {etat} »"
+
+
+def resume_erreurs(erreurs):
+    """Résumé sans adresse : code, raison et domaine de chaque erreur (pas le message, qui peut citer des membres)."""
+    if not isinstance(erreurs, list):
+        return "champ errors non conforme"
+    morceaux = []
+    for e in erreurs:
+        if not isinstance(e, dict):
+            morceaux.append("erreur illisible"); continue
+        raisons = [f"{x.get('reason', '?')} ({x.get('domain', '?')})" for x in e.get("details", []) if isinstance(x, dict) and x.get("reason")]
+        morceaux.append(f"code {e.get('code', '?')}" + (f", {', '.join(raisons)}" if raisons else ""))
+    return f"{len(erreurs)} erreur(s) : " + " ; ".join(morceaux)
 
 
 def structure(obj, chemin="", lignes=None, profondeur=0):
@@ -96,7 +124,8 @@ def structure(obj, chemin="", lignes=None, profondeur=0):
         if not obj:
             lignes.append(f"{chemin or '.'} : objet vide")
         for k in sorted(obj):
-            structure(obj[k], f"{chemin}.{k}" if chemin else k, lignes, profondeur + 1)
+            nom = sans_adresse(k)   # des membres (adresses) peuvent servir de clés
+            structure(obj[k], f"{chemin}.{nom}" if chemin else nom, lignes, profondeur + 1)
     elif isinstance(obj, list):
         lignes.append(f"{chemin or '.'} : liste de {len(obj)} élément(s)")
         if obj:
@@ -113,7 +142,7 @@ def structure(obj, chemin="", lignes=None, profondeur=0):
 
 
 # --- Mode diagnostic : un seul appel ----------------------------------------------------------------------------
-CODES_DIAGNOSTIC = {"ACCORDÉ": 0, "REFUSÉ": 7, "INDÉTERMINÉ": 8, "INCOMPATIBLE": 5, "ERREUR": 6}
+CODES_DIAGNOSTIC = {"ACCORDÉ": 0, "REFUSÉ": 7, "INDÉTERMINÉ": 8, "INCOMPATIBLE": 5, "ERREUR": 6, "INCOMPLET": 9}
 
 
 def diagnostic(projet, seau, fichier):
@@ -144,17 +173,30 @@ def diagnostic(projet, seau, fichier):
         os.umask(ancien)
     print("Diagnostic Policy Troubleshooter — UN seul appel (boussole-dev-vm lit releases/desired.json, attendu ACCORDÉ)")
     print(f"Code de sortie de l'appel : {rep['code']}")
-    print(f"Classement : {classe} — {detail}")
+    print(f"Classement : {classe} — {sans_adresse(detail)}")
     print("Structure de la réponse (clés et types ; seules les valeurs d'état sont affichées) :")
     for l in lignes:
         print(f"  {l}")
+    try:
+        erreurs_reponse = json.loads(rep["sortie"]).get("errors") if rep["sortie"].strip() else None
+    except (ValueError, AttributeError):
+        erreurs_reponse = None
+    if erreurs_reponse:
+        print("Erreurs signalées DANS la réponse (adresses masquées) :")
+        for e in erreurs_reponse if isinstance(erreurs_reponse, list) else []:
+            if isinstance(e, dict):
+                print(f"  - code {e.get('code', '?')} : {sans_adresse(str(e.get('message', '')))[:300]}")
+                for x in e.get("details", []):
+                    if isinstance(x, dict):
+                        print(f"      raison {x.get('reason', '?')}, domaine {x.get('domain', '?')}")
     if rep["erreur"].strip():
-        print("Erreurs (masquées) :")
+        print("Erreurs de la commande (jetons et adresses masqués) :")
         for l in rep["erreur"].strip().splitlines()[-5:]:
-            print(f"  {l}")
+            print(f"  {sans_adresse(l)}")
     print(f"Rapport complet (réponse JSON brute, erreurs, version de gcloud ; jetons masqués) : {fichier}")
-    print("Ce fichier contient des explications de politiques IAM (adresses comprises) : le transmettre en privé.")
-    signification = {0: "réponse compatible, accès accordé comme attendu", 7: "réponse compatible : VÉRITABLE REFUS d'accès",
+    print("Ce fichier contient la réponse brute (politiques IAM, adresses comprises) : le transmettre en privé.")
+    signification = {0: "réponse compatible, accès accordé comme attendu", 7: "réponse compatible SANS erreur : VÉRITABLE REFUS d'accès",
+                     9: "ÉVALUATION INCOMPLÈTE : la réponse signale des erreurs, l'état annoncé n'est pas un verdict",
                      8: "réponse compatible mais non concluante", 5: "FORMAT INATTENDU : le script doit être adapté",
                      6: "ERREUR D'API : appel en échec (droits, API, réseau)"}
     print(f"Code de sortie du diagnostic : {CODES_DIAGNOSTIC[classe]} ({signification[CODES_DIAGNOSTIC[classe]]})")

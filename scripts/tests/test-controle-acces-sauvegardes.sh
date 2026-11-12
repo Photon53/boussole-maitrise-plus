@@ -130,6 +130,21 @@ verif_diag "Diagnostic : réponse compatible CANNOT_ACCESS = VÉRITABLE REFUS (c
 diag "{\"bucket\": \"apres\", \"troubleshooter\": true, \"ts_inconnu\": [\"$DIAG_CIBLE\"]}"
 verif_diag "Diagnostic : UNKNOWN_CONDITIONAL = non concluant (code 8)" 8 "non concluante" 'un_appel'
 
+diag '{"bucket": "apres", "troubleshooter": true, "ts_style": "v1_reel"}'
+verif_diag "Diagnostic, réponse réelle du 13/11 (NOT_GRANTED + errors) : ÉVALUATION INCOMPLÈTE (code 9), jamais un refus" 9 "ÉVALUATION INCOMPLÈTE" \
+  'un_appel && grep -q "raison RAISON_DE_TEST, domaine policytroubleshooter.googleapis.com" "$T/sortie" && [[ "$(rapport "r[\"classement\"]")" == INCOMPLET ]]'
+verif_diag "Diagnostic : aucune adresse affichée (clés, membres, messages d'erreur)" 9 "<adresse masquée>" \
+  '! grep -qE "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}" "$T/sortie"'
+
+diag "{\"bucket\": \"apres\", \"troubleshooter\": true, \"ts_style\": \"v1\", \"ts_contredit\": [\"$DIAG_CIBLE\"]}"
+verif_diag "Diagnostic v1 : NOT_GRANTED SANS erreur = véritable refus (code 7)" 7 "SANS erreur : VÉRITABLE REFUS" 'un_appel'
+
+lancer '{"bucket": "apres", "troubleshooter": true, "ts_style": "v1_reel"}'
+verif "Contrôle complet, réponse réelle du 13/11 : INCOMPLET sur chaque contrôle, non conforme, jamais « refus »" 1 "Troubleshooter INCOMPLET : évaluation incomplète : état annoncé NOT_GRANTED"
+if grep -q "CONTRADICTION" "$T/sortie"; then
+  echo "ECHEC une évaluation incomplète ne doit pas être présentée comme une contradiction"; echecs=$((echecs + 1))
+else echo "OK    Évaluation incomplète distinguée d'une contradiction"; reussis=$((reussis + 1)); fi
+
 diag '{"bucket": "apres", "troubleshooter": true, "ts_style": "fuite_jeton"}'
 verif_diag "Diagnostic : jeton masqué dans l'affichage et le rapport" 0 "[JETON MASQUÉ]" \
   '! grep -q "ya29.JETON-SECRET" "$T/sortie" "$T/diagnostic-troubleshooter.json"'
