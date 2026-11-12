@@ -4,6 +4,7 @@
 # Usage (dans Cloud Shell) :
 #   bash deployer-dev-iap.sh
 #   bash deployer-dev-iap.sh --admin-email moi@exemple.fr --admin-nom "Équipe DEV"
+#   bash deployer-dev-iap.sh --installer-synchro    # installe ou met à jour boussole-dev-sync (ticket #65, PR 3b)
 #
 # Ce que fait le script, dans l'ordre, en s'arrêtant à la première erreur :
 #   1. Contrôles : outils, compte gcloud, VM RUNNING, pas d'IP externe, SSH IAP, sudo.
@@ -24,8 +25,12 @@
 #     et copiés dans /root/boussole-admin-initial.txt sur la VM (mode 600). Ne jamais les coller dans un ticket,
 #     une PR ou un journal ; effacer l'écran et supprimer ce fichier après les avoir mis en lieu sûr.
 #   - La clé d'hôte SSH de GitHub est vérifiée (empreinte officielle et API GitHub) avant toute connexion.
-#   - Ce script reconstruit les images sur la VM : il ne doit plus être utilisé tel quel une fois la
-#     synchronisation automatique installée (ticket #65, PR 3b).
+#   - Mode normal : reconstruit les images sur la VM. Il est REFUSÉ sur la VM dès que la synchronisation
+#     automatique est installée (/etc/boussole-dev-sync/installe) : il écraserait la version déployée par digest.
+#   - --installer-synchro : met à jour le code, installe boussole-dev-sync, le Compose DEV, les unités systemd
+#     (timer NON activé) et la rotation du journal ; adopte le déploiement manuel s'il n'est pas déjà repris ;
+#     lance une simulation. AUCUN conteneur n'est arrêté ni reconstruit. Voir
+#     docs/exploitation/pipeline-dev-pr3b-deploiement.md pour la première bascule et l'activation du timer.
 set -Eeuo pipefail
 
 PROJECT="mer-boussole-dev"
@@ -45,16 +50,20 @@ PORT_VM=8080          # port de l'application sur la VM (lié à 127.0.0.1)
 PORT_TEST=18080       # port local Cloud Shell pour le test du tunnel
 ADMIN_EMAIL=""
 ADMIN_NOM="Administrateur DEV"
+MODE="manuel"         # manuel | synchro
 
-usage() { sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+usage() { sed -n '2,34p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --admin-email) ADMIN_EMAIL="$2"; shift 2 ;;
     --admin-nom)   ADMIN_NOM="$2"; shift 2 ;;
+    --installer-synchro) MODE="synchro"; shift ;;
     -h|--help)     usage ;;
     *) echo "Option inconnue : $1"; usage 1 ;;
   esac
 done
+
+[[ "$MODE" == manuel || -z "$ADMIN_EMAIL" ]] || { echo "--admin-email est incompatible avec --installer-synchro"; exit 1; }
 
 REPORT=()
 TUNNEL_PID=""
@@ -198,12 +207,13 @@ git -C "$DEPOT" bundle verify -q "$BUNDLE" >/dev/null 2>&1 || echec "Bundle Git 
 ok "Bundle Git créé ($(du -h "$BUNDLE" | cut -f1))"
 
 # ---------------------------------------------------------------------------------------------
-# Script exécuté sur la VM (root). Arguments : commit attendu, bundle, e-mail admin, nom admin.
+# Script exécuté sur la VM (root). Arguments : commit attendu, bundle, e-mail admin, nom admin, mode.
 INSTALLEUR="$TRAVAIL/boussole-installer-vm.sh"
 cat > "$INSTALLEUR" <<'VM_EOF'
 #!/usr/bin/env bash
 set -Eeuo pipefail
-SHA_ATTENDU="$1"; BUNDLE="$2"; ADMIN_EMAIL="${3:-}"; ADMIN_NOM="${4:-Administrateur DEV}"
+SHA_ATTENDU="$1"; BUNDLE="$2"; ADMIN_EMAIL="${3:-}"; ADMIN_NOM="${4:-Administrateur DEV}"; MODE="${5:-manuel}"
+MARQUEUR_SYNCHRO=/etc/boussole-dev-sync/installe
 DIR=/opt/boussole-dev
 COMPOSE_DEV=docker-compose.dev-iap.yml
 PROJET=boussole
@@ -220,6 +230,12 @@ for c in git docker openssl curl ss; do command -v "$c" >/dev/null || echec "Com
 docker info >/dev/null 2>&1 || echec "Moteur Docker arrêté"
 docker compose version >/dev/null 2>&1 || echec "Plugin docker compose absent"
 ok "Docker $(docker version --format '{{.Server.Version}}'), $(docker compose version --short)"
+
+# Synchronisation installée : le déploiement manuel (construction sur la VM) écraserait la version déployée
+# par digest et contournerait sauvegarde, contrôles et retour arrière. Refus avant toute modification.
+if [[ "$MODE" != synchro && -e "$MARQUEUR_SYNCHRO" ]]; then
+  echec "Synchronisation automatique installée ($MARQUEUR_SYNCHRO) : déploiement manuel REFUSÉ. Utiliser boussole-dev-sync (--etat, --appliquer, --version, --retour-manuel) ou relancer ce script avec --installer-synchro pour le mettre à jour."
+fi
 
 etape "Code dans $DIR"
 if [[ -d "$DIR/.git" ]]; then
@@ -252,6 +268,42 @@ swap_actif && ok "RAM ${ram_mo} Mo + swap actif" || warn "RAM ${ram_mo} Mo sans 
 libre_go=$(df -BG --output=avail / | tail -1 | tr -dc '0-9')
 (( libre_go >= 5 )) || echec "Moins de 5 Go libres ($libre_go Go) : docker system prune"
 ok "Disque libre : ${libre_go} Go"
+
+if [[ "$MODE" == synchro ]]; then
+  etape "Installation de la synchronisation automatique (aucun conteneur arrêté ni reconstruit)"
+  [[ -f "$DIR/deploy/.env" ]] || echec "$DIR/deploy/.env absent : la synchronisation reprend un déploiement existant"
+  for f in deploy/vm/boussole-dev-sync deploy/vm/boussole-dev-sync.service deploy/vm/boussole-dev-sync.timer \
+           deploy/vm/logrotate-boussole-deploy deploy/vm/config.exemple deploy/docker-compose.dev.yml; do
+    [[ -f "$DIR/$f" ]] || echec "Fichier manquant dans develop : $f"
+  done
+  install -d -m 700 /etc/boussole-dev-sync
+  install -m 755 "$DIR/deploy/vm/boussole-dev-sync" /usr/local/sbin/boussole-dev-sync
+  install -m 600 "$DIR/deploy/docker-compose.dev.yml" /etc/boussole-dev-sync/docker-compose.dev.yml
+  [[ -f /etc/boussole-dev-sync/config ]] || install -m 600 "$DIR/deploy/vm/config.exemple" /etc/boussole-dev-sync/config
+  install -m 644 "$DIR/deploy/vm/boussole-dev-sync.service" "$DIR/deploy/vm/boussole-dev-sync.timer" /etc/systemd/system/
+  install -m 644 "$DIR/deploy/vm/logrotate-boussole-deploy" /etc/logrotate.d/boussole-deploy
+  systemctl daemon-reload
+  printf 'commit=%s\ninstalle_le=%s\n' "$SHA" "$(date -Iseconds)" > "$MARQUEUR_SYNCHRO"
+  ok "boussole-dev-sync, Compose DEV, unités systemd et rotation du journal installés (commit ${SHA:0:12})"
+  if systemctl is-enabled --quiet boussole-dev-sync.timer 2>/dev/null; then
+    ok "Timer déjà activé : conservé (mise à jour du script seulement)"
+  else
+    ok "Timer installé mais NON activé"
+  fi
+  if [[ -f /var/lib/boussole-deploy/active.json ]]; then
+    ok "Version active déjà enregistrée : adoption inutile"
+  else
+    etape "Adoption du déploiement manuel en place"
+    /usr/local/sbin/boussole-dev-sync --adopter || echec "Adoption impossible (voir ci-dessus) : rien n'a été modifié dans les conteneurs"
+  fi
+  etape "Simulation du prochain déploiement (aucun arrêt)"
+  /usr/local/sbin/boussole-dev-sync --simulation || warn "Simulation en échec : ne pas lancer --appliquer avant d'avoir compris la cause"
+  /usr/local/sbin/boussole-dev-sync --etat || true
+  printf '\n  [VM] Prochaines étapes (accord explicite requis) :\n'
+  printf '    1. Première bascule : sudo boussole-dev-sync --appliquer\n'
+  printf '    2. Après réussite : sudo systemctl enable --now boussole-dev-sync.timer\n'
+  exit 0
+fi
 
 etape "Configuration privée (.env et Compose)"
 cd "$DIR/deploy"
@@ -372,12 +424,16 @@ ok "Bundle et installeur copiés dans un répertoire privé de la VM ($DOSSIER_V
 
 # ---------------------------------------------------------------------------------------------
 etape "4. Installation sur la VM"
-printf -v CMD 'sudo bash %q %q %q %q %q; c=$?; rm -rf -- %q; exit $c' \
-  "$DOSSIER_VM/boussole-installer-vm.sh" "$SHA" "$DOSSIER_VM/boussole-develop.bundle" "$ADMIN_EMAIL" "$ADMIN_NOM" "$DOSSIER_VM"
+printf -v CMD 'sudo bash %q %q %q %q %q %q; c=$?; rm -rf -- %q; exit $c' \
+  "$DOSSIER_VM/boussole-installer-vm.sh" "$SHA" "$DOSSIER_VM/boussole-develop.bundle" "$ADMIN_EMAIL" "$ADMIN_NOM" "$MODE" "$DOSSIER_VM"
 gssh --command "$CMD" -- -o ServerAliveInterval=30 -o ServerAliveCountMax=20 \
   || echec "Installation sur la VM en échec (voir les lignes [VM] ci-dessus)"
 DOSSIER_VM=""   # supprimé par la commande d'installation
-ok "Application installée et contrôlée sur la VM (commit ${SHA:0:12})"
+if [[ "$MODE" == synchro ]]; then
+  ok "Synchronisation installée sur la VM (commit ${SHA:0:12}) ; aucun conteneur modifié, timer non activé"
+else
+  ok "Application installée et contrôlée sur la VM (commit ${SHA:0:12})"
+fi
 [[ -z "$ADMIN_EMAIL" ]] || ok "Administrateur $ADMIN_EMAIL traité"
 
 # ---------------------------------------------------------------------------------------------
@@ -419,7 +475,9 @@ cat <<FIN
     http://localhost:8080/admin         administration (e-mail, mot de passe, code TOTP)
 
   Commandes utiles sur la VM (gcloud compute ssh $VM --zone $ZONE --tunnel-through-iap) :
-    cd /opt/boussole-dev/deploy && sudo docker compose -p boussole -f docker-compose.dev-iap.yml ps
+    sudo boussole-dev-sync --etat                    (si la synchronisation est installée)
+    sudo journalctl -u boussole-dev-sync --since today
+    cd /opt/boussole-dev/deploy && sudo docker compose -p boussole -f docker-compose.dev-iap.yml ps   (déploiement manuel)
     cd /opt/boussole-dev/deploy && sudo docker compose -p boussole -f docker-compose.dev-iap.yml logs -f api
 
   Économie : gcloud compute instances stop $VM --project $PROJECT --zone $ZONE

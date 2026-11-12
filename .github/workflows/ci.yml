@@ -73,3 +73,9 @@ jobs:
       - name: Publication DEV contre un faux GCS (sans accès GCP)
         working-directory: .
         run: bash scripts/test-dev-publier-version.sh
+      - name: Synchronisation de la VM DEV contre un faux docker et de faux services (sans VM ni GCP)
+        working-directory: .
+        run: |
+          bash -n deploy/vm/boussole-dev-sync
+          bash deploy/vm/tests/test-boussole-dev-sync.sh
+          bash deploy/vm/tests/test-refus-deploiement-manuel.sh

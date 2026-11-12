@@ -1,0 +1,14 @@
+# Boussole DEV — passage toutes les 5 minutes (ticket #65, PR 3b).
+# Installé DÉSACTIVÉ ; activation seulement après la première bascule manuelle réussie :
+#   systemctl enable --now boussole-dev-sync.timer       pause : systemctl stop boussole-dev-sync.timer
+[Unit]
+Description=Boussole DEV - synchronisation périodique de la version publiée
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30s
+Unit=boussole-dev-sync.service
+
+[Install]
+WantedBy=timers.target
