@@ -65,7 +65,7 @@ else
 
   # Révision Alembic attendue par le code de l'image (pas l'état de la base) : une seule tête exigée.
   docker pull -q "$API_REF" >/dev/null
-  heads="$(docker run --rm --network none "$API_REF" alembic heads 2>/dev/null | awk 'NF {print $1}')"
+  heads="$(docker run --rm --network none "$API_REF" alembic heads | awk 'NF {print $1}')"
   [[ -n "$heads" ]] || { echo "::error::alembic heads n'a rien renvoyé"; exit 1; }
   [[ "$(wc -l <<<"$heads")" -eq 1 ]] || { echo "::error::Plusieurs têtes Alembic : $heads"; exit 1; }
 
