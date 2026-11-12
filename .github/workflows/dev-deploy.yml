@@ -1,0 +1,171 @@
+# DEV : tests → images API/web → Artifact Registry → manifeste → pointeur de version (ticket #65, PR 2).
+#
+# Ce workflow PUBLIE une version ; il ne déploie pas. La VM boussole-dev lit releases/desired.json
+# et déploie elle-même (PR 3). « Publié » ne prouve donc pas « déployé ».
+#
+# Sécurité :
+# - Seul le job « publier » obtient un jeton OIDC (id-token: write), après réussite de tous les tests.
+# - Le fournisseur WIF n'accepte ce fichier que sur refs/heads/develop, environnement « development »,
+#   et l'associe au seul compte boussole-dev-deployer (attribute.boussole_role=deployer).
+# - Aucun accès SSH/IAP à la VM, aucune clé de compte de service.
+# Pré-requis : PR 1 appliquée ; variables d'environnement GitHub « development » :
+#   GCP_WIF_PROVIDER, GCP_DEV_DEPLOYER_SA, GCP_DEV_DEPLOIEMENT_BUCKET.
+name: DEV - publication des versions
+
+on:
+  push:
+    branches: [develop]
+  workflow_dispatch:
+
+permissions: {}
+
+# Une seule publication à la fois, dans l'ordre ; une exécution en attente plus ancienne est remplacée
+# par la plus récente. Le contrôle d'ascendance du pointeur couvre les cas restants.
+concurrency:
+  group: dev-deploy
+  cancel-in-progress: false
+
+jobs:
+  python:
+    name: Moteur, API et contenu
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            engine/pyproject.toml
+            api/pyproject.toml
+      - run: pip install -e "./engine[dev]" -e "./api[dev]"
+      - name: Vérifier le contenu pédagogique
+        working-directory: api
+        run: python -m app.contenu verifier
+      - name: Tests du moteur
+        working-directory: engine
+        run: pytest -q
+      - name: Tests de l'API
+        working-directory: api
+        run: pytest -q -W ignore::DeprecationWarning
+
+  web:
+    name: Front
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Vulnérabilités des dépendances livrées
+        run: npm audit --omit=dev --audit-level=high
+      - run: npm test
+      - run: npm run build
+
+  publier:
+    name: Publier la version
+    needs: [python, web]
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment: development
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PROJECT: mer-boussole-dev
+      REGISTRY: europe-west9-docker.pkg.dev/mer-boussole-dev/boussole-dev
+      BUCKET: ${{ vars.GCP_DEV_DEPLOIEMENT_BUCKET }}
+    steps:
+      - name: Pré-requis
+        env:
+          WIF: ${{ vars.GCP_WIF_PROVIDER }}
+          SA: ${{ vars.GCP_DEV_DEPLOYER_SA }}
+        run: |
+          test -n "$WIF" || { echo "::error::Variable GCP_WIF_PROVIDER absente"; exit 1; }
+          test "$SA" = "boussole-dev-deployer@mer-boussole-dev.iam.gserviceaccount.com" || { echo "::error::GCP_DEV_DEPLOYER_SA doit désigner boussole-dev-deployer du projet DEV"; exit 1; }
+          test "$BUCKET" = "mer-boussole-dev-deploiement" || { echo "::error::GCP_DEV_DEPLOIEMENT_BUCKET doit valoir mer-boussole-dev-deploiement"; exit 1; }
+
+      # Historique complet : contrôle d'ascendance avec la version actuellement publiée.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: google-github-actions/auth@c200f3691d83b41bf9bbd8638997a462592937ed # v2.1.13
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEV_DEPLOYER_SA }}
+          project_id: mer-boussole-dev
+
+      - uses: google-github-actions/setup-gcloud@e427ad8a34f8676edf47cf7d7925499adf3eb74f # v2.2.1
+
+      - run: gcloud auth configure-docker europe-west9-docker.pkg.dev --quiet
+
+      # Relance du même SHA : manifeste et images déjà publiés sont réutilisés (tags SHA jamais réécrits).
+      - name: Version ou images déjà publiées ?
+        id: existant
+        env:
+          SHA: ${{ github.sha }}
+        run: bash scripts/dev-publier-version.sh existant
+
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+        if: steps.existant.outputs.manifeste != 'oui' && (steps.existant.outputs.api_digest == '' || steps.existant.outputs.web_digest == '')
+
+      # Une seule architecture et pas d'attestation : le digest publié est celui d'un manifeste
+      # d'image simple, comparable à RepoDigests sur la VM (arbitrage 6).
+      - name: Image API
+        id: api
+        if: steps.existant.outputs.manifeste != 'oui' && steps.existant.outputs.api_digest == ''
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          file: deploy/Dockerfile.api
+          platforms: linux/amd64
+          provenance: false
+          sbom: false
+          push: true
+          tags: ${{ env.REGISTRY }}/api:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,scope=api,mode=max
+
+      - name: Image web
+        id: web
+        if: steps.existant.outputs.manifeste != 'oui' && steps.existant.outputs.web_digest == ''
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          context: .
+          file: deploy/Dockerfile.web
+          platforms: linux/amd64
+          provenance: false
+          sbom: false
+          push: true
+          tags: ${{ env.REGISTRY }}/web:${{ github.sha }}
+          labels: |
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,scope=web,mode=max
+
+      - name: Manifeste et pointeur de version
+        env:
+          SHA: ${{ github.sha }}
+          API_DIGEST: ${{ steps.api.outputs.digest || steps.existant.outputs.api_digest }}
+          WEB_DIGEST: ${{ steps.web.outputs.digest || steps.existant.outputs.web_digest }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+        run: bash scripts/dev-publier-version.sh publier
