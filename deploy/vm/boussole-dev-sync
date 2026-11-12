@@ -217,6 +217,9 @@ disque_ok() {
 compatibilite_schema() { dc_dev "$1" run --rm --no-deps -T api alembic current >"$TRAVAIL/alembic-current.txt" 2>&1; }
 
 # --- Sauvegarde hors VM ------------------------------------------------------------------------------------
+# Noms et métadonnées des sauvegardes : listables par boussole-dev-tf-plan (exception D5, ticket #65). Ils ne
+# contiennent AUCUN identifiant personnel : nom = horodatage UTC + 12 caractères du SHA ; aucune métadonnée
+# personnalisée ; meta.json (contenu, non listé) limité aux champs techniques. Vérifié par le banc de test.
 sauvegarder() {   # sauvegarder <sha> <révision> <empreinte> : SAUVEGARDE_NOM ; 0 si copie hors VM vérifiée
   local nom d f
   nom="$(date -u +%Y%m%dT%H%M%SZ)-${1:0:12}"; d="$ETAT/sauvegardes/$nom"

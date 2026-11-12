@@ -27,6 +27,14 @@ verif() {   # verif <libellé> <code attendu> <motif attendu>
 
 lancer '{"bucket": "apres"}'
 verif "Troubleshooter non activé : conforme selon les politiques SEULEMENT (code 3, pas une preuve)" 3 "NON CONFIRMÉ par Policy Troubleshooter"
+verif "Exception D5 : tf-plan liste les objets (iam.securityReviewer), affichée comme acceptée" 3 "lister objets et métadonnées         D5        ACCORDÉ      —              OK exception D5 acceptée"
+verif "Exception D5 : résumé explicite, lecture du contenu refusée" 3 "Exception D5 acceptée : boussole-dev-tf-plan peut lister les objets du bucket et leurs métadonnées"
+
+lancer '{"bucket": "apres", "sans_liste_tf": true}'
+verif "Droits réduits (option B) : liste refusée, exception D5 non utilisée, toujours conforme" 3 "exception D5 non utilisée (liste refusée)"
+
+lancer '{"bucket": "apres", "tf_lecteur_projet": true}'
+verif "tf-plan peut LIRE le contenu (rôle au niveau du projet) : non conforme, exception D5 invalide" 1 "Exception D5 INVALIDE"
 
 lancer '{"bucket": "apres", "troubleshooter": true}'
 verif "Troubleshooter activé et cohérent : conforme et confirmé (code 0)" 0 "confirmé par Policy Troubleshooter pour chaque contrôle"
@@ -50,7 +58,7 @@ lancer "{\"bucket\": \"apres\", \"ancetres\": [{\"type\": \"folder\", \"id\": \"
 verif "Autorisation héritée d'un DOSSIER parent : accès indu détecté" 1 "roles/storage.objectViewer (dossier 222)"
 
 lancer '{"bucket": "avant"}'
-verif "Ancienne politique (liaisons historiques) : 5 écarts" 1 "5 écarts"
+verif "Ancienne politique (liaisons historiques) : 5 écarts (lectures et suppressions indues)" 1 "5 écarts"
 
 lancer '{"bucket": "apres", "groupe_bucket": true}'
 verif "Liaison à un groupe sur le bucket : indéterminé, jamais compté comme refus" 1 "appartenance non vérifiable"

@@ -10,6 +10,8 @@ Le scénario est lu dans le fichier JSON désigné par FAUX_GCLOUD_SCENARIO :
   ancetres          liste de {"type": "organization"|"folder", "id": …, "autorisations": [...], "refus": [...]
                     ou "refus_illisible": true}
   groupe_bucket     true : ajoute une liaison objectViewer à un groupe sur le bucket
+  sans_liste_tf     true : iam.securityReviewer sans storage.objects.list (droits réduits, option B)
+  tf_lecteur_projet true : tf-plan reçoit roles/storage.objectViewer au niveau du projet (lecture du contenu)
 Chaque appel est ajouté à FAUX_GCLOUD_JOURNAL.
 """
 import json
@@ -47,7 +49,11 @@ projet = [{"role": "roles/editor", "members": [f"serviceAccount:{CE}"]}, {"role"
 PERMS = {
     "roles/viewer": ["storage.buckets.list"], "roles/editor": ["storage.buckets.create", "storage.buckets.list"],
     "roles/owner": ["storage.buckets.create", "storage.buckets.list"], "roles/browser": [],
-    "roles/iam.securityReviewer": ["storage.buckets.getIamPolicy"],
+    # Permissions storage.* réelles de roles/iam.securityReviewer (relevées le 13/11/2026).
+    "roles/iam.securityReviewer": ["storage.anywhereCaches.list", "storage.bucketOperations.list", "storage.buckets.getIamPolicy",
+                                   "storage.buckets.list", "storage.featureConfigs.list", "storage.folders.list",
+                                   "storage.hmacKeys.list", "storage.managedFolders.getIamPolicy", "storage.managedFolders.list",
+                                   "storage.multipartUploads.list", "storage.objects.getIamPolicy", "storage.objects.list"],
     "roles/storage.bucketViewer": ["storage.buckets.get", "storage.buckets.list"],
     "roles/storage.legacyBucketOwner": ["storage.buckets.get", "storage.buckets.update", "storage.buckets.getIamPolicy", "storage.buckets.setIamPolicy", "storage.objects.list", "storage.objects.create", "storage.objects.delete"],
     "roles/storage.legacyBucketReader": ["storage.buckets.get", "storage.objects.list"],
@@ -57,8 +63,13 @@ PERMS = {
     "roles/storage.objectUser": ["storage.objects.create", "storage.objects.delete", "storage.objects.get", "storage.objects.list", "storage.objects.update"],
     "roles/storage.objectViewer": ["storage.objects.get", "storage.objects.list"],
 }
+if sc.get("sans_liste_tf"):
+    PERMS["roles/iam.securityReviewer"].remove("storage.objects.list")
+if sc.get("tf_lecteur_projet"):
+    projet.append({"role": "roles/storage.objectViewer", "members": [f"serviceAccount:{TF}"]})
 ACCES_REELS = {  # accès réels attendus (vérité de Troubleshooter par défaut)
     (TF, "storage.buckets.get", f"projects/_/buckets/{B}"), (TF, "storage.buckets.getIamPolicy", f"projects/_/buckets/{B}"),
+    (TF, "storage.objects.list", f"projects/_/buckets/{B}"),   # exception D5
     (DEP, "storage.objects.create", O + "releases/temoin.json"),
     (VM, "storage.objects.get", O + "backups/temoin"), (VM, "storage.objects.create", O + "backups/temoin"),
     (VM, "storage.objects.get", O + "releases/desired.json"),

@@ -54,7 +54,9 @@ class Gestionnaire(BaseHTTPRequestHandler):
 
     def journaliser(self):
         with open(JOURNAL, "a") as f:
-            f.write(f"{self.command} {self.path} auth={'oui' if self.headers.get('Authorization') == 'Bearer ' + JETON else 'non'}\n")
+            meta = sorted(h for h in self.headers if h.lower().startswith(("x-goog-meta-", "x-goog-custom")))
+            f.write(f"{self.command} {self.path} auth={'oui' if self.headers.get('Authorization') == 'Bearer ' + JETON else 'non'}"
+                    f" metadonnees_perso={','.join(meta) or 'aucune'}\n")
 
     def autorise(self):
         if self.headers.get("Authorization") != "Bearer " + JETON:

@@ -137,6 +137,14 @@ verif "v1 : sauvegarde copiée hors VM (db, fichiers, meta)" 0 "Sauvegarde véri
 verif "v1 : maintenance avant sauvegarde, sauvegarde avant migration" 0 "" \
   'appels_depuis | grep -nE "^stop|pg_dump|alembic upgrade" | awk -F: "{print \$2}" | tr "\n" " " | grep -qE "^stop .*stop .*stop .*exec .*pg_dump.* compose .*alembic upgrade"'
 
+# Noms et métadonnées des sauvegardes : visibles par tf-plan (exception D5) ; aucun identifiant personnel.
+CODE=0; verif "Sauvegardes : noms limités à horodatage et SHA (aucun identifiant personnel)" 0 "" \
+  '[[ -z "$(cd "$E/gcs" && find backups -type f | grep -vE "^backups/[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}/(db\.dump|fichiers\.tar\.gz|meta\.json)$")" ]]'
+CODE=0; verif "Sauvegardes : envoi sans métadonnée personnalisée, paramètres limités à name/uploadType/ifGenerationMatch" 0 "" \
+  '! grep -E "^POST /upload/.*backups" "$E/requetes.log" | grep -vE "metadonnees_perso=aucune" | grep -q . && ! grep -E "^POST /upload/.*backups" "$E/requetes.log" | grep -oE "[?&][a-zA-Z]+=" | sort -u | grep -vqE "^[?&](uploadType|ifGenerationMatch|name)=$"'
+CODE=0; verif "Sauvegardes : meta.json limité aux champs techniques prévus" 0 "" \
+  'python3 -c "import json,sys,glob; m=json.load(open(glob.glob(sys.argv[1]+\"/backups/*/meta.json\")[0])); sys.exit(0 if set(m)=={\"nom\",\"sha_cible\",\"revision_alembic\",\"empreinte_contenu\",\"cree_le\",\"fichiers\"} and set(m[\"fichiers\"])=={\"db.dump\",\"fichiers.tar.gz\"} else 1)" "$E/gcs"'
+
 marquer; sync --appliquer
 verif "Version déjà active : rien à faire" 0 "déjà active" '! appels_depuis | grep -qE "^(stop|pull)"'
 

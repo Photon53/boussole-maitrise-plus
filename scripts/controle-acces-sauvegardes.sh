@@ -13,6 +13,12 @@
 #
 # Aucune API activée (invites désactivées), aucune politique modifiée, aucun objet lu ni créé.
 # Verdicts par contrôle : ACCORDÉ, REFUSÉ, INDÉTERMINÉ (jamais compté comme un refus).
+#
+# EXCEPTION D5 (décision du propriétaire, ticket #65, DEV) : boussole-dev-tf-plan peut LISTER les objets du
+# bucket et leurs métadonnées (storage.objects.list, via roles/iam.securityReviewer au niveau du projet). Il ne
+# doit JAMAIS pouvoir lire leur contenu : les contrôles de lecture (storage.objects.get) restent stricts et
+# l'exception n'est valable que si ces contrôles sont conformes. L'exception tolère la liste sans l'exiger :
+# une réduction ultérieure des droits (option B, ticket #74) reste conforme.
 # Codes de sortie :
 #   0  conforme, confirmé par Policy Troubleshooter pour les 15 contrôles
 #   3  conforme selon l'analyse des politiques SEULEMENT (Troubleshooter non activé) : pas une preuve d'accès
@@ -111,12 +117,15 @@ COMPTES = {
 }
 SEAU = f"projects/_/buckets/{B}"
 OBJ = lambda nom: f"{SEAU}/objects/{nom}"
+# Attendu : un verdict, ou EXCEPTION_D5 (liste tolérée : ACCORDÉ ou REFUSÉ, jamais INDÉTERMINÉ).
+EXCEPTION_D5 = "D5"
 CONTROLES = [  # (compte, permission, ressource, libellé, attendu)
     ("compte Compute par défaut", "storage.objects.get", OBJ("backups/temoin"), "lire une sauvegarde", "REFUSÉ"),
     ("compte Compute par défaut", "storage.objects.delete", OBJ("backups/temoin"), "supprimer une sauvegarde", "REFUSÉ"),
     ("compte Compute par défaut", "storage.objects.list", SEAU, "lister le bucket", "REFUSÉ"),
     ("boussole-dev-tf-plan", "storage.objects.get", OBJ("backups/temoin"), "lire une sauvegarde", "REFUSÉ"),
-    ("boussole-dev-tf-plan", "storage.objects.list", SEAU, "lister le bucket", "REFUSÉ"),
+    ("boussole-dev-tf-plan", "storage.objects.list", SEAU, "lister objets et métadonnées", EXCEPTION_D5),
+    ("boussole-dev-tf-plan", "storage.objects.get", OBJ("releases/desired.json"), "lire un objet de releases/", "REFUSÉ"),
     ("boussole-dev-tf-plan", "storage.buckets.get", SEAU, "lire le bucket (PLAN)", "ACCORDÉ"),
     ("boussole-dev-tf-plan", "storage.buckets.getIamPolicy", SEAU, "lire la politique (PLAN)", "ACCORDÉ"),
     ("boussole-dev-deployer", "storage.objects.get", OBJ("backups/temoin"), "lire une sauvegarde", "REFUSÉ"),
@@ -208,17 +217,37 @@ print(f"Policy Troubleshooter : {'ACTIVÉ — chaque contrôle lui est soumis' i
 print()
 print(f"{'Compte':<26} {'Action':<36} {'Attendu':<9} {'Politiques':<12} {'Troubleshooter':<14} Détail")
 ecarts = 0
+exception_utilisee = False
+lecture_tf_plan_refusee = True
 for compte, perm, res, lib, attendu in CONTROLES:
     email = COMPTES[compte]
     v, detail = analyser(email, perm, res)
     ts, ts_detail = troubleshooter(email, perm, res) if TS == "oui" else ("—", "")
-    ok = v == attendu and (TS != "oui" or ts == attendu)
+    if attendu == EXCEPTION_D5:
+        admis = {"ACCORDÉ", "REFUSÉ"}
+        ok = v in admis and (TS != "oui" or ts == v)
+        exception_utilisee |= ok and v == "ACCORDÉ"
+        affiche = "D5"
+    else:
+        ok = v == attendu and (TS != "oui" or ts == attendu)
+        affiche = attendu
+    if compte == "boussole-dev-tf-plan" and perm == "storage.objects.get":
+        lecture_tf_plan_refusee &= ok
     remarques = list(detail)
     if TS == "oui" and ts != v:
         remarques.append(f"CONTRADICTION ou erreur Troubleshooter : {ts_detail}")
+    if attendu == EXCEPTION_D5 and ok:
+        remarques.insert(0, "exception D5 acceptée" if v == "ACCORDÉ" else "exception D5 non utilisée (liste refusée)")
     ecarts += not ok
-    print(f"{compte:<26} {lib:<36} {attendu:<9} {v:<12} {ts:<14} {'OK ' if ok else 'ÉCART '}{'; '.join(remarques)}")
+    print(f"{compte:<26} {lib:<36} {affiche:<9} {v:<12} {ts:<14} {'OK ' if ok else 'ÉCART '}{'; '.join(remarques)}")
 print()
+if exception_utilisee:
+    if lecture_tf_plan_refusee:
+        print("Exception D5 acceptée : boussole-dev-tf-plan peut lister les objets du bucket et leurs métadonnées ;")
+        print("la lecture de leur contenu lui est refusée (contrôles de lecture conformes).")
+    else:
+        print("Exception D5 INVALIDE : boussole-dev-tf-plan liste les objets ET leur lecture n'est pas refusée.")
+    print()
 for l in incomplets:
     print(f"[INCOMPLET] {l}")
 if ecarts or incomplets:
