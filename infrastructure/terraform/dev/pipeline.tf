@@ -109,15 +109,24 @@ resource "google_storage_bucket" "deploiement" {
 // --- Politique IAM du bucket : faisant autorité (ticket #65, PR 3a) -----------------------------
 //
 // La politique ci-dessous REMPLACE toute la politique du bucket. Elle retire les liaisons historiques
-// créées par défaut (projectViewer -> legacyBucketReader / legacyObjectReader, projectEditor et
-// projectOwner -> legacyBucketOwner / legacyObjectOwner) : sans cela, tout compte ayant roles/viewer
-// ou roles/editor sur le projet (boussole-dev-tf-plan, compte Compute par défaut) pourrait lire les
-// sauvegardes de backups/. Tout ajout de droit sur ce bucket passe désormais par ce bloc : une liaison
+// créées par défaut (projectViewer -> legacyBucketReader / legacyObjectReader ; projectEditor ->
+// legacyBucketOwner / legacyObjectOwner ; projectOwner -> legacyObjectOwner) : sans cela, tout compte ayant
+// roles/viewer ou roles/editor sur le projet (boussole-dev-tf-plan, compte Compute par défaut) pourrait lire
+// les sauvegardes de backups/. Seule projectOwner -> legacyBucketOwner est conservée (décision du 12/11). Tout ajout de droit sur ce bucket passe désormais par ce bloc : une liaison
 // créée ailleurs (console, gcloud, autre ressource Terraform) serait retirée au prochain apply.
 //
 // storage.objects.list porte sur le bucket : la condition par préfixe d'objet ne s'y applique pas, la
 // liste est donc refusée à ces comptes ; les scripts accèdent aux objets par leur nom exact.
 data "google_iam_policy" "deploiement" {
+  // Propriétaires du projet : gestion du bucket et de sa politique (storage.buckets.get, update,
+  // getIamPolicy, setIamPolicy), que roles/owner ne contient pas. Indispensable aux plans et apply Terraform
+  // du propriétaire et au retour arrière. Ce rôle ne permet pas de lire le contenu des objets
+  // (pas de storage.objects.get) ; il permet de les lister, créer et supprimer.
+  binding {
+    role    = "roles/storage.legacyBucketOwner"
+    members = ["projectOwner:${var.project_id}"]
+  }
+
   // PLAN Terraform : lecture des métadonnées du bucket (storage.buckets.get), qu'il tenait jusqu'ici de la
   // liaison historique projectViewer -> legacyBucketReader. Aucun accès aux objets ; la lecture de la
   // politique IAM (storage.buckets.getIamPolicy) vient de roles/iam.securityReviewer sur le projet.

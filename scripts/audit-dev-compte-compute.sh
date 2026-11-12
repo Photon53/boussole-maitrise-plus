@@ -41,7 +41,15 @@ controle "Rôles de tf-plan sur le projet" gcloud projects get-iam-policy "$P" -
 for r in $(gcloud projects get-iam-policy "$P" --flatten=bindings --filter="bindings.members:serviceAccount:$TFPLAN" --format='value(bindings.role)' 2>/dev/null); do
   controle "$r : storage.buckets.get / getIamPolicy" bash -c "gcloud iam roles describe '$r' --format=json | python3 -c 'import json,sys; print(\"\\n\".join(p for p in json.load(sys.stdin).get(\"includedPermissions\",[]) if p in (\"storage.buckets.get\",\"storage.buckets.getIamPolicy\")))'"
 done
-controle "roles/storage.bucketViewer (prévu pour tf-plan, PR 3a) : permissions storage.* — attendu : aucun storage.objects.*" permissions_storage roles/storage.bucketViewer
+controle "roles/storage.bucketViewer (prévu pour tf-plan, PR 3a) : permissions storage.*" permissions_storage roles/storage.bucketViewer
+verdict_sans_objets() {   # rôle -> [CONFORME] si aucune permission storage.objects.*, sinon [NON CONFORME]
+  local perms; perms="$(gcloud iam roles describe "$1" --format=json 2>&1 | python3 -c 'import json,sys; print("\n".join(p for p in json.load(sys.stdin).get("includedPermissions",[]) if p.startswith("storage.objects.")))' 2>&1)" \
+    || { echo "[INCOMPLET] $1 : permissions illisibles"; return; }
+  if [[ -z "$perms" ]]; then echo "[CONFORME]  $1 : aucune permission storage.objects.*"
+  else echo "[NON CONFORME] $1 donne : $(tr '\n' ' ' <<<"$perms") -> ne pas l'utiliser pour tf-plan"; fi
+}
+verdict_sans_objets roles/storage.bucketViewer
+controle "roles/storage.legacyBucketOwner (conservé pour projectOwner) : permissions storage.* — attendu : pas de storage.objects.get" permissions_storage roles/storage.legacyBucketOwner
 controle "Liaisons de tf-plan sur le bucket $BUCKET" bash -c "gcloud storage buckets get-iam-policy gs://$BUCKET --format=json | grep -n '$TFPLAN' || true"
 
 echo; echo "=== 3. Compte Compute par défaut : rôles, état, clés, emprunt"
