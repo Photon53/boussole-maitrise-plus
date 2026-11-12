@@ -1,5 +1,11 @@
 # Test du transfert GitHub Actions → GCP DEV (ticket #59)
 
+> **Instantané du 11 novembre 2026, partiellement dépassé.** Ce rapport décrit l'état constaté le 11/11/2026
+> (avant et pendant la PR 1 du ticket #65). Depuis : comptes WIF séparés (`boussole_role`), compte
+> `boussole-dev-deployer`, bucket `mer-boussole-dev-deploiement`, rôles de `boussole-dev-tf-plan` modifiés
+> (dont `roles/viewer`), pipeline de publication DEV en service et Artifact Registry alimenté (PR #66, #67,
+> #69, #70). L'état à jour est suivi dans le ticket #65 ; ne pas se fier aux constats ci-dessous sur ces points.
+
 - **Date :** 11 novembre 2026
 - **Exécutant :** Claude Code (poste local, accès en lecture seule à GCP, jeton GitHub limité)
 - **Branche de test :** `test/issue-59-transfert-gha-gcp-dev`, depuis `develop` @ `47c2a24`

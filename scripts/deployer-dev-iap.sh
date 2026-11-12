@@ -16,6 +16,16 @@
 #
 # Relançable sans risque : .env (secrets) et la base sont conservés, un admin existant n'est pas modifié.
 # Aucun terraform apply, aucune modification d'infrastructure.
+#
+# À SAVOIR AVANT DE LANCER :
+#   - Si la VM est arrêtée (TERMINATED, STOPPED, SUSPENDED), le script la DÉMARRE : elle est facturée tant
+#     qu'elle tourne (gcloud compute instances stop … pour l'arrêter ensuite).
+#   - Avec --admin-email, à la création du compte, le mot de passe et l'URI TOTP sont AFFICHÉS dans le terminal
+#     et copiés dans /root/boussole-admin-initial.txt sur la VM (mode 600). Ne jamais les coller dans un ticket,
+#     une PR ou un journal ; effacer l'écran et supprimer ce fichier après les avoir mis en lieu sûr.
+#   - La clé d'hôte SSH de GitHub est vérifiée (empreinte officielle et API GitHub) avant toute connexion.
+#   - Ce script reconstruit les images sur la VM : il ne doit plus être utilisé tel quel une fois la
+#     synchronisation automatique installée (ticket #65, PR 3b).
 set -Eeuo pipefail
 
 PROJECT="mer-boussole-dev"
@@ -25,6 +35,10 @@ VM="boussole-dev"
 REPO_URL="${REPO_URL:-git@github.com:Photon53/boussole-maitrise-plus.git}"
 CLE_GH="${CLE_GH:-$HOME/.ssh/id_ed25519}"   # clé SSH GitHub de Cloud Shell
 AGENT_LANCE=""
+# Empreinte officielle de la clé d'hôte SSH ed25519 de GitHub :
+# https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
+GH_ED25519_SHA256="SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU"
+DOSSIER_VM=""         # répertoire temporaire privé sur la VM (mktemp -d), supprimé en fin d'exécution
 BRANCH="develop"
 TRAVAIL="$HOME/.boussole-deploiement"
 PORT_VM=8080          # port de l'application sur la VM (lié à 127.0.0.1)
@@ -32,7 +46,7 @@ PORT_TEST=18080       # port local Cloud Shell pour le test du tunnel
 ADMIN_EMAIL=""
 ADMIN_NOM="Administrateur DEV"
 
-usage() { sed -n '2,19p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+usage() { sed -n '2,30p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --admin-email) ADMIN_EMAIL="$2"; shift 2 ;;
@@ -50,8 +64,8 @@ warn()  { printf '  \033[33m[ATTENTION]\033[0m %s\n' "$*"; REPORT+=("ATTENTION $
 echec() { printf '  \033[31m[ECHEC]\033[0m %s\n' "$*"; REPORT+=("ECHEC     $*"); exit 1; }
 fin() {
   local code=$?
-  if [[ -n "$TUNNEL_PID" ]]; then kill "$TUNNEL_PID" 2>/dev/null || true; fi
-  pkill -f "${PORT_TEST}:localhost:${PORT_VM}" 2>/dev/null || true
+  fermer_tunnel
+  if [[ -n "$DOSSIER_VM" ]]; then gssh --command "rm -rf -- '$DOSSIER_VM'" >/dev/null 2>&1 || true; fi
   if [[ -n "$AGENT_LANCE" ]]; then kill "$AGENT_LANCE" 2>/dev/null || true; fi
   printf '\n====== RAPPORT BOUSSOLE DEV (IAP) ======\n'
   printf '%s\n' "${REPORT[@]}"
@@ -62,6 +76,41 @@ trap fin EXIT
 
 GC=(--project "$PROJECT" --zone "$ZONE")
 gssh() { gcloud compute ssh "$VM" "${GC[@]}" --tunnel-through-iap --quiet "$@"; }
+# Le tunnel est lancé dans son propre groupe de processus (setsid) : on ferme ce groupe et rien d'autre.
+fermer_tunnel() {
+  [[ -n "$TUNNEL_PID" ]] || return 0
+  kill -- "-$TUNNEL_PID" 2>/dev/null || kill "$TUNNEL_PID" 2>/dev/null || true
+  wait "$TUNNEL_PID" 2>/dev/null || true
+  TUNNEL_PID=""
+}
+# Clé d'hôte GitHub : acceptée seulement si son empreinte est l'empreinte officielle et si la clé est celle
+# publiée par l'API GitHub (HTTPS). Une entrée existante dans known_hosts est vérifiée de la même façon.
+verifier_cle_github() {
+  local cle empreinte meta
+  cle="$(ssh-keyscan -t ed25519 github.com 2>/dev/null | awk '$2 == "ssh-ed25519" {print $2" "$3; exit}')"
+  [[ -n "$cle" ]] || echec "ssh-keyscan github.com n'a renvoyé aucune clé ed25519"
+  empreinte="$(ssh-keygen -lf - <<<"github.com $cle" | grep -oE 'SHA256:[A-Za-z0-9+/]+' | head -1)"
+  [[ "$empreinte" == "$GH_ED25519_SHA256" ]] \
+    || echec "Clé d'hôte GitHub inattendue ($empreinte, attendu $GH_ED25519_SHA256) : connexion refusée"
+  if meta="$(curl -fsS --max-time 15 https://api.github.com/meta 2>/dev/null)"; then
+    python3 -c 'import json,sys; sys.exit(0 if sys.argv[1] in json.load(sys.stdin).get("ssh_keys", []) else 1)' "$cle" <<<"$meta" \
+      || echec "La clé d'hôte GitHub ne figure pas dans https://api.github.com/meta : connexion refusée"
+    ok "Clé d'hôte GitHub conforme (empreinte officielle et API GitHub)"
+  else
+    warn "API GitHub injoignable : clé d'hôte vérifiée par l'empreinte officielle seule"
+  fi
+  # Entrées ed25519 déjà connues pour github.com : toutes doivent être la clé officielle, sinon arrêt.
+  local connues
+  connues="$(ssh-keygen -F github.com -l 2>/dev/null | grep -i 'ed25519' | grep -oE 'SHA256:[A-Za-z0-9+/]+' || true)"
+  if [[ -n "$connues" ]]; then
+    ! grep -qvxF "$GH_ED25519_SHA256" <<<"$connues" \
+      || echec "known_hosts contient pour github.com une clé ed25519 différente de la clé officielle : vérifier ~/.ssh/known_hosts"
+    ok "Clé d'hôte GitHub déjà connue et conforme"
+  else
+    printf 'github.com %s\n' "$cle" >> "$HOME/.ssh/known_hosts"
+    ok "Clé d'hôte GitHub ajoutée à known_hosts"
+  fi
+}
 
 # ---------------------------------------------------------------------------------------------
 etape "1. Contrôles préalables"
@@ -102,7 +151,9 @@ DEPOT="$TRAVAIL/depot"
 if [[ "$REPO_URL" == git@* ]]; then
   # Ajoute la clé d'hôte GitHub si absente (sinon git demande une confirmation interactive).
   mkdir -p "$HOME/.ssh" && chmod 700 "$HOME/.ssh"
-  ssh-keygen -F github.com >/dev/null 2>&1 || ssh-keyscan -t ed25519 github.com >> "$HOME/.ssh/known_hosts" 2>/dev/null
+  verifier_cle_github
+  # Seule la clé ed25519 vérifiée ci-dessus est acceptée (pas d'autre type de clé connu pour github.com).
+  export GIT_SSH_COMMAND="ssh -o HostKeyAlgorithms=ssh-ed25519 -o StrictHostKeyChecking=yes"
   # Clé protégée par passphrase : chargée une seule fois dans un ssh-agent pour toute la durée du script.
   [[ -f "$CLE_GH" && -f "$CLE_GH.pub" ]] || echec "Clé SSH GitHub introuvable : $CLE_GH (variable CLE_GH)"
   etat_agent=0; ssh-add -l >/dev/null 2>&1 || etat_agent=$?
@@ -117,7 +168,7 @@ if [[ "$REPO_URL" == git@* ]]; then
   fi
   ok "Clé GitHub chargée dans ssh-agent"
   # ssh -T git@github.com sort toujours en code 1, même authentifié : on lit le message.
-  reponse_gh="$(ssh -T -o BatchMode=yes -o ConnectTimeout=15 git@github.com 2>&1 || true)"
+  reponse_gh="$($GIT_SSH_COMMAND -T -o BatchMode=yes -o ConnectTimeout=15 git@github.com 2>&1 || true)"
   [[ "$reponse_gh" == *"successfully authenticated"* ]] \
     || echec "Clé SSH GitHub non reconnue dans Cloud Shell (ssh -T git@github.com)"
   ok "Authentification SSH GitHub"
@@ -220,14 +271,25 @@ ENV
   )
   ok ".env créé avec des secrets aléatoires"
 else
-  cp -p .env ".env.sauvegarde-$(date +%Y%m%d-%H%M%S)"
-  if ! grep -qx 'PKP_DOMAINE=:80' .env; then
-    sed -i 's/^PKP_DOMAINE=.*/PKP_DOMAINE=:80/' .env
-    grep -qx 'PKP_DOMAINE=:80' .env || echo 'PKP_DOMAINE=:80' >> .env
-    warn "PKP_DOMAINE forcé à :80 (accès privé ; ancienne valeur sauvegardée)"
+  # Ajustements préparés sur une copie privée ; .env n'est sauvegardé puis remplacé que s'il change.
+  nouveau="$(umask 077; mktemp .env.nouveau.XXXXXX)"
+  cp .env "$nouveau"
+  if ! grep -qx 'PKP_DOMAINE=:80' "$nouveau"; then
+    sed -i 's/^PKP_DOMAINE=.*/PKP_DOMAINE=:80/' "$nouveau"
+    grep -qx 'PKP_DOMAINE=:80' "$nouveau" || echo 'PKP_DOMAINE=:80' >> "$nouveau"
   fi
-  grep -q '^PKP_SERVIR_QUESTIONS_NON_VALIDEES=' .env || echo 'PKP_SERVIR_QUESTIONS_NON_VALIDEES=true' >> .env
-  ok ".env existant conservé (secrets inchangés)"
+  grep -q '^PKP_SERVIR_QUESTIONS_NON_VALIDEES=' "$nouveau" || echo 'PKP_SERVIR_QUESTIONS_NON_VALIDEES=true' >> "$nouveau"
+  if cmp -s .env "$nouveau"; then
+    rm -f "$nouveau"
+    ok ".env existant conservé, inchangé (aucune copie)"
+  else
+    ( umask 077; cp -p .env ".env.sauvegarde-$(date +%Y%m%d-%H%M%S)" )
+    chmod 600 .env.sauvegarde-* "$nouveau"
+    mv -f "$nouveau" .env
+    # Seules les 5 copies les plus récentes sont gardées (elles contiennent les secrets).
+    ls -1t .env.sauvegarde-* 2>/dev/null | tail -n +6 | xargs -r rm -f --
+    warn ".env ajusté (PKP_DOMAINE=:80 et/ou PKP_SERVIR_QUESTIONS_NON_VALIDEES) ; ancienne version sauvegardée, 5 copies max"
+  fi
 fi
 chmod 600 .env
 for v in PKP_SECRET_KEY PKP_DB_MOT_DE_PASSE; do
@@ -301,23 +363,31 @@ bash -n "$INSTALLEUR" || echec "Script VM invalide"
 
 # ---------------------------------------------------------------------------------------------
 etape "3. Transfert vers la VM (IAP)"
-gcloud compute scp "$BUNDLE" "$INSTALLEUR" "$VM:/tmp/" "${GC[@]}" --tunnel-through-iap --quiet >/dev/null \
+# Répertoire privé (mode 700, propriétaire : le compte OS Login), supprimé en fin d'exécution, même en échec.
+DOSSIER_VM="$(gssh --command 'mktemp -d /tmp/boussole-deploiement.XXXXXXXX' 2>/dev/null | tr -d '\r' | tail -1)"
+[[ "$DOSSIER_VM" =~ ^/tmp/boussole-deploiement\.[A-Za-z0-9]{8}$ ]] || echec "Répertoire temporaire privé non créé sur la VM"
+gcloud compute scp "$BUNDLE" "$INSTALLEUR" "$VM:$DOSSIER_VM/" "${GC[@]}" --tunnel-through-iap --quiet >/dev/null \
   || echec "Transfert scp via IAP impossible"
-ok "Bundle et installeur copiés dans /tmp de la VM"
+ok "Bundle et installeur copiés dans un répertoire privé de la VM ($DOSSIER_VM)"
 
 # ---------------------------------------------------------------------------------------------
 etape "4. Installation sur la VM"
-printf -v CMD 'sudo bash /tmp/boussole-installer-vm.sh %q %q %q %q; c=$?; rm -f /tmp/boussole-installer-vm.sh; exit $c' \
-  "$SHA" /tmp/boussole-develop.bundle "$ADMIN_EMAIL" "$ADMIN_NOM"
+printf -v CMD 'sudo bash %q %q %q %q %q; c=$?; rm -rf -- %q; exit $c' \
+  "$DOSSIER_VM/boussole-installer-vm.sh" "$SHA" "$DOSSIER_VM/boussole-develop.bundle" "$ADMIN_EMAIL" "$ADMIN_NOM" "$DOSSIER_VM"
 gssh --command "$CMD" -- -o ServerAliveInterval=30 -o ServerAliveCountMax=20 \
   || echec "Installation sur la VM en échec (voir les lignes [VM] ci-dessus)"
+DOSSIER_VM=""   # supprimé par la commande d'installation
 ok "Application installée et contrôlée sur la VM (commit ${SHA:0:12})"
 [[ -z "$ADMIN_EMAIL" ]] || ok "Administrateur $ADMIN_EMAIL traité"
 
 # ---------------------------------------------------------------------------------------------
 etape "5. Validation de bout en bout par tunnel IAP (comme depuis Windows)"
-pkill -f "${PORT_TEST}:localhost:${PORT_VM}" 2>/dev/null || true
-gssh -- -N -L "${PORT_TEST}:localhost:${PORT_VM}" -o ExitOnForwardFailure=yes >"$TRAVAIL/tunnel.log" 2>&1 &
+# Port local déjà utilisé (autre tunnel, autre outil) : on ne ferme rien qui n'appartient pas au script.
+if (exec 3<>"/dev/tcp/127.0.0.1/${PORT_TEST}") 2>/dev/null; then
+  echec "Port local ${PORT_TEST} déjà utilisé dans Cloud Shell : fermer le processus concerné, puis relancer"
+fi
+setsid gcloud compute ssh "$VM" "${GC[@]}" --tunnel-through-iap --quiet -- -N -L "${PORT_TEST}:localhost:${PORT_VM}" \
+  -o ExitOnForwardFailure=yes >"$TRAVAIL/tunnel.log" 2>&1 &
 TUNNEL_PID=$!
 sante=""
 for _ in $(seq 30); do
@@ -335,7 +405,7 @@ for chemin in eleve enseignant admin; do
   code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 10 "http://localhost:${PORT_TEST}/$chemin")"
   if [[ "$code" == 200 ]]; then ok "Tunnel IAP : /$chemin HTTP 200"; else warn "/$chemin : HTTP $code"; fi
 done
-kill "$TUNNEL_PID" 2>/dev/null || true; TUNNEL_PID=""
+fermer_tunnel
 
 etape "Terminé"
 cat <<FIN
