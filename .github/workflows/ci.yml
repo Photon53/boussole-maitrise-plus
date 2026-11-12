@@ -79,3 +79,4 @@ jobs:
           bash -n deploy/vm/boussole-dev-sync
           bash deploy/vm/tests/test-boussole-dev-sync.sh
           bash deploy/vm/tests/test-refus-deploiement-manuel.sh
+          bash scripts/tests/test-controle-acces-sauvegardes.sh
