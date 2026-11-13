@@ -12,12 +12,14 @@ Légende : ✅ assuré par le logiciel (et testé) · ☐ à faire par l'établi
 | | Point | Où |
 |---|-------|----|
 | ✅ | Élève : prénom + classe uniquement (ni nom, ni email, ni date de naissance) ; un code personnel de 6 caractères, généré par l'enseignant et stocké haché, protège son compte | `models.Eleve`, `ConnexionEleve` |
+| ⚠️ | Enfant (famille) : **aucun nom de famille** ; identifiant = prénom + numéro sans séparateur (`Lina1`), unique sur la plateforme, comparé sans casse ni accents, numéro jamais réattribué (décision RGPD-1). **Pas encore appliqué** : `Enfant.nom` (facultatif) existe encore et l'identifiant actuel est `lina-k7m4` ; retrait suivi dans #87 | `models.Enfant`, `app/enfants.py` |
 | ✅ | Prénom limité aux lettres, espaces, tirets, apostrophes (50 car.) | `schemas.py` |
 | ✅ | Enseignant : nom, email, empreinte du mot de passe | `models.Enseignant` |
-| ✅ | Parent : email, empreinte du mot de passe, date de dernière connexion, enfants suivis (ni nom ni téléphone) ; compte créé par le professeur, sans envoi de courriel | `models.Parent`, `app/parents.py` |
+| ✅ | Parent : email, **nom et prénom** (facultatifs, vides pour les comptes antérieurs), empreinte du mot de passe, date de dernière connexion, enfants suivis (ni téléphone ni adresse) ; compte créé par le professeur ou l'administrateur, sans envoi de courriel | `models.Parent`, `app/parents.py` |
+| ✅ | Justification du nom et du prénom du parent (décision RGPD-1) : le parent est un adulte, responsable légal ; son nom permet à l'administrateur et au professeur d'identifier sans ambiguïté le titulaire du compte qui suit l'enfant, de rapprocher les lignes d'un import de familles et de traiter une demande d'exercice des droits. Ces données ne sont visibles que des adultes habilités et sont effacées avec le compte parent | `models.Parent`, `app/import_familles.py` |
 | ✅ | Aucun traceur, aucune police ni script tiers (CSP `default-src 'self'`) | `deploy/Caddyfile` |
 | ✅ | Session navigateur en `sessionStorage` : fermer l'onglet déconnecte (postes partagés) | `web/src/stockage.js` |
-| ☐ | Consigne aux élèves : saisir **uniquement leur prénom** (pas de nom de famille) | — |
+| ☐ | Consigne aux élèves et aux familles : saisir **uniquement le prénom** de l'enfant (pas de nom de famille) | — |
 
 ## 2. Durée de conservation
 
