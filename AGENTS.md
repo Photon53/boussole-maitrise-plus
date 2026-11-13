@@ -76,16 +76,18 @@ scripts/audit-dev-compte-compute.sh
 | `bash -n` sur un script | vérification de syntaxe, aucune exécution |
 | `terraform fmt -check -recursive`, `terraform init -input=false -backend=false`, `terraform validate` | aucun état, aucun identifiant |
 
-Tout autre script : **le lire d'abord, demander ensuite**. Un motif `*dev*` ne suffit pas à décider :
+Tout autre script : **lire et vérifier ses effets ; demander une décision uniquement s'ils dépassent
+le périmètre autorisé ou restent ambigus**. Un motif `*dev*` ne suffit pas à décider :
 `installer-dev.sh` et `deployer-dev-iap.sh` se ressemblent et n'ont pas le même danger.
 
 ---
 
 ## 2. Traçabilité
 
-Chaque production (code, configuration, documentation) est **référencée à l'issue** et **signée du
-nom de l'agent qui l'a produite**. Aucun agent ne signe au nom d'un autre : Claude signe Claude,
-Codex signe Codex, DeepSeek signe DeepSeek.
+Chaque production (code, configuration, documentation) est **référencée à l'issue** et **attribuée à
+l'agent qui l'a produite**. Aucun agent n'attribue sa production à un autre : Claude indique Claude,
+Codex indique Codex, DeepSeek indique DeepSeek. Le champ `Agent: <nom>` est une attribution
+déclarative, pas une signature cryptographique.
 
 ### 2.1 Le commit
 
@@ -232,7 +234,7 @@ réussi.**
 | Nom de branche | `<type>/issue-<n>-<sujet>` — ex. `fix/issue-65-liste-releases` |
 | Taille | une PR = une issue, petite et relisible |
 | Force-push | interdit sur une branche avec PR ouverte |
-| Signature | `Agent: <nom>` obligatoire (voir § 2.1) |
+| Attribution | `Agent: <nom>` obligatoire (voir § 2.1) |
 
 ---
 
@@ -288,7 +290,7 @@ Selon le sujet : `docs/DEPLOIEMENT.md`, `docs/exploitation/`, `docs/audit/`.
 - [ ] Migration fournie et relue si un modèle a changé
 - [ ] Aucun secret, aucune donnée nominative nouvelle non décidée, aucun fichier `sources/` dans le diff
 - [ ] Registre des sources rempli pour tout contenu ajouté
-- [ ] Commit, en-tête de fichier, PR et commentaire d'issue conformes au § 2, signés du **nom réel de l'agent**
+- [ ] Commit, en-tête de fichier, PR et commentaire d'issue conformes au § 2, attribués à **l'agent réel**
 - [ ] `Closes #N` ou `Refs #N` choisi selon le § 2.5
 
 ---
