@@ -48,7 +48,7 @@ voici ce qui existe) :
 | Déploiement et exploitation | `docs/DEPLOIEMENT.md`, `docs/exploitation/` |
 | Pipeline DEV (publication, droits, synchronisation VM) | `docs/exploitation/pipeline-dev-pr*.md` |
 | Conventions de code | **Aucun fichier dédié** : `.editorconfig` et ce document |
-| Registre des décisions | **Aucun fichier dédié** : les décisions sont dispersées (voir ci-dessus). Proposition : créer `docs/DECISIONS.md` qui les recense, sans les déplacer |
+| Registre des décisions | `docs/DECISIONS.md` : recense les décisions prises, en attente et écartées, avec renvoi vers la source (trois séries « D » préfixées `SEC-`, `V2-`, `DEV-`) |
 
 ## Domaine métier (vocabulaire à respecter)
 
@@ -128,9 +128,9 @@ traduction anglaise d'un concept qui a déjà un nom français dans le code.
 - **Actions soumises à accord explicite du propriétaire** : fusion vers `develop` ou `main`, `terraform apply`,
   tout changement IAM, toute intervention sur la VM, activation d'un timer, activation d'une API GCP (même
   temporaire). Une activation temporaire est un changement et se consigne.
-- **Décisions structurantes** : proposer une entrée pour `docs/DECISIONS.md` (à créer ; en attendant, dans le
-  ticket concerné), avec la date, l'option retenue, les options écartées et la raison. Numérotation existante :
-  D1 à D3 (audit sécurité), D7 et D11 à D14 (cahier des charges V2), D4 et D5 (ticket #65).
+- **Décisions structurantes** : proposer une entrée pour `docs/DECISIONS.md`, avec l'identifiant préfixé, la
+  date, la décision, sa conséquence et la source. La discussion reste dans le ticket ou le document source. Trois
+  séries « D » coexistent avec des numéros qui se chevauchent : toujours préfixer (`SEC-D1` ≠ `V2-D1` ≠ `DEV-D1`).
 - **Tickets et PR** : en français, avec des preuves (commande, sortie anonymisée, lien de run). Distinguer
   « publié » de « déployé », « conforme selon l'analyse » de « confirmé par un essai réel », « défaut bloquant »
   d'« exception acceptée » et d'« amélioration ultérieure ».
@@ -145,4 +145,4 @@ traduction anglaise d'un concept qui a déjà un nom français dans le code.
 | Utilisateurs : « formateurs » | Professeur, validateur, admin | Rôles du code |
 | Feature folders par domaine | Trois couches, modules par public | Architecture existante |
 | Linter/formateur imposé | Aucun configuré | `.editorconfig` ; proposition ruff/ESLint à décider |
-| `ARCHITECTURE.md`, `CONVENTIONS.md`, `DECISIONS.md` à la racine | `docs/ARCHITECTURE.md` seul ; décisions dispersées | Tableau des fichiers réels ; créer `docs/DECISIONS.md` |
+| `ARCHITECTURE.md`, `CONVENTIONS.md`, `DECISIONS.md` à la racine | `docs/ARCHITECTURE.md` ; `docs/DECISIONS.md` (créé avec ce document) ; pas de `CONVENTIONS.md` | Tableau des fichiers réels ; ce document tient lieu de conventions |
