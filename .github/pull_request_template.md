@@ -16,10 +16,14 @@ Refs #
 <!-- Depuis la racine du dépôt (AGENTS.md § 3). Ne jamais cocher un test non lancé : écrire « non exécuté »,
      la raison et le job de CI qui le vérifie, et laisser la PR en brouillon jusqu'à la CI verte. -->
 
-- [ ] `(cd api && python -m app.contenu verifier)`
+- [ ] `pip install -e "./engine[dev]" -e "./api[dev]"` (environnement virtuel du projet)
+- [ ] `(cd web && npm ci --no-audit --no-fund)`
+- [ ] `(cd api && python -m app.contenu verifier)` — et `(cd api && python -m app.contenu inventaire)` si `contenu/` change
 - [ ] `(cd engine && pytest -q)`
 - [ ] `(cd api && pytest -q -W ignore::DeprecationWarning)`
-- [ ] `(cd web && npm audit --omit=dev --audit-level=high && npm test && npm run build)`
+- [ ] `(cd web && npm audit --omit=dev --audit-level=high)`
+- [ ] `(cd web && npm test)`
+- [ ] `(cd web && npm run build)`
 - [ ] Job « Terraform DEV » et bancs simulés (AGENTS.md § 3), si la PR touche `infrastructure/`, `scripts/` ou `deploy/`
 
 Résultat utile (nombre de tests passés) :
@@ -36,7 +40,8 @@ Non exécuté (commande, raison, job de CI qui le vérifie) :
 
 - [ ] Aucune donnée personnelle nouvelle
 - [ ] Données nouvelles décrites et justifiées dans `docs/RGPD.md`
-- [ ] Aucun e-mail d'élève ni nouvelle collecte de nom introduits (nom facultatif d'`Enfant` / `Parent` : politique en attente, AGENTS.md § 5)
+- [ ] Aucun nom de famille ni e-mail d'enfant ou d'élève introduit (décision RGPD-1, AGENTS.md § 5)
+- [ ] Si un champ nominatif est ajouté : décision tracée dans `docs/DECISIONS.md` et `docs/RGPD.md` mis à jour
 
 ## Droits d'auteur
 
@@ -51,6 +56,7 @@ Non exécuté (commande, raison, job de CI qui le vérifie) :
 ## Agent IA
 
 - [ ] PR produite ou assistée par un agent — nom réel de l'agent (jamais celui d'un autre) : 
+- [ ] Commits avec `Agent: <nom>` et `Refs: #N` (AGENTS.md § 2.1)
 - [ ] Commentaire de suivi posté sur l'issue (AGENTS.md § 2.4)
 
 ## Relecture
