@@ -1,6 +1,6 @@
 # Analyse du projet `Photon53/boussole-maitrise-plus`
 
-**Version 2 — corrigée le 13 novembre 2026** après contre-revue publiée sur l'issue #80.
+**Version 2.1 — corrigée le 13 novembre 2026** après la contre-revue puis la revue complémentaire publiées sur l'issue #80.
 **Commit analysé :** `78ecf3a` (`main`) · **branche de référence pour l'intégration :** `develop` @ `d728659`
 **Nature :** analyse statique. Aucune exécution applicative complète, aucune base déployée, aucun accès GCP ou VM.
 
@@ -22,6 +22,16 @@
 | 8 | Notes « sécurité 8/10 », « documentation 10/10 », « très au-dessus de la moyenne » | Supprimées : ce sont des appréciations, pas des mesures (§ 2) |
 | 9 | Empreinte SHA-256 unique | Deuxempreintes distinguées et statut de vérification du commit précisé (§ 8) |
 | 10 | Jeton GitHub : « risque de fuite » implicite | Vérifié : **le jeton n'est ni versionné ni présent dans le dépôt** (§ 8.3) |
+
+Corrections de la **revue complémentaire** (version 2.1) :
+
+| # | Version 2 | Version 2.1 |
+|---|---|---|
+| 11 | « Toutes des brouillons IA, aucune validation » | **« Aucune validation n'est enregistrée dans les YAML examinés »** ; le champ `auteur` ne prouve ni l'absence de relecture ailleurs, ni la qualité (§ 3.2, § 5.2) |
+| 12 | Comptage décrit mais non reproductible | **Script joint en annexe A**, avec commande, périmètre et sortie attendue |
+| 13 | « Sessions et limitation (#5, #7) si plusieurs instances » | #5 (révocation) traitée **indépendamment** de la topologie ; #7 dépend de la topologie (§ 7) |
+| 14 | Conventions de lignes mélangées dans un même tableau | **Tous les tableaux donnent physiques et non vides** (`models.py` : 744 / 594 ; `admin.py` : 1 016 / 860) (§ 1.3, § 3.1, § 5.6) |
+| 15 | Licence en tête des priorités | **Réordonné** : sécurité, sauvegardes, sessions, périmètre pédagogique d'abord ; licence en décision parallèle (§ 7) |
 
 ---
 
@@ -47,7 +57,9 @@ Conséquence : les constats sur le **code applicatif** restent valables pour `de
 
 ### 1.3 Convention de comptage
 
-Sauf mention contraire, les nombres de lignes sont des **lignes physiques** (nombre de `\n`), et le nombre de « lignes non vides » est indiqué séparément quand il diffère significativement.
+Chaque tableau de volumes donne **deux colonnes** : lignes **physiques** (nombre de `\n`, ligne finale comprise) et lignes **non vides** (après suppression des lignes blanches). Les deux valeurs ne sont pas interchangeables : pour `api/app/db/models.py`, 744 physiques correspondent à 594 non vides.
+
+La version 1 mélangeait les deux conventions dans un même tableau ; les chiffres ci-dessous ont été recalculés avec la même méthode pour chaque fichier.
 
 ---
 
@@ -81,16 +93,17 @@ web/ (React 18 + Vite)  ──HTTP/JSON──▶  api/ (FastAPI)  ──▶  Pos
 
 ### 3.1 Volumes mesurés
 
-| Élément | Valeur | Où |
-|---|---|---|
-| Fichiers suivis par Git | **615** (15,1 Mo) | dépôt |
-| Moteur | 18 fichiers, 1 174 lignes | `engine/` |
-| API | 53 fichiers applicatifs, 10 064 lignes ; 33 fichiers de tests, 4 218 lignes | `api/` |
-| Front | 78 fichiers, 14 064 lignes | `web/src/` |
-| Routes HTTP | **204** décorateurs dans **18** modules | `api/app/routes/` |
-| Migrations | **31** | `api/migrations/versions/` |
-| Classes de tables | **25** | `api/app/db/models.py` (`__tablename__`) |
-| Documentation | 25 fichiers Markdown, ~3 750 lignes | `docs/` |
+| Élément | Fichiers | Lignes physiques | Lignes non vides | Où |
+|---|--:|--:|--:|---|
+| Dépôt (suivi par Git) | **615** | — | — | 15,1 Mo |
+| Moteur | 18 | 1 492 | 1 174 | `engine/` |
+| API (applicatif) | 53 | 12 456 | 10 064 | `api/app/` |
+| API (tests) | 33 | 5 114 | 4 218 | `api/tests/` |
+| Front | 78 | 14 996 | 14 064 | `web/src/` |
+| Documentation | 25 | — | ~3 750 | `docs/` |
+| Routes HTTP | — | — | **204** décorateurs dans **18** modules | `api/app/routes/` |
+| Migrations | **31** | — | — | `api/migrations/versions/` |
+| Classes de tables | — | — | **25** | `api/app/db/models.py` (`__tablename__`) |
 
 Le chiffre « 8 tables + `lecon` » qui figure dans `docs/ARCHITECTURE.md` décrit l'état initial du projet ; le modèle en compte aujourd'hui 25, hors tables d'association.
 
@@ -110,8 +123,10 @@ Comptage reproductible par lecture des YAML (`contenu/**/*.yaml`), indépendamme
 
 Deux constats en découlent :
 
-1. **Toutes les questions actives sont des brouillons produits par une IA**, sans relecture enregistrée dans le fichier.
-2. Le chiffre « 0 validée » porte sur **les fichiers versionnés**. Une base déployée pourrait contenir des validations saisies par l'interface ; ce point n'a pas été vérifié et doit être rapproché de l'inventaire généré avant toute conclusion commerciale.
+1. **Aucune validation n'est enregistrée dans les YAML examinés.** Les 1 775 questions actives portent le champ `auteur: « Brouillon IA (Claude) »`, et aucune ne comporte de bloc `validation:`. Ce constat porte sur **le contenu versionné au commit `78ecf3a`**, pas sur une base déployée.
+2. Le champ `auteur` ne prouve ni qu'une relecture n'a pas eu lieu ailleurs (base, document externe, séance de classe), ni que les questions sont de mauvaise qualité. Il établit seulement qu'**aucune trace de relecture n'est versionnée avec elles**.
+
+Le chiffre « 0 validée » doit donc être rapproché des validations saisies dans une base déployée avant toute conclusion commerciale. La commande et le script de comptage sont fournis en annexe (§ A).
 
 ---
 
@@ -157,12 +172,12 @@ Décision attendue : choisir une **politique** (rester dans le domaine public, p
 
 ### 5.2 Validation pédagogique — le point le plus incertain
 
-- 1 775 questions actives, **toutes des brouillons IA**, aucune validation enregistrée dans les YAML (§ 3.2).
+- 1 775 questions actives, toutes marquées `auteur: « Brouillon IA (Claude) »`, **aucune trace de validation dans les YAML examinés** (§ 3.2). Cela n'établit pas qu'aucune relecture n'a eu lieu ailleurs, ni la qualité des questions.
 - Le circuit de validation existe côté anglais (soumettre → valider, un référent ne valide pas ses propres séances) ; côté maths, le statut se change dans l'interface sans soumission ni commentaire de relecture (constat du CDC V2).
 - `PKP_SERVIR_QUESTIONS_NON_VALIDEES` est une **variable globale** (`api/app/config.py`). Le mécanisme par compétence est distinct : `validees_en_priorite()` (`api/app/progression.py`), qui ne sert que les questions validées d'une compétence dès qu'elle en possède au moins une.
 - La configuration réellement utilisée en production n'a pas été vérifiée ici.
 
-Conséquence pratique : la priorité n'est pas un réglage, c'est **un travail de relecture humaine** sur une banque produite par IA. C'est le principal risque produit identifié.
+Conséquence pratique : la priorité n'est pas un réglage, c'est **un travail de relecture humaine** dont la trace doit être enregistrée avec les questions. Le point de départ raisonnable est un lot pilote, pas les 1 775 questions d'un coup.
 
 ### 5.3 Monétisation
 
@@ -194,14 +209,20 @@ Correctif attendu : contrôle **avant** chaque connexion et **avant chaque redir
 
 ### 5.6 Taille des modules
 
-| Fichier | Lignes physiques |
-|---|--:|
-| `api/app/routes/admin.py` | **1 016** (860 non vides) |
-| `api/app/contenu.py` | 657 |
-| `api/app/schemas.py` | 598 |
-| `api/app/db/models.py` | 594 |
-| `web/src/admin/Repertoire.jsx` | 615 |
-| `web/src/enseignant/Classes.jsx` | 614 |
+| Fichier | Lignes physiques | Lignes non vides |
+|---|--:|--:|
+| `api/app/routes/admin.py` | **1 016** | 860 |
+| `api/app/schemas.py` | 811 | 598 |
+| `api/app/contenu.py` | 771 | 657 |
+| `api/app/db/models.py` | 744 | 594 |
+| `api/app/schemas_admin.py` | 653 | 468 |
+| `api/app/routes/admin_contenu.py` | 579 | 485 |
+| `web/src/enseignant/Classes.jsx` | 650 | 614 |
+| `web/src/admin/Repertoire.jsx` | 641 | 615 |
+| `web/src/admin/Eleves.jsx` | 571 | 549 |
+| `web/src/admin/Familles.jsx` | 555 | 525 |
+| `web/src/admin/Contenu.jsx` | 480 | 458 |
+| `web/src/parent/EspaceParent.jsx` | 435 | 405 |
 
 Ce n'est pas un défaut en soi. Cela devient un coût quand plusieurs lots V2 modifient les mêmes fichiers : revue, conflits de fusion, testabilité de la logique mêlée au rendu.
 
@@ -245,22 +266,23 @@ Script de lecture des 154 YAML (`yaml.safe_load`), résultats au § 3.2. Reprodu
 
 ## 7. Recommandations
 
-### P0 — décisions qui commandent le reste
+### P0 — sécurité et fiabilité de l'exploitation
 
-1. **Décider la politique de licences** (code, contenus, marque) — § 5.1. Ce n'est pas une tâche de développement.
-2. **Définir la stratégie de validation** des 1 775 questions issues de brouillons IA : qui relit, selon quel protocole, avec quel enregistrement. Le circuit anglais peut servir de modèle.
-3. **Vérifier la configuration de production** en matière de questions non validées (variable globale) et rapprocher l'inventaire versionné de la base réelle.
+1. **SSRF** : correctif conforme au § 5.5, avec tests de contournement, avant d'élargir la création de liens.
+2. **Sauvegardes automatiques et restauration testée** (#8), puis supervision.
+3. **Révocation des sessions** (#5) : un jeton copié reste utilisable après déconnexion **même avec un seul processus** ; ce sujet ne dépend pas du passage à plusieurs instances.
+4. **Vérifier la configuration de production** (variable globale des questions non validées) et rapprocher les YAML des validations éventuellement présentes en base.
 
-### P1 — sécurité et exploitation
+### P1 — périmètre pédagogique et décisions
 
-4. **SSRF** : correctif conforme au § 5.5, avec tests de contournement, avant d'élargir la création de liens.
-5. **Sauvegardes automatiques et restauration testée** (#8), puis supervision.
-6. **Sessions et limitation** (#5, #7) si le service s'ouvre à plusieurs instances.
+5. **Construire la validation par lot pilote**, pas sur les 1 775 questions d'un coup : rapprochement YAML/base, protocole, responsables, traces liées aux versions, mesure du temps réel de relecture. Les tickets #14, #24, #37, #44, #29 et #73 couvrent déjà ce terrain ; un nouveau ticket général ferait doublon.
+6. **Décider la politique de licences** (§ 5.1) : décision de porteur, à mener **en parallèle**. Elle ne bloque pas la vente du service ; elle détermine ce qu'un tiers peut réutiliser.
+7. **Limitation partagée** (#7) : sujet distinct, à traiter selon la topologie retenue (un ou plusieurs processus).
 
 ### P2 — qualité et maintenabilité
 
-7. **Outillage progressif** (#78) : mesurer la couverture avant de fixer des seuils, ne pas coupler reformatage global et montée de dépendances.
-8. **Découpage ciblé** (#79) : commencer par les responsabilités que les prochains tickets modifient, sans seuil universel de lignes.
+8. **Outillage progressif** (#78) : mesurer la couverture avant de fixer des seuils, ne pas coupler reformatage global et montée de dépendances.
+9. **Découpage ciblé** (#79) : commencer par les responsabilités que les prochains tickets modifient, sans seuil universel de lignes.
 
 ---
 
@@ -302,6 +324,33 @@ Les freins identifiés ne sont donc **pas uniquement techniques** — mais plusi
 ---
 
 *Rapport produit par analyse statique du dépôt, version 2, 13/11/2026. Aucune modification du code applicatif n'a été effectuée.*
+
+---
+
+## Annexe A — reproduire le comptage du contenu
+
+| | |
+|---|---|
+| Script | [`docs/analyses/2026-11-13-compter-contenu.py`](2026-11-13-compter-contenu.py) |
+| Commande (depuis la racine du dépôt) | `python docs/analyses/2026-11-13-compter-contenu.py` |
+| Périmètre | `contenu/**/*.yaml` au commit `78ecf3a` — 154 fichiers |
+| Environnement d'exécution | Python 3.14.6, PyYAML 6.x |
+
+Sortie obtenue le 13/11/2026 :
+
+```json
+{
+  "chapitres": 154,
+  "competences": 327,
+  "questions_declarees": 1776,
+  "questions_archivees": 1,
+  "questions_actives": 1775,
+  "avec_bloc_validation": 0,
+  "auteurs": [["Brouillon IA (Claude)", 1775], ["(absent)", 1]]
+}
+```
+
+Le script ne lit que le contenu versionné : il ne dit rien des validations qui pourraient exister dans une base déployée.
 
 ---
 
