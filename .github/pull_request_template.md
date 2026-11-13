@@ -2,9 +2,10 @@
 
 ## Issue liée
 
-<!-- `Closes #N` si la fusion doit fermer l'issue ; `Refs #N` pour une issue de décision ou traitée en plusieurs PR. -->
+<!-- AGENTS.md § 2.5 : `Refs #N` par défaut. `Closes #N` seulement si la PR traite entièrement l'issue ; il ne ferme
+     rien à la fusion dans `develop` (la fermeture automatique ne vaut que vers `main`) : une personne ferme l'issue. -->
 
-Closes #
+Refs #
 
 ## Objet
 
