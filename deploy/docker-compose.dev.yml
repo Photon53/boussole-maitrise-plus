@@ -1,0 +1,100 @@
+# Boussole DEV (ticket #65, PR 3b) : Compose utilisé par boussole-dev-sync sur la VM boussole-dev.
+# NE PAS utiliser pour la production (voir docker-compose.yml, inchangé).
+#
+# Différences avec docker-compose.yml :
+# - images publiées par GitHub Actions, désignées par DIGEST (aucune construction sur la VM) ;
+#   api et purge utilisent la même image ;
+# - l'API lance seulement Uvicorn : migration et import pédagogique sont des étapes séparées, pilotées par
+#   boussole-dev-sync avec l'image candidate (le Dockerfile partagé n'est pas modifié) ;
+# - application publiée sur 127.0.0.1:8080 seulement (accès par tunnel IAP), aucun port public ;
+# - volumes EXTERNES aux noms existants : un volume absent fait échouer Compose au lieu de créer une base vide.
+#
+# Variables : .env (secrets, inchangé) + fichier d'images écrit par boussole-dev-sync
+#   BOUSSOLE_API_IMAGE=europe-west9-docker.pkg.dev/…/api@sha256:…
+#   BOUSSOLE_WEB_IMAGE=europe-west9-docker.pkg.dev/…/web@sha256:…
+# Projet Compose : « boussole » (option -p), comme le déploiement manuel.
+
+x-api-env: &api-env
+  PKP_ENVIRONNEMENT: production
+  PKP_DATABASE_URL: postgresql+psycopg://pkp:${PKP_DB_MOT_DE_PASSE:?définir PKP_DB_MOT_DE_PASSE dans .env}@db:5432/pkp
+  PKP_SECRET_KEY: ${PKP_SECRET_KEY:?définir PKP_SECRET_KEY dans .env}
+  PKP_CORS_ORIGINS: '["https://${PKP_DOMAINE}"]'
+  PKP_RETENTION_JOURS: ${PKP_RETENTION_JOURS:-365}
+  PKP_SERVIR_QUESTIONS_NON_VALIDEES: ${PKP_SERVIR_QUESTIONS_NON_VALIDEES:-}
+  PKP_DOSSIER_FICHIERS: /data/fichiers
+
+x-journaux: &journaux
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: pkp
+      POSTGRES_USER: pkp
+      POSTGRES_PASSWORD: ${PKP_DB_MOT_DE_PASSE:?définir PKP_DB_MOT_DE_PASSE dans .env}
+    volumes:
+      - db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pkp -d pkp"]
+      interval: 5s
+      retries: 12
+    restart: unless-stopped
+    logging: *journaux
+
+  api:
+    image: "${BOUSSOLE_API_IMAGE:?image API absente : fichier d'images de boussole-dev-sync}"
+    pull_policy: never
+    environment: *api-env
+    # Uvicorn seul : pas de migration ni d'import au démarrage (étapes contrôlées par boussole-dev-sync).
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips=*"]
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - fichiers:/data/fichiers
+    restart: unless-stopped
+    logging: *journaux
+
+  purge:
+    image: "${BOUSSOLE_API_IMAGE:?image API absente : fichier d'images de boussole-dev-sync}"
+    pull_policy: never
+    environment: *api-env
+    command: ["sh", "-c", "n=0; while true; do python -m app.purge; [ $$((n % 7)) -eq 0 ] && python -m app.ressources verifier-liens; n=$$((n + 1)); sleep 86400; done"]
+    depends_on:
+      api:
+        condition: service_started
+    restart: unless-stopped
+    logging: *journaux
+
+  web:
+    image: "${BOUSSOLE_WEB_IMAGE:?image web absente : fichier d'images de boussole-dev-sync}"
+    pull_policy: never
+    environment:
+      PKP_DOMAINE: ${PKP_DOMAINE:?définir PKP_DOMAINE dans .env}
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+    restart: unless-stopped
+    logging: *journaux
+
+volumes:
+  db:
+    external: true
+    name: boussole_db
+  fichiers:
+    external: true
+    name: boussole_fichiers
+  caddy_data:
+    external: true
+    name: boussole_caddy_data
+  caddy_config:
+    external: true
+    name: boussole_caddy_config

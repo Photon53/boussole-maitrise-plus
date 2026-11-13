@@ -1,0 +1,3 @@
+# /etc/boussole-dev-sync/config (root, 0600) — lu par boussole-dev-sync. DEV uniquement.
+BUCKET=mer-boussole-dev-deploiement
+REGISTRY=europe-west9-docker.pkg.dev/mer-boussole-dev/boussole-dev

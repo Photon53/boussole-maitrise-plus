@@ -1,0 +1,695 @@
+#!/usr/bin/env bash
+# boussole-dev-sync — déploiement contrôlé de Boussole DEV sur la VM boussole-dev (ticket #65, PR 3b).
+#
+# La VM lit la version désirée publiée par GitHub Actions (gs://<bucket>/releases/desired.json), puis déploie
+# ses images par digest. GitHub n'a aucun accès à la VM. Commandes (root) :
+#
+#   boussole-dev-sync --etat              version publiée, active, précédente, figée, rejetée ; conteneurs
+#   boussole-dev-sync --adopter [<commit>]  reprend le déploiement manuel existant (aucun conteneur modifié) ;
+#                                         provenance : commit en place à la construction des images (reflog)
+#   boussole-dev-sync --simulation        décrit le prochain déploiement (aucun arrêt, aucune écriture d'état)
+#   boussole-dev-sync --appliquer         un cycle de déploiement (lancé aussi par le timer systemd)
+#   boussole-dev-sync --version <sha>     fige la VM sur une version publiée (retour arrière volontaire)
+#   boussole-dev-sync --suivre            reprend le suivi de la version publiée
+#   boussole-dev-sync --reessayer         efface le rejet / l'intervention requise, puis --appliquer
+#   boussole-dev-sync --retour-manuel     revient au déploiement manuel repris par --adopter
+#   boussole-dev-sync --restaurer-isole <nom|derniere>
+#                                         restaure une sauvegarde de gs://…/backups/ dans une base TEMPORAIRE
+#                                         (conteneur et volume dédiés, sans réseau), contrôle, puis supprime tout
+#
+# Garanties : verrou exclusif ; sauvegarde PostgreSQL + fichiers, vérifiée et copiée hors VM avant toute
+# migration ; web, api et purge arrêtés pendant sauvegarde, migration et import ; contrôles AVANT ouverture avec
+# l'API seule et un front de contrôle sans port publié (ni purge ni accès utilisateur : aucune écriture) ; puis
+# ouverture (web publié, purge). Retour automatique aux images précédentes SEULEMENT si l'échec précède
+# l'ouverture, hors de la migration et de l'import (un échec ou une interruption PENDANT ces phases l'interdit
+# toujours), si la révision réelle est inchangée ET attendue par la version précédente, si les données
+# importées sont inchangées et si aucune transformation n'est déclarée (dès la migration) ; sinon arrêt, purge
+# suspendue, intervention requise. Un cycle interrompu (arrêt, délai, redémarrage) est détecté au lancement
+# suivant et traité par la même règle. Une version rejetée n'est pas réessayée automatiquement. Aucune
+# restauration automatique de la base. Aucun secret dans les journaux.
+#
+# Codes de sortie : 0 succès ou rien à faire ; 1 échec avec retour à la version précédente ; 2 intervention
+# requise ; 3 refus (condition préalable non remplie).
+set -Eeuo pipefail
+umask 077
+
+# --- Configuration -----------------------------------------------------------------------------------------
+# En exploitation, rien n'est pris de l'environnement : le jeton du compte de la VM n'est envoyé qu'aux API
+# Google. BOUSSOLE_SYNC_TEST=1 (banc de test) permet de tout rediriger vers des faux services locaux.
+if [[ "${BOUSSOLE_SYNC_TEST:-}" == 1 ]]; then
+  : "${CONFIG:?}" "${ETAT:?}" "${JOURNAL:?}" "${VERROU:?}" "${COMPOSE_DEV:?}" "${ENV_FILE:?}" "${DEPOT:?}"
+  : "${GCS_API:?}" "${METADATA_URL:?}" "${APP_URL:?}"
+  DOCKER="${DOCKER:-docker}"; DELAI_SANTE="${DELAI_SANTE:-20}"; PAUSE_SANTE="${PAUSE_SANTE:-1}"
+  DISQUE_MIN_GO="${DISQUE_MIN_GO:-0}"
+else
+  CONFIG=/etc/boussole-dev-sync/config
+  ETAT=/var/lib/boussole-deploy
+  JOURNAL=/var/log/boussole-deploy.log
+  VERROU=/run/boussole-dev-sync.lock
+  COMPOSE_DEV=/etc/boussole-dev-sync/docker-compose.dev.yml
+  DEPOT=/opt/boussole-dev
+  ENV_FILE=/opt/boussole-dev/deploy/.env
+  GCS_API=https://storage.googleapis.com
+  METADATA_URL=http://metadata.google.internal
+  APP_URL=http://127.0.0.1:8080
+  DOCKER=docker; DELAI_SANTE=180; PAUSE_SANTE=5; DISQUE_MIN_GO=3
+fi
+PROJET=boussole
+BUCKET=""; REGISTRY=""
+# shellcheck disable=SC1090
+[[ -f "$CONFIG" ]] && source "$CONFIG"     # BUCKET=… REGISTRY=… (fichier root, installé par deployer-dev-iap.sh)
+
+TRAVAIL=""
+JETON=""
+
+# --- Journal -----------------------------------------------------------------------------------------------
+journal() {   # journal <NIVEAU> <message> : journald (sortie standard) et fichier
+  local ligne; ligne="$(date -u +%Y-%m-%dT%H:%M:%SZ) [$1] ${*:2}"
+  printf '%s\n' "$ligne"
+  printf '%s\n' "$ligne" >> "$JOURNAL" 2>/dev/null || true
+}
+info()      { journal INFO "$@"; }
+attention() { journal ATTENTION "$@"; }
+erreur()    { journal ERREUR "$@"; }
+refus()     { journal REFUS "$@"; exit 3; }
+
+RESTAURATION=""; CONTROLE=""
+nettoyer() {
+  if [[ "$CONTROLE" == boussole-controle-web-* ]]; then $DOCKER rm -f "$CONTROLE" >/dev/null 2>&1 || true; fi
+  if [[ "$RESTAURATION" == boussole-restauration-* ]]; then   # jamais un conteneur ou volume du projet
+    $DOCKER rm -f "$RESTAURATION" >/dev/null 2>&1 || true
+    $DOCKER volume rm "$RESTAURATION" >/dev/null 2>&1 || true
+  fi
+  [[ -n "$TRAVAIL" && -d "$TRAVAIL" ]] && rm -rf -- "$TRAVAIL"; return 0
+}
+trap nettoyer EXIT
+# Toute commande en échec non traitée est journalisée (le texte de la commande, jamais ses valeurs).
+trap 'journal ERREUR "Commande en échec (ligne $LINENO) : $BASH_COMMAND"' ERR
+
+# --- JSON (python3 est présent sur Ubuntu) -----------------------------------------------------------------
+jval() {   # jval <fichier> <clé.sous.clé> : valeur, vide si absente
+  python3 - "$1" "$2" <<'PY'
+import json, sys
+try:
+    v = json.load(open(sys.argv[1]))
+    for k in sys.argv[2].split("."):
+        v = v[k] if isinstance(v, dict) else v[int(k)]
+except (OSError, KeyError, IndexError, ValueError, TypeError):
+    v = ""
+print(len(v) if isinstance(v, list) else ("" if v is None else v))
+PY
+}
+etat_ecrire() {   # etat_ecrire <fichier> clé=valeur… : JSON plat, écrit atomiquement
+  local f="$1"; shift
+  python3 - "$f" "$@" <<'PY'
+import json, os, sys
+f = sys.argv[1]
+d = dict(a.split("=", 1) for a in sys.argv[2:])
+tmp = f + ".tmp"
+with open(tmp, "w") as fh:
+    json.dump(d, fh, indent=2, ensure_ascii=False)
+os.replace(tmp, f)
+PY
+}
+
+# --- Accès Google (jeton du compte de la VM, API JSON de GCS objet par objet, jamais de liste) ----------------
+jeton() {   # jeton du compte de la VM ; transmis à curl par un fichier d'en-tête privé (jamais en argument)
+  [[ -n "$JETON" ]] && return 0
+  JETON="$(curl -fsS --connect-timeout 5 --max-time 15 -H 'Metadata-Flavor: Google' \
+    "$METADATA_URL/computeMetadata/v1/instance/service-accounts/default/token" \
+    | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')" || { erreur "Jeton du compte de la VM indisponible"; return 1; }
+  printf 'Authorization: Bearer %s\n' "$JETON" > "$TRAVAIL/entete"
+}
+encode() { python3 -c 'import sys,urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"; }
+gcs() {   # gcs <sortie> <méthode> <url> [args curl] : affiche le code HTTP (000 si réseau)
+  local sortie="$1" methode="$2" url="$3" code; shift 3
+  jeton || { echo 000; return 0; }
+  code="$(curl -sS --connect-timeout 10 --max-time 600 --retry 3 --retry-connrefused --retry-max-time 120 \
+    -X "$methode" -o "$sortie" -w '%{http_code}' -H "@$TRAVAIL/entete" "$@" "$url" 2>/dev/null)" || code=000
+  echo "${code:-000}"
+}
+gcs_lire() {   # gcs_lire <objet> <fichier> : 0 lu, 3 absent, 1 erreur
+  local code; code="$(gcs "$2" GET "$GCS_API/storage/v1/b/$BUCKET/o/$(encode "$1")?alt=media")"
+  case "$code" in 200) return 0 ;; 404) return 3 ;; *) erreur "Lecture de gs://$BUCKET/$1 impossible (HTTP $code)"; return 1 ;; esac
+}
+gcs_meta() {   # gcs_meta <objet> <fichier>
+  local code; code="$(gcs "$2" GET "$GCS_API/storage/v1/b/$BUCKET/o/$(encode "$1")?fields=size,md5Hash,generation")"
+  [[ "$code" == 200 ]] || { erreur "Métadonnées de gs://$BUCKET/$1 illisibles (HTTP $code)"; return 1; }
+}
+gcs_creer() {   # gcs_creer <fichier> <objet> : création seulement (ifGenerationMatch=0). 0 créé, 2 existe, 1 erreur
+  local code; code="$(gcs "$TRAVAIL/reponse.json" POST \
+    "$GCS_API/upload/storage/v1/b/$BUCKET/o?uploadType=media&ifGenerationMatch=0&name=$(encode "$2")" \
+    -H 'Content-Type: application/octet-stream' --data-binary "@$1")"
+  case "$code" in 200) return 0 ;; 412) return 2 ;; *) erreur "Écriture de gs://$BUCKET/$2 impossible (HTTP $code)"; return 1 ;; esac
+}
+
+# --- Docker ------------------------------------------------------------------------------------------------
+conteneur() {   # identifiant du conteneur d'un service du projet (en marche ou arrêté), vide si absent
+  $DOCKER ps -aq --filter "label=com.docker.compose.project=$PROJET" --filter "label=com.docker.compose.service=$1" | head -1
+}
+en_marche() { local c; c="$(conteneur "$1")"; [[ -n "$c" && "$($DOCKER inspect -f '{{.State.Running}}' "$c" 2>/dev/null)" == true ]]; }
+db_exec() { local c; c="$(conteneur db)"; [[ -n "$c" ]] || { erreur "Conteneur db introuvable"; return 1; }; $DOCKER exec -i "$c" "$@"; }
+psql_sur() { $DOCKER exec -i "$1" psql -U pkp -d pkp -AtX -v ON_ERROR_STOP=1 -c "$2"; }   # psql_sur <conteneur> <sql>
+psql_val() { local c; c="$(conteneur db)"; [[ -n "$c" ]] || { erreur "Conteneur db introuvable"; return 1; }; psql_sur "$c" "$1"; }
+dc_dev() {   # dc_dev <fichier d'images> <args compose…>
+  local images="$1"; shift
+  $DOCKER compose -p "$PROJET" --env-file "$ENV_FILE" --env-file "$images" -f "$COMPOSE_DEV" "$@"
+}
+images_env() { printf 'BOUSSOLE_API_IMAGE=%s\nBOUSSOLE_WEB_IMAGE=%s\n' "$2" "$3" > "$1"; }
+image_porte_digest() {   # image_porte_digest <conteneur|image> <référence repo@sha256:…>
+  # --type container : sur une image, « docker inspect -f {{.Image}} » ne renvoie pas d'erreur mais « <no value> ».
+  local img; img="$($DOCKER inspect --type container -f '{{.Image}}' "$1" 2>/dev/null || echo "$1")"
+  $DOCKER image inspect -f '{{json .RepoDigests}}' "$img" 2>/dev/null | grep -qF "\"$2\""
+}
+
+# --- Base de données ------------------------------------------------------------------------------------------
+SQL_REVISION="SELECT string_agg(version_num, ',') FROM alembic_version"
+revision_reelle() { psql_val "$SQL_REVISION" | tr -d '[:space:]'; }
+# Empreinte des tables alimentées par l'import pédagogique (app/contenu.py) : chapitre, competence, lecon,
+# lecon_version, question. Toute différence avant/après l'import signifie que l'import a modifié des données.
+SQL_EMPREINTE="SELECT md5(string_agg(e, '|' ORDER BY e)) FROM (
+      SELECT 'chapitre:' || md5(coalesce(string_agg(t::text, ',' ORDER BY t.id), '')) AS e FROM chapitre t
+      UNION ALL SELECT 'competence:' || md5(coalesce(string_agg(t::text, ',' ORDER BY t.id), '')) FROM competence t
+      UNION ALL SELECT 'lecon:' || md5(coalesce(string_agg(t::text, ',' ORDER BY t.id), '')) FROM lecon t
+      UNION ALL SELECT 'lecon_version:' || md5(coalesce(string_agg(t::text, ',' ORDER BY t.id), '')) FROM lecon_version t
+      UNION ALL SELECT 'question:' || md5(coalesce(string_agg(t::text, ',' ORDER BY t.id), '')) FROM question t
+    ) x"
+empreinte_donnees() { psql_val "$SQL_EMPREINTE" | tr -d '[:space:]'; }
+
+# --- Version désirée et manifeste --------------------------------------------------------------------------
+cible() {   # sha à déployer : version figée sinon pointeur publié ; vide + code 1 si illisible
+  if [[ -s "$ETAT/figee" ]]; then cat "$ETAT/figee"; return 0; fi
+  gcs_lire releases/desired.json "$TRAVAIL/desired.json" || return 1
+  jval "$TRAVAIL/desired.json" sha
+}
+manifeste_charger() {   # manifeste_charger <sha> : M_* ; refuse tout manifeste incohérent
+  local sha="$1" f="$TRAVAIL/manifeste-$1.json" rc=0
+  [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { erreur "SHA invalide : $sha"; return 1; }
+  gcs_lire "releases/$sha.json" "$f" || rc=$?
+  (( rc == 0 )) || { erreur "Manifeste releases/$sha.json absent ou illisible"; return 1; }
+  M_SHA="$(jval "$f" sha)"; M_API="$(jval "$f" images.api)"; M_WEB="$(jval "$f" images.web)"
+  M_HEAD="$(jval "$f" migration.alembic_head_attendue)"
+  M_CONTENU="$(jval "$f" donnees.contenu_tree)"; M_REFS="$(jval "$f" donnees.referentiels_tree)"
+  M_TRANSFO="$(jval "$f" donnees.transformations_declarees)"
+  [[ "$M_SHA" == "$sha" ]] || { erreur "Manifeste incohérent : sha $M_SHA au lieu de $sha"; return 1; }
+  [[ "$M_API" =~ ^${REGISTRY}/api@sha256:[0-9a-f]{64}$ ]] || { erreur "Image API hors du registre DEV ou sans digest : $M_API"; return 1; }
+  [[ "$M_WEB" =~ ^${REGISTRY}/web@sha256:[0-9a-f]{64}$ ]] || { erreur "Image web hors du registre DEV ou sans digest : $M_WEB"; return 1; }
+  [[ "$M_HEAD" =~ ^[A-Za-z0-9_]+$ ]] || { erreur "Révision Alembic attendue invalide : $M_HEAD"; return 1; }
+  [[ "${M_TRANSFO:-0}" =~ ^[0-9]+$ ]] || M_TRANSFO=1
+}
+images_tirer() {   # préchargement par digest, sans interruption de service
+  local hote="${REGISTRY%%/*}" ref
+  jeton || return 1
+  mkdir -p "$ETAT/docker"
+  printf '%s' "$JETON" | DOCKER_CONFIG="$ETAT/docker" $DOCKER login -u oauth2accesstoken --password-stdin "https://$hote" >/dev/null 2>&1 \
+    || { erreur "Connexion au registre $hote refusée"; return 1; }
+  for ref in "$M_API" "$M_WEB"; do
+    DOCKER_CONFIG="$ETAT/docker" $DOCKER pull -q "$ref" >/dev/null 2>&1 || { erreur "Téléchargement impossible : $ref"; return 1; }
+    image_porte_digest "$ref" "$ref" || { erreur "Digest non vérifié après téléchargement : $ref"; return 1; }
+  done
+}
+disque_ok() {
+  local libre; libre="$(df -BG --output=avail "$ETAT" | tail -1 | tr -dc '0-9')"
+  (( libre >= DISQUE_MIN_GO )) || { erreur "Espace disque insuffisant : ${libre} Go libres (minimum ${DISQUE_MIN_GO})"; return 1; }
+}
+# Révision réelle de la base vue par l'image candidate : échoue si la base porte une révision que ce code ne
+# connaît pas (retour de schéma impossible, aucune migration descendante n'est faite).
+compatibilite_schema() { dc_dev "$1" run --rm --no-deps -T api alembic current >"$TRAVAIL/alembic-current.txt" 2>&1; }
+
+# --- Sauvegarde hors VM ------------------------------------------------------------------------------------
+# Noms et métadonnées des sauvegardes : listables par boussole-dev-tf-plan (exception D5, ticket #65). Ils ne
+# contiennent AUCUN identifiant personnel : nom = horodatage UTC + 12 caractères du SHA ; aucune métadonnée
+# personnalisée ; meta.json (contenu, non listé) limité aux champs techniques. Vérifié par le banc de test.
+sauvegarder() {   # sauvegarder <sha> <révision> <empreinte> : SAUVEGARDE_NOM ; 0 si copie hors VM vérifiée
+  local nom d f
+  nom="$(date -u +%Y%m%dT%H%M%SZ)-${1:0:12}"; d="$ETAT/sauvegardes/$nom"
+  mkdir -p "$d"
+  db_exec pg_dump -U pkp -d pkp -Fc > "$d/db.dump" || { erreur "pg_dump a échoué"; return 1; }
+  [[ -s "$d/db.dump" ]] || { erreur "Sauvegarde PostgreSQL vide"; return 1; }
+  db_exec pg_restore --list < "$d/db.dump" > /dev/null || { erreur "Sauvegarde PostgreSQL illisible (pg_restore --list)"; return 1; }
+  $DOCKER run --rm --network none -v "${PROJET}_fichiers:/f:ro" postgres:16-alpine tar -C /f -czf - . > "$d/fichiers.tar.gz" \
+    || { erreur "Archive du volume fichiers impossible"; return 1; }
+  tar -tzf "$d/fichiers.tar.gz" > /dev/null || { erreur "Archive du volume fichiers illisible"; return 1; }
+  python3 - "$d" "$1" "$2" "$3" "$nom" <<'PY'
+import hashlib, json, os, sys, datetime
+d, sha, rev, emp, nom = sys.argv[1:]
+somme = lambda p: hashlib.sha256(open(os.path.join(d, p), "rb").read()).hexdigest()
+json.dump({"nom": nom, "sha_cible": sha, "revision_alembic": rev, "empreinte_contenu": emp,
+           "cree_le": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
+           "fichiers": {p: {"sha256": somme(p), "octets": os.path.getsize(os.path.join(d, p))} for p in ("db.dump", "fichiers.tar.gz")}},
+          open(os.path.join(d, "meta.json"), "w"), indent=2)
+PY
+  for f in db.dump fichiers.tar.gz meta.json; do
+    local rc=0; gcs_creer "$d/$f" "backups/$nom/$f" || rc=$?
+    (( rc == 0 )) || { erreur "Copie hors VM de $f impossible (code $rc)"; return 1; }
+    gcs_meta "backups/$nom/$f" "$TRAVAIL/meta-$f.json" || return 1
+    python3 - "$d/$f" "$TRAVAIL/meta-$f.json" <<'PY' || { erreur "Copie hors VM de $f non conforme (taille ou MD5)"; return 1; }
+import base64, hashlib, json, os, sys
+m = json.load(open(sys.argv[2]))
+md5 = base64.b64encode(hashlib.md5(open(sys.argv[1], "rb").read()).digest()).decode()
+sys.exit(0 if int(m["size"]) == os.path.getsize(sys.argv[1]) and m["md5Hash"] == md5 else 1)
+PY
+  done
+  # Copie locale : seule la dernière est gardée (données personnelles possibles ; la référence est hors VM).
+  find "$ETAT/sauvegardes" -mindepth 1 -maxdepth 1 -type d ! -name "$nom" -exec rm -rf -- {} +
+  SAUVEGARDE_NOM="$nom"
+  info "Sauvegarde vérifiée et copiée hors VM : gs://$BUCKET/backups/$nom/"
+}
+
+# --- Services ----------------------------------------------------------------------------------------------
+arreter_applicatif() {   # fenêtre sans écriture : web, api et purge arrêtés, base en marche
+  local s c
+  for s in web api purge; do
+    c="$(conteneur "$s")"
+    [[ -z "$c" ]] || $DOCKER stop -t 30 "$c" >/dev/null || { erreur "Arrêt du service $s impossible"; return 1; }
+  done
+  info "Services web, api et purge arrêtés (maintenance)"
+}
+image_conforme() {   # image_conforme <conteneur> <attendu : repo@sha256:… (digest) ou sha256:… (identifiant local)>
+  local img; img="$($DOCKER inspect --type container -f '{{.Image}}' "$1" 2>/dev/null)" || return 1
+  if [[ "$2" == *@sha256:* ]]; then image_porte_digest "$img" "$2"; else [[ "$img" == "$2" ]]; fi
+}
+domaine_dev() { sed -n 's/^PKP_DOMAINE=//p' "$ENV_FILE" | tail -1; }
+# Contrôles AVANT ouverture : seule l'API candidate tourne (aucun port publié, joignable seulement par le réseau
+# Docker interne) ; ni la purge ni le web publié ne sont démarrés. Le front est contrôlé dans un conteneur web
+# temporaire sans port publié. Aucun utilisateur ni traitement ne peut écrire pendant ces contrôles.
+controle_interne() {   # controle_interne <identité api attendue> <image web à contrôler> <révision attendue>
+  local api="$1" web="$2" rev="$3" fin=$((SECONDS + DELAI_SANTE)) raison="" c page asset s
+  CONTROLE="boussole-controle-web-$(date -u +%Y%m%d%H%M%S)"
+  $DOCKER run -d --rm --name "$CONTROLE" --network "${PROJET}_default" -e "PKP_DOMAINE=$(domaine_dev)" "$web" >/dev/null 2>&1 \
+    || { SANTE_RAISON="conteneur web de contrôle non démarré"; return 1; }
+  while (( SECONDS <= fin )); do
+    raison=""; c="$(conteneur api)"
+    for s in purge web; do ! en_marche "$s" || raison="service $s en marche pendant les contrôles"; done
+    [[ -n "$raison" ]] || en_marche api || raison="api arrêtée"
+    [[ -n "$raison" ]] || image_conforme "$c" "$api" || raison="api : image différente de $api"
+    [[ -n "$raison" ]] || $DOCKER exec "$c" python -c "import urllib.request; print(urllib.request.urlopen('http://localhost:8000/health', timeout=5).read().decode())" 2>/dev/null | grep -q '"ok"' \
+      || raison="${raison:-API : /health ne répond pas ok}"
+    if [[ -z "$raison" ]]; then
+      page="$($DOCKER exec "$CONTROLE" wget -qO- -T 5 http://127.0.0.1/ 2>/dev/null)" || raison="web : page d'accueil inaccessible"
+      asset="$(grep -oE '/assets/[A-Za-z0-9._-]+' <<<"$page" | head -1)"
+      [[ -n "$raison" || -n "$asset" ]] || raison="web : aucun fichier /assets/ référencé par la page"
+      [[ -n "$raison" ]] || $DOCKER exec "$CONTROLE" wget -qO /dev/null -T 5 "http://127.0.0.1$asset" 2>/dev/null || raison="${raison:-web : $asset inaccessible}"
+      [[ -n "$raison" ]] || $DOCKER exec "$CONTROLE" wget -qO- -T 5 http://127.0.0.1/api/health 2>/dev/null | grep -q '"ok"' \
+        || raison="${raison:-web : /api/health non relayé vers API}"
+    fi
+    [[ -n "$raison" ]] || [[ "$(revision_reelle 2>/dev/null)" == "$rev" ]] || raison="révision Alembic de la base différente de $rev"
+    if [[ -z "$raison" ]]; then $DOCKER rm -f "$CONTROLE" >/dev/null 2>&1 || true; CONTROLE=""; return 0; fi
+    sleep "$PAUSE_SANTE"
+  done
+  $DOCKER rm -f "$CONTROLE" >/dev/null 2>&1 || true; CONTROLE=""
+  SANTE_RAISON="$raison"; return 1
+}
+controle_publie() {   # après ouverture : web et purge sur les images attendues, application joignable
+  local api="$1" web="$2" fin=$((SECONDS + DELAI_SANTE)) raison="" s
+  while (( SECONDS <= fin )); do
+    raison=""
+    for s in api purge web; do [[ -n "$raison" ]] || en_marche "$s" || raison="service $s arrêté"; done
+    [[ -n "$raison" ]] || image_conforme "$(conteneur purge)" "$api" || raison="purge : image différente de l'API"
+    [[ -n "$raison" ]] || image_conforme "$(conteneur web)" "$web" || raison="web : image différente de $web"
+    [[ -n "$raison" ]] || curl -fsS --max-time 5 "$APP_URL/api/health" 2>/dev/null | grep -q '"ok"' || raison="$APP_URL/api/health ne répond pas ok"
+    [[ -n "$raison" ]] || return 0
+    sleep "$PAUSE_SANTE"
+  done
+  SANTE_RAISON="$raison"; return 1
+}
+images_version() {   # images_version <fichier d'état> : IMG_* (pour Compose) et ATT_* (identité attendue)
+  local f="$1" t i
+  if [[ "$(jval "$f" source)" == manuel ]]; then
+    # Images du déploiement manuel : tags boussole-adoption/* posés par --adopter, vérifiés par leur identifiant.
+    IMG_API="$(jval "$f" image_locale_api)"; IMG_WEB="$(jval "$f" image_locale_web)"
+    ATT_API="$(jval "$f" id_image_api)"; ATT_WEB="$(jval "$f" id_image_web)"
+    for t in "$IMG_API=$ATT_API" "$IMG_WEB=$ATT_WEB"; do
+      i="$($DOCKER image inspect -f '{{.Id}}' "${t%%=*}" 2>/dev/null)" || { erreur "Image du déploiement manuel absente : ${t%%=*}"; return 1; }
+      [[ "$i" == "${t#*=}" ]] || { erreur "Le tag ${t%%=*} ne désigne plus l'image adoptée (${t#*=})"; return 1; }
+    done
+  else
+    IMG_API="$(jval "$f" api)"; IMG_WEB="$(jval "$f" web)"; ATT_API="$IMG_API"; ATT_WEB="$IMG_WEB"
+  fi
+}
+# Relance d'une version connue avec le Compose DEV : l'API lance Uvicorn SEUL (aucune migration ni import au
+# démarrage, y compris pour les images du déploiement manuel), aucun tag n'est modifié.
+relancer() {   # relancer <fichier d'état>
+  local f="$1" e="$TRAVAIL/images-relance.env"
+  images_version "$f" || return 1
+  images_env "$e" "$IMG_API" "$IMG_WEB"
+  dc_dev "$e" up -d --no-deps api >/dev/null 2>&1 || { SANTE_RAISON="démarrage de l'API impossible"; return 1; }
+  controle_interne "$ATT_API" "$IMG_WEB" "$(jval "$f" alembic)" || return 1
+  dc_dev "$e" up -d --no-deps web purge >/dev/null 2>&1 || { SANTE_RAISON="démarrage du web ou de la purge impossible"; return 1; }
+  controle_publie "$ATT_API" "$ATT_WEB"
+}
+
+# --- Journal de cycle (reprise après interruption) -----------------------------------------------------------
+# en-cours.json existe du début de la maintenance jusqu'à la fin du cycle (succès, retour ou intervention).
+# S'il est présent au lancement suivant, le cycle précédent a été interrompu (arrêt, délai systemd, redémarrage).
+cycle_debut() { etat_ecrire "$ETAT/en-cours.json" sha="$1" mode="$2" etape=maintenance revision_avant="$3" empreinte_avant="$4" debut="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; }
+cycle_etape() {   # cycle_etape <étape> [clé=valeur…]
+  python3 - "$ETAT/en-cours.json" "$@" <<'PY'
+import json, os, sys
+f = sys.argv[1]; d = json.load(open(f)); d["etape"] = sys.argv[2]
+d.update(a.split("=", 1) for a in sys.argv[3:])
+json.dump(d, open(f + ".tmp", "w"), indent=2); os.replace(f + ".tmp", f)
+PY
+}
+cycle_fin() { rm -f "$ETAT/en-cours.json"; }
+reprise_apres_interruption() {   # 0 : rien à reprendre ; sinon code de sortie (1 relance faite, 2 intervention)
+  local f="$ETAT/en-cours.json" sha etape rev emp
+  [[ -f "$f" ]] || return 0
+  sha="$(jval "$f" sha)"; etape="$(jval "$f" etape)"
+  attention "Cycle précédent INTERROMPU (version ${sha:0:12}, étape « $etape », débuté $(jval "$f" debut))"
+  M_TRANSFO="$(jval "$f" transformations)"; M_TRANSFO="${M_TRANSFO:-1}"; SAUVEGARDE_NOM="$(jval "$f" sauvegarde)"
+  # Même règle qu'après un échec : la base et les données importées sont comparées à leur état AVANT le cycle.
+  rev="$(jval "$f" revision_avant)"; emp="$(jval "$f" empreinte_avant)"
+  local rc=0; echec_deploiement "$sha" "cycle interrompu à l'étape $etape" "$rev" "$emp" "$etape" || rc=$?
+  return "$rc"
+}
+
+# --- Décision après un échec -------------------------------------------------------------------------------
+rejeter() { etat_ecrire "$ETAT/rejetee.json" sha="$1" raison="$2" le="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; }
+echec_deploiement() {   # echec_deploiement <sha> <raison> <rév. avant> <empreinte avant> <étape>
+  local sha="$1" raison="$2" rev_avant="$3" emp_avant="$4" etape="$5" rev_apres emp_apres rev_active motifs=()
+  rev_apres="$(revision_reelle 2>/dev/null || echo inconnue)"; emp_apres="$(empreinte_donnees 2>/dev/null || echo inconnue)"
+  rev_active="$(jval "$ETAT/active.json" alembic)"
+  erreur "Déploiement de ${sha:0:12} en échec : $raison (étape $etape, révision $rev_avant -> $rev_apres)"
+  rejeter "$sha" "$raison"
+  # Retour automatique : TOUTES les conditions, sinon arrêt et intervention.
+  [[ "$etape" != exposition ]]        || motifs+=("échec après l'ouverture du service (écritures possibles)")
+  # Échec ou interruption PENDANT la migration ou l'import : effets partiels possibles hors de la révision et des
+  # tables suivies (migrations de données, import interrompu). Retour interdit même si révision et empreinte
+  # paraissent inchangées. Une migration et un import TERMINÉS avec succès passent à l'étape « controles ».
+  case "$etape" in migration|import)
+    motifs+=("échec ou interruption pendant la phase « $etape » : état des données incertain") ;; esac
+  [[ "$rev_apres" == "$rev_avant" ]]  || motifs+=("révision réelle modifiée ($rev_avant -> $rev_apres)")
+  [[ "$rev_active" == "$rev_apres" ]] || motifs+=("la version précédente attend la révision $rev_active, la base est en $rev_apres")
+  [[ "$emp_apres" == "$emp_avant" ]]  || motifs+=("données importées modifiées ou illisibles")
+  case "$etape" in maintenance|sauvegarde) ;;   # rien n'a encore été appliqué à la base
+    *) [[ "${M_TRANSFO:-1}" == 0 ]]   || motifs+=("transformations déclarées : ${M_TRANSFO:-?}") ;; esac
+  if (( ${#motifs[@]} == 0 )); then
+    info "Retour automatique permis : échec avant ouverture, révision réelle ($rev_apres) attendue par la version précédente, données importées inchangées, aucune transformation déclarée"
+    arreter_applicatif || true
+    if relancer "$ETAT/active.json"; then
+      cycle_fin
+      info "Version précédente $(jval "$ETAT/active.json" sha | cut -c1-12) rétablie et contrôlée ; ${sha:0:12} rejetée (pas de nouvel essai automatique)"
+      return 1
+    fi
+    motifs+=("le retour à la version précédente a échoué : ${SANTE_RAISON:-redémarrage impossible}")
+  fi
+  erreur "Retour automatique INTERDIT : $(IFS=';'; echo "${motifs[*]}")"
+  arreter_applicatif || true
+  etat_ecrire "$ETAT/intervention-requise.json" sha="$sha" raison="$raison" etape="$etape" revision_avant="$rev_avant" \
+    revision_apres="$rev_apres" donnees_modifiees="$([[ "$emp_apres" == "$emp_avant" ]] && echo non || echo oui)" \
+    motifs="$(IFS=';'; echo "${motifs[*]}")" sauvegarde="${SAUVEGARDE_NOM:-aucune}" le="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  cycle_fin
+  erreur "INTERVENTION REQUISE : services applicatifs et purge arrêtés. Voir docs/exploitation/pipeline-dev-pr3b-deploiement.md (sauvegarde : ${SAUVEGARDE_NOM:-aucune})"
+  return 2
+}
+
+# --- Déploiement ---------------------------------------------------------------------------------------------
+deployer() {   # deployer <sha> <normal|version>
+  local sha="$1" mode="$2" cand="$TRAVAIL/images-candidat.env" rev_avant emp_avant rev_apres emp_apres
+  SAUVEGARDE_NOM=""
+  manifeste_charger "$sha" || { rejeter "$sha" "manifeste invalide"; return 1; }
+  disque_ok || return 3
+  images_tirer || return 1   # rien n'est arrêté : nouvel essai au prochain passage
+  images_env "$cand" "$M_API" "$M_WEB"
+  rev_avant="$(revision_reelle)" || { erreur "Révision réelle de la base illisible"; return 3; }
+  if ! compatibilite_schema "$cand"; then
+    rejeter "$sha" "révision $rev_avant de la base inconnue de cette version (pas de retour de schéma)"
+    erreur "Version ${sha:0:12} incompatible avec la base (révision $rev_avant) : aucun service interrompu — $(tail -2 "$TRAVAIL/alembic-current.txt" | tr '\n' ' ')"; return 1
+  fi
+  emp_avant="$(empreinte_donnees)" || { erreur "Empreinte des données illisible : aucun service interrompu"; return 3; }
+  info "Déploiement de ${sha:0:12} ($mode) : révision réelle $rev_avant, attendue $M_HEAD"
+
+  cycle_debut "$sha" "$mode" "$rev_avant" "$emp_avant" || { erreur "Journal de cycle non écrit : aucun service interrompu"; return 3; }
+  cycle_etape maintenance transformations="$M_TRANSFO"
+  arreter_applicatif || { echec_deploiement "$sha" "arrêt des services impossible" "$rev_avant" "$emp_avant" maintenance; return; }
+  # Empreinte reprise services arrêtés : référence exacte de la fenêtre sans écriture.
+  emp_avant="$(empreinte_donnees)" || { echec_deploiement "$sha" "empreinte des données illisible" "$rev_avant" "inconnue" maintenance; return; }
+  cycle_etape sauvegarde empreinte_avant="$emp_avant"
+  if ! sauvegarder "$sha" "$rev_avant" "$emp_avant"; then
+    echec_deploiement "$sha" "sauvegarde hors VM impossible (aucune migration)" "$rev_avant" "$emp_avant" sauvegarde; return
+  fi
+  cycle_etape migration sauvegarde="$SAUVEGARDE_NOM"
+  if ! dc_dev "$cand" run --rm --no-deps -T api alembic upgrade head >"$TRAVAIL/migration.txt" 2>&1; then
+    echec_deploiement "$sha" "migration Alembic en échec" "$rev_avant" "$emp_avant" migration; return
+  fi
+  rev_apres="$(revision_reelle)"
+  [[ "$rev_apres" == "$M_HEAD" ]] || { echec_deploiement "$sha" "révision $rev_apres après migration, $M_HEAD attendue" "$rev_avant" "$emp_avant" migration; return; }
+  cycle_etape import
+  if [[ "$mode" == normal ]]; then
+    if ! dc_dev "$cand" run --rm --no-deps -T api python -m app.contenu importer >"$TRAVAIL/import.txt" 2>&1; then
+      echec_deploiement "$sha" "import pédagogique en échec" "$rev_avant" "$emp_avant" import; return
+    fi
+    info "Import pédagogique : $(tail -3 "$TRAVAIL/import.txt" | tr '\n' ' ')"
+  else
+    info "Import pédagogique NON exécuté (version figée : la base garde son contenu)"
+  fi
+  emp_apres="$(empreinte_donnees)"
+  cycle_etape controles
+  dc_dev "$cand" up -d --no-deps api >"$TRAVAIL/up.txt" 2>&1 || { echec_deploiement "$sha" "démarrage de l'API impossible" "$rev_avant" "$emp_avant" controles; return; }
+  if ! controle_interne "$M_API" "$M_WEB" "$M_HEAD"; then
+    echec_deploiement "$sha" "contrôles avant ouverture en échec : $SANTE_RAISON" "$rev_avant" "$emp_avant" controles; return
+  fi
+  info "Contrôles avant ouverture réussis (API, front de contrôle, révision $M_HEAD) : ouverture du service"
+  cycle_etape exposition
+  dc_dev "$cand" up -d --no-deps web purge >>"$TRAVAIL/up.txt" 2>&1 || { echec_deploiement "$sha" "démarrage du web ou de la purge impossible" "$rev_avant" "$emp_avant" exposition; return; }
+  if ! controle_publie "$M_API" "$M_WEB"; then
+    echec_deploiement "$sha" "contrôles après ouverture en échec : $SANTE_RAISON" "$rev_avant" "$emp_avant" exposition; return
+  fi
+
+  if [[ -f "$ETAT/active.json" ]]; then cp -p "$ETAT/active.json" "$ETAT/precedente.json"; fi
+  etat_ecrire "$ETAT/active.json" source=synchro sha="$sha" api="$M_API" web="$M_WEB" alembic="$rev_apres" \
+    contenu_tree="$M_CONTENU" referentiels_tree="$M_REFS" mode="$mode" sauvegarde="$SAUVEGARDE_NOM" \
+    donnees_modifiees_par_import="$([[ "$emp_apres" == "$emp_avant" ]] && echo non || echo oui)" \
+    deploye_le="$(date -u +%Y-%m-%dT%H:%M:%SZ)" || { erreur "État de la version active non enregistré"; return 2; }
+  cp -p "$cand" "$ETAT/images-active.env"
+  cycle_fin
+  if [[ "$(jval "$ETAT/rejetee.json" sha)" == "$sha" ]]; then rm -f "$ETAT/rejetee.json"; fi
+  info "Version ${sha:0:12} ACTIVE : API $M_API, web $M_WEB, révision $rev_apres, sauvegarde $SAUVEGARDE_NOM"
+  $DOCKER image prune -f >/dev/null 2>&1 || true   # images sans tag uniquement
+  return 0
+}
+
+# --- Commandes ---------------------------------------------------------------------------------------------
+verrouiller() { exec 9>"$VERROU"; flock -n 9 || { info "Synchronisation déjà en cours : rien à faire"; exit 0; }; }
+preparer() {
+  [[ $EUID -eq 0 || "${BOUSSOLE_SYNC_TEST:-}" == 1 ]] || { echo "À lancer en root (sudo)"; exit 3; }
+  [[ -n "$BUCKET" && -n "$REGISTRY" ]] || refus "Configuration absente ou incomplète : $CONFIG (BUCKET, REGISTRY)"
+  mkdir -p "$ETAT/sauvegardes" "$ETAT/adoption"; chmod 700 "$ETAT"
+  TRAVAIL="$(mktemp -d "$ETAT/travail.XXXXXX")"
+}
+
+cmd_etat() {
+  local f
+  echo "Version publiée : $( { gcs_lire releases/desired.json "$TRAVAIL/d.json" && jval "$TRAVAIL/d.json" sha; } 2>/dev/null || echo illisible)"
+  for f in active precedente; do
+    if [[ -f "$ETAT/$f.json" ]]; then echo "Version $f : $(jval "$ETAT/$f.json" sha) ($(jval "$ETAT/$f.json" source), révision $(jval "$ETAT/$f.json" alembic), $(jval "$ETAT/$f.json" deploye_le)$(jval "$ETAT/$f.json" adopte_le))"
+    else echo "Version $f : aucune"; fi
+  done
+  echo "Figée : $(cat "$ETAT/figee" 2>/dev/null || echo non)"
+  [[ -f "$ETAT/rejetee.json" ]] && echo "Rejetée : $(jval "$ETAT/rejetee.json" sha) — $(jval "$ETAT/rejetee.json" raison)"
+  [[ -f "$ETAT/en-cours.json" ]] && echo "CYCLE INTERROMPU ou en cours : $(jval "$ETAT/en-cours.json" sha) à l'étape $(jval "$ETAT/en-cours.json" etape)"
+  [[ -f "$ETAT/intervention-requise.json" ]] && echo "INTERVENTION REQUISE : $(jval "$ETAT/intervention-requise.json" raison) — $(jval "$ETAT/intervention-requise.json" motifs)"
+  local s c
+  for s in db api purge web; do
+    c="$(conteneur "$s")"
+    if [[ -n "$c" ]]; then echo "Conteneur $s : $($DOCKER inspect -f '{{.State.Status}} {{.Config.Image}}' "$c" 2>/dev/null)"; else echo "Conteneur $s : absent"; fi
+  done
+  return 0
+}
+
+# Commit qui a construit les images en service : entrée du reflog de $DEPOT la plus récente ANTÉRIEURE à la
+# construction de l'image API. Le HEAD actuel n'est pas une preuve (le code a pu être mis à jour depuis).
+commit_de_construction() {   # commit_de_construction <date RFC 3339 de construction>
+  local ts
+  ts="$(python3 -c 'import re,sys,datetime; d=re.sub(r"\.\d+", "", sys.argv[1]).replace("Z", "+00:00"); print(int(datetime.datetime.fromisoformat(d).timestamp()))' "$1")" || return 1
+  git -C "$DEPOT" reflog --date=unix --format='%H %gd' 2>/dev/null \
+    | awk -v ts="$ts" '{ t = $2; gsub(/.*@\{|\}/, "", t); if (t + 0 <= ts) { print $1; exit } }'
+}
+
+cmd_adopter() {   # cmd_adopter [commit déclaré par l'installeur]
+  local declare="${1:-}" s horo compose id_api id_web cree commit methode rev emp
+  [[ ! -f "$ETAT/active.json" ]] || refus "Une version active est déjà enregistrée : adoption inutile"
+  [[ -z "$declare" || "$declare" =~ ^[0-9a-f]{40}$ ]] || refus "Commit déclaré invalide : $declare"
+  for s in db api purge web; do en_marche "$s" || refus "Service $s du projet $PROJET non démarré : adoption impossible"; done
+  horo="$(date -u +%Y%m%dT%H%M%SZ)"
+  compose="$($DOCKER inspect -f '{{index .Config.Labels "com.docker.compose.project.config_files"}}' "$(conteneur api)")"
+  [[ -f "$compose" ]] || refus "Fichier Compose du déploiement manuel introuvable : $compose"
+  cp -p "$compose" "$ETAT/adoption/$(basename "$compose")"
+  # Description des conteneurs SANS leurs variables d'environnement (qui contiennent les secrets).
+  for s in db api purge web; do
+    $DOCKER inspect -f '{"image":"{{.Config.Image}}","id_image":"{{.Image}}","demarre":"{{.State.StartedAt}}","montages":"{{range .Mounts}}{{.Name}}:{{.Destination}} {{end}}"}' \
+      "$(conteneur "$s")" > "$ETAT/adoption/$s.json"
+  done
+  id_api="$(jval "$ETAT/adoption/api.json" id_image)"; id_web="$(jval "$ETAT/adoption/web.json" id_image)"
+  [[ "$(jval "$ETAT/adoption/purge.json" id_image)" == "$id_api" ]] || refus "api et purge n'utilisent pas la même image : déploiement manuel incohérent"
+  # Provenance : date de construction de l'image API et commit en place à cette date (reflog).
+  cree="$($DOCKER image inspect -f '{{.Created}}' "$id_api")" || refus "Date de construction de l'image API illisible"
+  commit="$(commit_de_construction "$cree")"; methode="reflog de $DEPOT à la date de construction de l'image API"
+  if [[ -z "$commit" ]]; then commit=inconnu; methode="aucune entrée du reflog antérieure à la construction"; fi
+  if [[ -n "$declare" && "$commit" != inconnu && "$declare" != "$commit" ]]; then
+    refus "Provenance incohérente : commit déclaré ${declare:0:12}, commit en place à la construction des images ${commit:0:12}. Vérifier $DEPOT avant d'adopter."
+  fi
+  rev="$(revision_reelle)" || refus "Révision réelle illisible"; emp="$(empreinte_donnees)" || refus "Empreinte des données illisible"
+  $DOCKER tag "$id_api" "boussole-adoption/api:$horo"
+  $DOCKER tag "$id_web" "boussole-adoption/web:$horo"
+  etat_ecrire "$ETAT/active.json" source=manuel sha="$commit" provenance="$methode" commit_declare="${declare:-aucun}" \
+    commit_depot_actuel="$(git -C "$DEPOT" rev-parse HEAD 2>/dev/null || echo inconnu)" image_api_construite_le="$cree" \
+    alembic="$rev" empreinte_contenu="$emp" compose="$compose" compose_sha256="$(sha256sum "$compose" | cut -d' ' -f1)" \
+    id_image_api="$id_api" id_image_web="$id_web" image_origine_api="$(jval "$ETAT/adoption/api.json" image)" \
+    image_origine_web="$(jval "$ETAT/adoption/web.json" image)" image_locale_api="boussole-adoption/api:$horo" \
+    image_locale_web="boussole-adoption/web:$horo" adopte_le="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  cp -p "$ETAT/active.json" "$ETAT/adoption/etat-manuel.json"
+  info "Déploiement manuel adopté : images construites le $cree depuis le commit ${commit:0:12} ($methode) ; révision $rev ; images protégées boussole-adoption/*:$horo. Aucun conteneur modifié."
+}
+
+# Une version manuelle n'est JAMAIS « déjà active » pour une version publiée : ses images ne sont pas celles du manifeste.
+deja_active() { [[ "$(jval "$ETAT/active.json" source)" == synchro && "$1" == "$(jval "$ETAT/active.json" sha)" ]]; }
+
+cmd_simulation() {
+  local sha cand="$TRAVAIL/images-candidat.env"
+  [[ ! -f "$ETAT/en-cours.json" ]] || echo "ATTENTION : cycle précédent interrompu ($(jval "$ETAT/en-cours.json" etape)) : --appliquer le traitera d'abord."
+  sha="$(cible)" || refus "Version désirée illisible"
+  [[ "$sha" != manuel ]] || { echo "Déploiement manuel figé (--retour-manuel) : rien ne serait déployé (--suivre pour reprendre)."; return 0; }
+  echo "Cible : $sha$([[ -s "$ETAT/figee" ]] && echo ' (figée)')"
+  deja_active "$sha" && { echo "Déjà active : rien à faire."; return 0; }
+  [[ "$sha" == "$(jval "$ETAT/rejetee.json" sha)" ]] && echo "ATTENTION : version rejetée, ignorée par --appliquer (voir --reessayer)."
+  manifeste_charger "$sha" || refus "Manifeste invalide"
+  echo "Images : $M_API | $M_WEB"
+  disque_ok || refus "Espace disque insuffisant"
+  images_tirer || refus "Images non téléchargées"
+  echo "Images préchargées et digests vérifiés."
+  images_env "$cand" "$M_API" "$M_WEB"
+  local rev; rev="$(revision_reelle)" || refus "Révision réelle de la base illisible"
+  echo "Révision réelle de la base : $rev ; attendue par la version : $M_HEAD"
+  if compatibilite_schema "$cand"; then echo "Schéma : compatible ($(tail -1 "$TRAVAIL/alembic-current.txt"))"
+  else echo "Schéma : INCOMPATIBLE (révision inconnue de cette version) — le déploiement serait refusé"; fi
+  if dc_dev "$cand" run --rm --no-deps -T api python -m app.contenu importer --simulation >"$TRAVAIL/import.txt" 2>&1; then
+    echo "Import pédagogique (simulation) : $(tail -3 "$TRAVAIL/import.txt" | tr '\n' ' ')"
+  else echo "Import pédagogique (simulation) : ÉCHEC — $(tail -2 "$TRAVAIL/import.txt" | tr '\n' ' ')"; fi
+  echo "Transformations déclarées : $M_TRANSFO"
+  echo "Étapes prévues : arrêt web/api/purge ; sauvegarde vérifiée vers gs://$BUCKET/backups/ ; migration ; import ;"
+  echo "  API seule + front de contrôle sans port (aucune écriture possible) ; puis ouverture : web publié et purge."
+  echo "Simulation terminée : aucun service arrêté, aucun état modifié."
+}
+
+cmd_appliquer() {
+  [[ -f "$ETAT/active.json" ]] || refus "Aucune version active : lancer d'abord --adopter"
+  local rc=0; reprise_apres_interruption || rc=$?; (( rc == 0 )) || return "$rc"
+  [[ ! -f "$ETAT/intervention-requise.json" ]] || { erreur "Intervention requise ($(jval "$ETAT/intervention-requise.json" raison)) : aucune action automatique"; return 2; }
+  local sha; sha="$(cible)" || { erreur "Version désirée illisible"; return 1; }
+  if [[ "$sha" == manuel ]]; then info "Retour manuel figé : aucune action (--suivre pour reprendre)"; return 0; fi
+  if deja_active "$sha"; then info "Version ${sha:0:12} déjà active"; return 0; fi
+  if [[ -s "$ETAT/figee" ]]; then attention "Version figée ${sha:0:12} différente de la version active : aucune action automatique (--version ou --suivre)"; return 0; fi
+  if [[ "$sha" == "$(jval "$ETAT/rejetee.json" sha)" ]]; then info "Version ${sha:0:12} rejetée précédemment : ignorée (--reessayer)"; return 0; fi
+  rc=0; deployer "$sha" normal || rc=$?; return "$rc"
+}
+
+cmd_version() {
+  local sha="$1" rc=0
+  [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || refus "SHA complet attendu (40 caractères hexadécimaux)"
+  [[ -f "$ETAT/active.json" ]] || refus "Aucune version active : lancer d'abord --adopter"
+  reprise_apres_interruption || rc=$?; (( rc == 0 )) || return "$rc"
+  [[ ! -f "$ETAT/intervention-requise.json" ]] || refus "Intervention requise en cours : la traiter d'abord"
+  if ! deja_active "$sha"; then
+    deployer "$sha" version || rc=$?
+    (( rc == 0 )) || return "$rc"
+    [[ "$M_CONTENU" == "$(jval "$ETAT/precedente.json" contenu_tree)" ]] \
+      || attention "Contenu pédagogique de cette version différent de celui de la base (import non rejoué)"
+  fi
+  printf '%s\n' "$sha" > "$ETAT/figee"
+  info "VM figée sur ${sha:0:12} : le timer ne la remplacera pas (reprise : --suivre)"
+}
+
+# Retour au déploiement manuel : mêmes images (identifiants vérifiés), lancées par le Compose DEV (Uvicorn seul :
+# ni migration ni import au démarrage), aucun tag modifié, aucune écriture dans la base. Refusé si la base n'est
+# plus exactement dans l'état adopté (révision ou données importées). La VM est ensuite figée « manuel »
+# (annoncé), sinon le timer redéploierait aussitôt la version publiée.
+cmd_retour_manuel() {
+  local m="$ETAT/adoption/etat-manuel.json" rev rc=0
+  [[ -f "$m" ]] || refus "Aucun déploiement manuel adopté"
+  [[ "$(jval "$ETAT/active.json" source)" != manuel ]] || refus "Le déploiement manuel est déjà actif"
+  reprise_apres_interruption || rc=$?; (( rc == 0 )) || return "$rc"
+  [[ ! -f "$ETAT/intervention-requise.json" ]] || refus "Intervention requise en cours : la traiter d'abord"
+  rev="$(revision_reelle)" || refus "Révision réelle illisible"
+  [[ "$rev" == "$(jval "$m" alembic)" ]] || refus "Révision réelle $rev différente de celle du déploiement manuel ($(jval "$m" alembic)) : retour impossible sans restauration"
+  [[ "$(empreinte_donnees)" == "$(jval "$m" empreinte_contenu)" ]] \
+    || refus "Données importées différentes de celles du déploiement adopté : le code manuel n'a pas été validé sur ce contenu (restauration ou --version)"
+  images_version "$m" || refus "Images du déploiement manuel non disponibles telles qu'adoptées"
+  info "Retour manuel : arrêt de web/api/purge, relance des images adoptées (Uvicorn seul), aucune migration, aucun import, aucun tag modifié"
+  arreter_applicatif || refus "Arrêt des services impossible"
+  if ! relancer "$m"; then
+    arreter_applicatif || true
+    etat_ecrire "$ETAT/intervention-requise.json" sha=manuel raison="retour manuel en échec : ${SANTE_RAISON:-redémarrage impossible}" \
+      etape=retour-manuel le="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    erreur "Retour manuel en échec : ${SANTE_RAISON:-redémarrage impossible}. INTERVENTION REQUISE, services arrêtés."
+    return 2
+  fi
+  cp -p "$ETAT/active.json" "$ETAT/precedente.json"; cp -p "$m" "$ETAT/active.json"
+  printf 'manuel\n' > "$ETAT/figee"
+  info "Déploiement manuel rétabli ; VM figée « manuel » (le timer ne redéploie pas ; reprise : --suivre)"
+}
+
+cmd_restaurer_isole() {   # restauration de contrôle : n'écrit ni dans la base ni dans les volumes du projet
+  local nom="$1" d="$TRAVAIL/restauration" horo f rev emp t n
+  [[ "$nom" != derniere ]] || nom="$(jval "$ETAT/active.json" sauvegarde)"
+  [[ "$nom" =~ ^[0-9]{8}T[0-9]{6}Z-[0-9a-f]{12}$ ]] || refus "Nom de sauvegarde invalide : ${nom:-aucun}"
+  mkdir -p "$d"
+  for f in meta.json db.dump fichiers.tar.gz; do gcs_lire "backups/$nom/$f" "$d/$f" || refus "Sauvegarde $nom incomplète ($f)"; done
+  python3 - "$d" <<'PY' || refus "Sommes de contrôle de la sauvegarde $nom non conformes"
+import hashlib, json, os, sys
+d = sys.argv[1]; m = json.load(open(os.path.join(d, "meta.json")))
+for nom, attendu in m["fichiers"].items():
+    p = os.path.join(d, nom)
+    if hashlib.sha256(open(p, "rb").read()).hexdigest() != attendu["sha256"] or os.path.getsize(p) != attendu["octets"]:
+        sys.exit(f"{nom} : somme ou taille différente")
+PY
+  info "Sauvegarde $nom téléchargée depuis gs://$BUCKET/backups/ : sommes SHA-256 conformes"
+  horo="$(date -u +%Y%m%d%H%M%S)"; RESTAURATION="boussole-restauration-$horo"
+  python3 -c 'import secrets; print("POSTGRES_DB=pkp\nPOSTGRES_USER=pkp\nPOSTGRES_PASSWORD=" + secrets.token_urlsafe(24))' > "$d/pg.env"
+  $DOCKER volume create "$RESTAURATION" >/dev/null || refus "Volume temporaire non créé"
+  $DOCKER run -d --name "$RESTAURATION" --network none --env-file "$d/pg.env" -v "$RESTAURATION:/var/lib/postgresql/data" \
+    postgres:16-alpine >/dev/null || refus "Base temporaire non démarrée"
+  local pret=non
+  for _ in $(seq 60); do
+    if $DOCKER exec "$RESTAURATION" pg_isready -U pkp -d pkp >/dev/null 2>&1; then pret=oui; break; fi
+    sleep "$PAUSE_SANTE"
+  done
+  [[ "$pret" == oui ]] || refus "Base temporaire non prête"
+  $DOCKER exec -i "$RESTAURATION" pg_restore -U pkp -d pkp --no-owner --exit-on-error < "$d/db.dump" >/dev/null \
+    || refus "pg_restore a échoué dans la base temporaire"
+  rev="$(psql_sur "$RESTAURATION" "$SQL_REVISION" | tr -d '[:space:]')"
+  emp="$(psql_sur "$RESTAURATION" "$SQL_EMPREINTE" | tr -d '[:space:]')"
+  echo "Révision Alembic restaurée : $rev (sauvegardée : $(jval "$d/meta.json" revision_alembic))"
+  echo "Empreinte du contenu importé : $([[ "$emp" == "$(jval "$d/meta.json" empreinte_contenu)" ]] && echo identique || echo DIFFÉRENTE)"
+  for t in chapitre competence question enseignant eleve; do
+    n="$(psql_sur "$RESTAURATION" "SELECT count(*) FROM $t" | tr -d '[:space:]')"; echo "Lignes $t : $n"
+  done
+  n="$(tar -tzf "$d/fichiers.tar.gz" | grep -vc '/$' || true)"; echo "Fichiers dans l'archive : $n"
+  [[ "$rev" == "$(jval "$d/meta.json" revision_alembic)" && "$emp" == "$(jval "$d/meta.json" empreinte_contenu)" ]] \
+    || { erreur "Restauration isolée NON conforme (révision ou contenu différent)"; return 1; }
+  info "Restauration isolée de $nom conforme ; base et volume temporaires supprimés, base active intacte"
+}
+
+usage() { sed -n '2,32p' "$0" | sed 's/^# \{0,1\}//'; exit "${1:-0}"; }
+
+main() {
+  [[ $# -ge 1 ]] || usage 3
+  case "$1" in -h|--help) usage 0 ;; esac
+  preparer
+  case "$1" in
+    --etat)          cmd_etat ;;
+    --adopter)       verrouiller; cmd_adopter "${2:-}" ;;
+    --simulation)    verrouiller; cmd_simulation ;;
+    --appliquer)     verrouiller; rc=0; cmd_appliquer || rc=$?; exit "$rc" ;;
+    --version)       [[ $# -eq 2 ]] || usage 3; verrouiller; rc=0; cmd_version "$2" || rc=$?; exit "$rc" ;;
+    --suivre)        verrouiller; rm -f "$ETAT/figee"; info "Suivi de la version publiée repris" ;;
+    --reessayer)     verrouiller; rc=0; reprise_apres_interruption || rc=$?; (( rc == 0 )) || exit "$rc"
+                     rm -f "$ETAT/rejetee.json" "$ETAT/intervention-requise.json"; info "Rejet et intervention effacés"
+                     cmd_appliquer || rc=$?; exit "$rc" ;;
+    --retour-manuel) verrouiller; rc=0; cmd_retour_manuel || rc=$?; exit "$rc" ;;
+    --restaurer-isole) [[ $# -eq 2 ]] || usage 3; verrouiller; rc=0; cmd_restaurer_isole "$2" || rc=$?; exit "$rc" ;;
+    *) usage 3 ;;
+  esac
+}
+main "$@"

@@ -1,0 +1,18 @@
+# Boussole DEV — un cycle de synchronisation de la version publiée (ticket #65, PR 3b).
+# Installé par scripts/deployer-dev-iap.sh --installer-synchro ; lancé par boussole-dev-sync.timer.
+# Codes de sortie de boussole-dev-sync : 1 (échec, version précédente rétablie) et 2 (intervention requise)
+# rendent l'unité « failed », visible dans systemctl et journalctl.
+[Unit]
+Description=Boussole DEV - synchronisation de la version publiée
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/boussole-dev-sync --appliquer
+# Sauvegarde, migration et import compris ; au-delà, systemd interrompt le cycle (verrou libéré).
+TimeoutStartSec=45min
+Nice=5
+StandardOutput=journal
+StandardError=journal
