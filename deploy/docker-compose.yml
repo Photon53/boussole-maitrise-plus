@@ -1,4 +1,4 @@
-# Déploiement complet : PostgreSQL + API + purge RGPD quotidienne + Caddy (HTTPS).
+# Déploiement complet : PostgreSQL + préparation (migrations, import) + API + purge RGPD quotidienne + Caddy (HTTPS).
 # Usage, depuis deploy/ : cp .env.example .env  (puis remplir)  &&  docker compose up -d --build
 
 x-api-env: &api-env
@@ -35,6 +35,19 @@ services:
     restart: unless-stopped
     logging: *journaux
 
+  # Étape ponctuelle avant l'API (#116) : migrations, import du contenu pédagogique (idempotent), contrôle de la
+  # base (aucun compte de démonstration). Un échec arrête là : l'API ne démarre pas sur un schéma non prêt.
+  # Un redémarrage de l'API seule (restart, plantage) ne migre plus la base.
+  preparation:
+    image: pkp-api:latest
+    environment: *api-env
+    command: ["sh", "-c", "alembic upgrade head && python -m app.contenu importer && python -m app.production verifier"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    logging: *journaux
+
   api:
     image: pkp-api:latest
     build:
@@ -44,6 +57,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      preparation:
+        condition: service_completed_successfully
     volumes:
       - fichiers:/data/fichiers
     restart: unless-stopped
