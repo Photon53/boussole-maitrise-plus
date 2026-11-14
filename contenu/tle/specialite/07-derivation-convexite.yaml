@@ -68,8 +68,13 @@ competences:
         solution: x/sqrt(x^2 + 1)
         auteur: Brouillon IA (Claude)
         correction:
+          methode: 'Formule de dérivation d''une composée $\sqrt{u}$ : $\left(\sqrt{u}\right)^{\prime} = \dfrac{u^{\prime}}{2\sqrt{u}}$, avec $u > 0$.'
           etapes:
-          - $(\sqrt u)' = \dfrac{u'}{2\sqrt u} = \dfrac{2x}{2\sqrt{x^2 + 1}}$.
+          - 'On pose $u(x) = x^2 + 1$, donc $u^{\prime}(x) = 2x$ ; $u > 0$ sur $\mathbb{R}$.'
+          - 'On applique la formule : $f^{\prime}(x) = \dfrac{2x}{2\sqrt{x^2 + 1}}$.'
+          - 'On simplifie le facteur $2$ : $f^{\prime}(x) = \dfrac{x}{\sqrt{x^2 + 1}}$.'
+          erreurs_frequentes:
+          - 'Oublier de diviser par $2\sqrt{u}$ et répondre $2x$, ou oublier de simplifier le facteur $2$ au numérateur.'
           resultat: x/sqrt(x^2 + 1)
       - code: TLE-COMPOSEE-04
         difficulte: 4
