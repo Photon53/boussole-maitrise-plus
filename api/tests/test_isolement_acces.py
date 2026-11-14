@@ -83,6 +83,8 @@ CORPS: dict[tuple[str, str], dict] = {
     ("PATCH", "/anglais/groupes/{groupe_id}/eleves/{eleve_id}"): {"prenom": "Renomme"},
     ("POST", "/anglais/groupes/{groupe_id}/eleves"): {"prenoms": ["Intrus"]},
     ("POST", "/anglais/groupes/{groupe_id}/enfants"): {"enfant_ids": [1]},
+    ("PUT", "/anglais/groupes/{groupe_id}/correction"): {"mode": "fin_du_quiz"},
+    ("PUT", "/anglais/groupes/{groupe_id}/seances/{code}/correction"): {"mode": "fin_du_quiz"},
 }
 
 
@@ -279,7 +281,7 @@ def test_un_professeur_d_anglais_n_atteint_pas_les_groupes_d_un_autre(client):
     b = creer_enseignant(client, admin, "anglais.b@pkp.test", [{"role": "professeur", "domaine": "anglais-college"}])
     gid = client.post("/anglais/groupes", headers=a, json={"nom": "Groupe de A", "niveau": "4e"}).json()["id"]
     eleve_id = client.post(f"/anglais/groupes/{gid}/eleves", headers=a, json={"prenoms": ["Zoé"]}).json()["groupe"]["eleves"][0]["id"]
-    valeurs = {"groupe_id": gid, "eleve_id": eleve_id}
+    valeurs = {"groupe_id": gid, "eleve_id": eleve_id, "code": "4E-01"}
     fuites = [
         f"{m} {c} → {r.status_code}"
         for m, c in routes_protegees() if c.startswith("/anglais/groupes/{groupe_id}")
