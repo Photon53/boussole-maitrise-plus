@@ -54,6 +54,10 @@ automatiquement aux classes existantes.
 L'état de la banque (matrice de couverture, trous, validation, registre des sources) est dans
 [CONTENU-INVENTAIRE.md](CONTENU-INVENTAIRE.md), **généré** par la commande `inventaire`.
 
+> **Français** (#98) : `contenu/francais/<niveau>/*.json` suit un autre contrat, sans correction automatique ni
+> solution exacte : voir [francais/FORMAT-IMPORT.md](francais/FORMAT-IMPORT.md). Ces fichiers ne sont lus ni par
+> `python -m app.contenu` ni par l'import au démarrage ; ils s'importent par `python -m app.francais importer`.
+
 ## Cycle de travail
 
 1. Écrire ou modifier un fichier YAML, rangé dans `contenu/<niveau>/<parcours>/`.
