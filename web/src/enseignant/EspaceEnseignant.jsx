@@ -35,7 +35,17 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
     setCompte(null);
   }
 
-  if (!compte) return <PageSimple><ConnexionEnseignant onConnexion={connecter} /></PageSimple>;
+  if (!compte) {
+    return (
+      <PageSimple>
+        <ConnexionEnseignant onConnexion={connecter}>
+          <p className="aide">
+            Vous enseignez le français ? <a href="/francais">Français (préparation)</a>
+          </p>
+        </ConnexionEnseignant>
+      </PageSimple>
+    );
+  }
   if (compte.mdp_provisoire) {
     return (
       <PageSimple>
@@ -105,7 +115,6 @@ export function PageSimple({ marque, children }) {
         <nav aria-label="Espaces">
           <a href="/eleve">Espace élève</a>
           <a href="/parent">Espace parent</a>
-          <a href="/francais">Français (préparation)</a>
         </nav>
       </header>
       <main>{children}</main>

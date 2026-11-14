@@ -3,6 +3,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import App from "../App.jsx";
+import { PageSimple } from "../enseignant/EspaceEnseignant.jsx";
 import { fausseApi } from "./setup.js";
 
 const PROFESSEUR = {
@@ -11,6 +12,17 @@ const PROFESSEUR = {
 };
 
 describe("navigation vers le Français en préparation", () => {
+  it("propose le Français à la connexion maths sans l'ajouter au cadre partagé avec les parents", async () => {
+    window.history.replaceState(null, "", "/enseignant");
+    fausseApi({});
+    const vue = render(<App />);
+    expect(await screen.findByRole("heading", { name: "Connexion professeur" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Français (préparation)" })).toHaveAttribute("href", "/francais");
+    vue.unmount();
+    render(<PageSimple><p>Connexion parent</p></PageSimple>);
+    expect(screen.queryByRole("link", { name: /Français/ })).not.toBeInTheDocument();
+  });
+
   it("propose une sortie vers le Français quand le compte est refusé en maths", async () => {
     window.history.replaceState(null, "", "/enseignant");
     sessionStorage.setItem("pkp.enseignant", JSON.stringify(PROFESSEUR));
