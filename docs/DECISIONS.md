@@ -25,7 +25,7 @@ Statuts : **Prise** (arbitrée et appliquée ou en cours d'application), **En at
 
 Attention : le tableau « Décisions à prendre » du cahier des charges V2 (§ 15) donne une **recommandation** pour
 chacune de ses 14 décisions. Seules celles qui sont appliquées dans le code ou arbitrées par écrit sont
-comptées ici comme prises (V2-D3, V2-D11) ; les autres restent en attente, recommandation comprise.
+comptées ici comme prises (V2-D3, V2-D11 et arbitrages de présentation de V2-D12) ; les autres restent en attente, recommandation comprise.
 
 ## Décisions prises
 
@@ -41,6 +41,12 @@ comptées ici comme prises (V2-D3, V2-D11) ; les autres restent en attente, reco
 | ARCH-6 | 2026 | Code, documentation et vocabulaire en **français** | Tables, classes, routes, tests, commentaires en français ; pas de traduction anglaise des concepts | `docs/CONSIGNES-DEVELOPPEUR.md` (constat du dépôt) |
 | V2-D3 | 2026-10-30 | Ne servir que les questions validées en production, chapitre par chapitre | **Appliquée dans le code** : réglage `PKP_SERVIR_QUESTIONS_NON_VALIDEES`, choix explicite obligatoire en production (E0.4) | CDC V2 § 15, § 5 |
 | V2-D11 | 2026-11-03 | **Pas** de compte unique pour tous les utilisateurs | **Appliquée dans le code** : trois familles de comptes conservées ; rôles avec périmètre via `habilitation` (EX.6 à EX.9-bis, migration 0023) | CDC V2 § 3.2, § 15 |
+
+### Présentation du Français — arbitrages partiels de V2-D12
+
+| Id | Date | Décision confirmée | Conséquence | Source |
+|---|---|---|---|---|
+| V2-D12 — présentation | 2026-11-14 | Parcours guidé par défaut ; le professeur choisit aussi Bibliothèque ou Objectif brevet, pour un groupe ou une séance. Priorité : séance explicite → groupe → guidé ; option « Hériter du groupe » | À implémenter. Préparation réservée aux adultes, sans ouverture aux élèves. Le reste de V2-D12 demeure en attente | #111 ; [cadrage proposé](francais/CADRAGE-PARCOURS-GUIDE.md) |
 
 ### Sécurité et données personnelles
 
@@ -75,7 +81,7 @@ comptées ici comme prises (V2-D3, V2-D11) ; les autres restent en attente, reco
 | V2-D6 | Hébergeur de production | Une VM dans l'UE ; région à confirmer | Propriétaire | Mise en production |
 | V2-D13 | Seuil d'ouverture publique d'un domaine | Par exemple 80 % des compétences d'un niveau couvertes par du contenu publié | Propriétaire + référent | Ouverture de chaque domaine |
 | V2-D10 | Avancer la vue de classe au lot 1 | Oui (recommandation du CDC, non actée) | Propriétaire | Périmètre du lot 1 |
-| V2-D12 | Cadrage du français : types d'exercices, textes, auteurs | Fiche dédiée avant tout développement ; pas avant les vagues 1 et 2 | Propriétaire + référent | Lot D (français) |
+| V2-D12 | Reste du cadrage français : contrat des activités, réponses, groupes non publics et ouverture | Présentation et héritage confirmés ci-dessus ; autres propositions dans la fiche dédiée à relire. EX.4 reste applicable | Propriétaire + référent | Lots suivants du français ; création de groupes non publics avant arbitrage EX.4 |
 | V2-D14 | Abonnement par domaine ou tous domaines inclus | Par domaine au lancement, bouquet plus tard | Propriétaire | Lot 1 (offres) |
 | SEC-D2 | Politique de correction : forme exigée (développée, factorisée, simplifiée, libre) par question | Le moteur ne vérifie que l'équivalence ; le lot B de l'audit ne peut pas définir « correct » sans cette règle | Référent pédagogique | Audit lot B |
 | DEV-D4 | Retirer `roles/editor` du compte Compute par défaut | Accord de principe ; **suspendu** tant que l'absence d'usage n'est pas démontrée (plusieurs contrôles incomplets) ; prévoir des droits de remplacement | Propriétaire | Rien (sécurité en profondeur) |
