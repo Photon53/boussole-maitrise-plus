@@ -266,6 +266,9 @@ class GroupeAnglais(Base):
     """Groupe PKP Anglais (collège) : séparé des classes de maths, sans parcours ni chapitres (CDC anglais V1.8)."""
 
     __tablename__ = "groupe_anglais"
+    __table_args__ = (
+        CheckConstraint("mode_correction IN ('apres_chaque_question', 'fin_du_quiz')", name="mode_correction"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     nom: Mapped[str] = mapped_column(String(60))
@@ -280,11 +283,41 @@ class GroupeAnglais(Base):
     archivee_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     archivee_par: Mapped[str | None] = mapped_column(String(80))
     motif_archivage: Mapped[str | None] = mapped_column(String(200))
+    # Mode de correction des quiz du groupe (#110) : après chaque question (défaut) ou à la fin du quiz.
+    mode_correction: Mapped[str] = mapped_column(
+        String(25), default="apres_chaque_question", server_default="apres_chaque_question"
+    )
 
     enseignant: Mapped[Enseignant] = relationship(back_populates="groupes_anglais")
     eleves: Mapped[list["EleveAnglais"]] = relationship(
         back_populates="groupe", cascade="all, delete-orphan", passive_deletes=True
     )
+    modes_seances: Mapped[list["ModeCorrectionSeanceAnglais"]] = relationship(
+        back_populates="groupe", cascade="all, delete-orphan", passive_deletes=True
+    )
+
+    def mode_correction_de(self, code: str) -> str:
+        """Mode effectif pour une séance : réglage de la séance dans ce groupe, sinon celui du groupe (#110)."""
+        from app.correction import mode_effectif
+
+        return mode_effectif(self.mode_correction, next((m.mode for m in self.modes_seances if m.code == code), None))
+
+
+class ModeCorrectionSeanceAnglais(Base):
+    """Mode de correction propre à une séance, pour un groupe (#110) : remplace le mode du groupe."""
+
+    __tablename__ = "mode_correction_seance_anglais"
+    __table_args__ = (
+        UniqueConstraint("groupe_id", "code", name="uq_mode_correction_seance_anglais_groupe_code"),
+        CheckConstraint("mode IN ('apres_chaque_question', 'fin_du_quiz')", name="mode"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    groupe_id: Mapped[int] = mapped_column(ForeignKey("groupe_anglais.id", ondelete="CASCADE"), index=True)
+    code: Mapped[str] = mapped_column(String(10))
+    mode: Mapped[str] = mapped_column(String(25))
+
+    groupe: Mapped[GroupeAnglais] = relationship(back_populates="modes_seances")
 
 
 class EleveAnglais(Base):
@@ -309,6 +342,7 @@ class EleveAnglais(Base):
     progression: Mapped[list["ProgressionAnglais"]] = relationship(
         back_populates="eleve", cascade="all, delete-orphan", passive_deletes=True
     )
+    reponses: Mapped[list["ReponseAnglais"]] = relationship(cascade="all, delete-orphan", passive_deletes=True)
 
 
 STATUTS_SEANCE_ANGLAIS = ("brouillon", "soumis", "valide", "refuse", "archive")
@@ -387,11 +421,34 @@ class ProgressionAnglais(Base):
     meilleur_score: Mapped[int] = mapped_column(Integer, default=0)
     total: Mapped[int] = mapped_column(Integer, default=0)
     tentatives: Mapped[int] = mapped_column(Integer, default=0)
+    # Score du premier essai, figé (#110, choix B) ; inconnu (None) pour les résultats antérieurs.
+    premier_score: Mapped[int | None] = mapped_column(Integer)
     # Un niveau par phrase « I can » : non_observe, avec_aide, en_cours, autonome.
     i_can: Mapped[list] = mapped_column(JSON, default=list)
     maj_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, onupdate=_maintenant)
 
     eleve: Mapped[EleveAnglais] = relationship(back_populates="progression")
+
+
+class ReponseAnglais(Base):
+    """Réponse d'un élève à une question d'un quiz d'anglais, par essai (#110).
+
+    Unique par (élève, séance, essai, question) : la première réponse d'un essai compte et ne se modifie pas.
+    """
+
+    __tablename__ = "reponse_anglais"
+    __table_args__ = (
+        UniqueConstraint("eleve_id", "code", "essai", "question", name="uq_reponse_anglais_eleve_code_essai_question"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve_anglais.id", ondelete="CASCADE"), index=True)
+    code: Mapped[str] = mapped_column(String(10))
+    essai: Mapped[int] = mapped_column(Integer)  # 1 = premier essai
+    question: Mapped[int] = mapped_column(Integer)  # rang dans le quiz complet, à partir de 0
+    choix: Mapped[int] = mapped_column(Integer)
+    juste: Mapped[bool] = mapped_column(Boolean)
+    repondu_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
 
 
 STATUTS_DOSSIER_FRANCAIS = ("brouillon", "soumis", "valide", "refuse", "archive")
