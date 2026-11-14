@@ -66,8 +66,13 @@ describe("page d'accueil : attirer élèves, parents et professeurs", () => {
       "Parent — Espace parent": "/parent",
       "Professeur — Maths": "/enseignant",
       "Professeur — Anglais": "/anglais",
+      "Professeur — Français (préparation)": "/francais",
     };
     for (const [nom, href] of Object.entries(liens)) expect(screen.getByRole("link", { name: nom })).toHaveAttribute("href", href);
+    const eleve = screen.getByRole("heading", { name: "Je suis élève" }).closest("li");
+    const parent = screen.getByRole("heading", { name: "Je suis parent" }).closest("li");
+    expect(within(eleve).queryByRole("link", { name: /Français/ })).not.toBeInTheDocument();
+    expect(within(parent).queryByRole("link", { name: /Français/ })).not.toBeInTheDocument();
     // Les profils viennent avant les parcours dans l'ordre de lecture.
     const titres = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
     expect(titres.indexOf("Accéder à mon espace")).toBeLessThan(titres.indexOf("Les parcours"));

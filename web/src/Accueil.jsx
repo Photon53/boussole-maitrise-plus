@@ -76,8 +76,12 @@ function Profils() {
             <LienEspace href="/anglais" profil="Professeur" secondaire>
               Anglais
             </LienEspace>
+            <LienEspace href="/francais" profil="Professeur" secondaire>
+              Français (préparation)
+            </LienEspace>
           </div>
           <p className="doux profil-aide">Classes, groupes, séances, packs PDF et ressources.</p>
+          <p className="doux profil-aide">Français : préparation réservée aux adultes habilités, sans accès élève.</p>
         </li>
       </ul>
     </section>
