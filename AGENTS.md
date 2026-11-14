@@ -56,6 +56,7 @@ Ces points ne se négocient pas et ne demandent pas d'arbitrage : ils sont déj�
 - `scripts/audit-dev-compte-compute.sh`, `scripts/bootstrap-gcp-dev.sh`, `scripts/boussole-dev.sh`,
   `scripts/controle-acces-sauvegardes.sh`, `scripts/deployer-dev-iap.sh`, `scripts/dev-publier-version.sh`,
   `scripts/reprise-terraform-dev.sh`, `scripts/terraform-dev-cloudshell.sh`, `scripts/wif-dev-comptes-separes.sh` ;
+- `scripts/tester-ihm-gcp.ps1` (Windows : SSH via IAP sur la VM DEV, lecture de l'état des conteneurs, tunnel ; peut démarrer la VM après accord) ;
 - `scripts/troubleshooter_iam.py` (peut interroger Policy Troubleshooter) ;
 - `scripts/comparer-politique-bucket.py` (comparaison locale de fichiers IAM et de plan Terraform ; exécution réservée au propriétaire dans ce périmètre).
 
