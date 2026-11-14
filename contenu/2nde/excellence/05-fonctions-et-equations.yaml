@@ -174,9 +174,9 @@ competences:
     solution: '20'
     auteur: Brouillon IA (Claude)
     correction:
-      methode: 'Traduire la contrainte de l''enclos : le périmètre impose une longueur de $40 - 2x$, qui doit rester strictement positive.'
+      methode: 'Traduire la contrainte de l''enclos : les $40$ m de grillage imposent un côté parallèle au mur de $40 - 2x$, qui doit rester strictement positif.'
       etapes:
-      - 'Le périmètre de l''enclos est $40$ m et la largeur vaut $x$ : la longueur est $40 - 2x$.'
+      - 'Le grillage ($40$ m) forme les deux côtés perpendiculaires au mur, de longueur $x$, et le côté parallèle : celui-ci mesure $40 - 2x$.'
       - 'Une longueur doit être strictement positive : $40 - 2x > 0$.'
       - 'On résout : $2x < 40$, soit $x < 20$.'
       - La borne est donc $m = 20$

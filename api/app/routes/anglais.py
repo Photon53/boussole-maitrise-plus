@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import archives, anglais_contenu, journal, permissions
+from app import archives, anglais_contenu, correction, journal, permissions
 from app.anglais_pdf import produire_pdf
 from app.anglais_pictos import image_svg
 from app.auth import EnseignantAnglais, EnseignantAuthentifie, SessionDB
@@ -374,14 +374,45 @@ def regenerer_code(groupe_id: int, eleve_id: int, enseignant: EnseignantAnglais,
 
 @router.get("/groupes/{groupe_id}/progression")
 def progression_du_groupe(groupe_id: int, enseignant: EnseignantAnglais, session: SessionDB):
-    """Meilleur score au quiz et auto-évaluation « I can » de chaque élève, séance par séance."""
+    """Meilleur score au quiz, score du premier essai (None si inconnu, #110) et auto-évaluation « I can » de
+    chaque élève, séance par séance."""
     groupe = _mon_groupe(session, groupe_id, enseignant)
     return [
         {"id": e.id, "prenom": e.prenom,
-         "seances": {p.code: {"score": p.meilleur_score, "total": p.total, "tentatives": p.tentatives,
-                              "i_can": p.i_can} for p in e.progression}}
+         "seances": {p.code: {"score": p.meilleur_score, "premier_score": p.premier_score, "total": p.total,
+                              "tentatives": p.tentatives, "i_can": p.i_can} for p in e.progression}}
         for e in sorted(groupe.eleves, key=lambda e: e.prenom.lower())
     ]
+
+
+# --- Mode de correction des quiz (#110) ---------------------------------------------------------------------
+
+
+@router.get("/groupes/{groupe_id}/correction", response_model=correction.ReglageCorrection)
+def mode_de_correction(groupe_id: int, enseignant: EnseignantAnglais, session: SessionDB) -> correction.ReglageCorrection:
+    """Mode du groupe et séances qui ont leur propre réglage."""
+    return correction.reglage(_mon_groupe(session, groupe_id, enseignant))
+
+
+@router.put("/groupes/{groupe_id}/correction", response_model=correction.ReglageCorrection)
+def regler_correction_du_groupe(
+    groupe_id: int, corps: correction.ChoixMode, enseignant: EnseignantAnglais, session: SessionDB
+) -> correction.ReglageCorrection:
+    groupe = _mon_groupe(session, groupe_id, enseignant)
+    groupe.mode_correction = corps.mode
+    session.commit()
+    return correction.reglage(groupe)
+
+
+@router.put("/groupes/{groupe_id}/seances/{code}/correction", response_model=correction.ReglageCorrection)
+def regler_correction_d_une_seance(
+    groupe_id: int, code: str, corps: correction.ChoixModeSeance, enseignant: EnseignantAnglais, session: SessionDB
+) -> correction.ReglageCorrection:
+    """Mode propre à une séance pour ce groupe ; `null` le retire (la séance suit le mode du groupe)."""
+    groupe = _mon_groupe(session, groupe_id, enseignant)
+    correction.regler_seance(session, groupe, code, corps.mode)
+    session.commit()
+    return correction.reglage(groupe)
 
 
 @router.delete("/groupes/{groupe_id}/eleves/{eleve_id}", status_code=status.HTTP_204_NO_CONTENT)
