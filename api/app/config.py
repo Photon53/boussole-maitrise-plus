@@ -75,6 +75,8 @@ class Settings(BaseSettings):
             problemes.append("PKP_SECRET_KEY doit être définie (32 caractères minimum, aléatoire).")
         if any("localhost" in o or o == "*" for o in self.cors_origins):
             problemes.append("PKP_CORS_ORIGINS ne doit contenir que le domaine public du site.")
+        elif any(not o.startswith("https://") for o in self.cors_origins):
+            problemes.append("PKP_CORS_ORIGINS : origines en https:// uniquement.")
         if self.database_url.startswith("sqlite"):
             problemes.append("PKP_DATABASE_URL doit pointer vers PostgreSQL en production.")
         if "servir_questions_non_validees" not in self.model_fields_set:
