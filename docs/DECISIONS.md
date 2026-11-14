@@ -25,7 +25,7 @@ Statuts : **Prise** (arbitrée et appliquée ou en cours d'application), **En at
 
 Attention : le tableau « Décisions à prendre » du cahier des charges V2 (§ 15) donne une **recommandation** pour
 chacune de ses 14 décisions. Seules celles qui sont appliquées dans le code ou arbitrées par écrit sont
-comptées ici comme prises (V2-D3, V2-D11) ; les autres restent en attente, recommandation comprise.
+comptées ici comme prises (V2-D3, V2-D11 et arbitrages de présentation de V2-D12) ; les autres restent en attente, recommandation comprise.
 
 ## Décisions prises
 
