@@ -85,6 +85,7 @@ competences:
           - 'On développe comme une identité remarquable : $\|\vec u + \vec v\|^2 = \|\vec u\|^2 + 2\,\vec u \cdot \vec v + \|\vec v\|^2$.'
           - 'On remplace : $\|\vec u\|^2 = 2^2 = 4$, $\|\vec v\|^2 = 1^2 = 1$ et $2\,\vec u \cdot \vec v = 2 \times (-1) = -2$.'
           - 'On obtient $4 - 2 + 1 = 3$ : un résultat positif, comme tout carré de norme.'
+          - 'Vérification de cohérence : $\|\vec u + \vec v\| = \sqrt{3} \approx 1{,}73$, valeur bien comprise entre $|2 - 1| = 1$ et $2 + 1 = 3$ (inégalité triangulaire).'
           erreurs_frequentes:
           - 'Oublier le facteur $2$ du double produit, ou perdre le signe de $\vec u \cdot \vec v$ et calculer $4 + 2 + 1$.'
           resultat: 3
