@@ -128,8 +128,17 @@ def ma_seance(code: str, eleve: EleveAnglaisCourant, session: SessionDB):
 
 @router.post("/seances/{code}/corriger")
 def corriger(code: str, corps: Reponses, eleve: EleveAnglaisCourant, session: SessionDB):
-    """Correction immédiate ; seul le meilleur score est conservé."""
-    resultat = anglais_contenu.corriger(_publiee(session, eleve, code), corps.reponses)
+    """Correction immédiate ; seul le meilleur score est conservé.
+
+    ARCH-4 (décision du propriétaire du 14/11/2026, #107) : le corrigé n'est rendu qu'une fois chaque question
+    répondue par un choix existant ; un envoi vide ou partiel est refusé, sans rien enregistrer."""
+    version = _publiee(session, eleve, code)
+    quiz = anglais_contenu.quiz_complet(version)
+    if len(corps.reponses) != len(quiz) or any(
+        r is None or not 0 <= r < len(q["choix"]) for r, q in zip(corps.reponses, quiz, strict=False)
+    ):
+        raise HTTPException(422, "Réponds à toutes les questions avant de voir la correction.")
+    resultat = anglais_contenu.corriger(version, corps.reponses)
     p = _progression(session, eleve, code)
     p.tentatives += 1
     p.total = resultat["total"]
