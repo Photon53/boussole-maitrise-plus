@@ -110,8 +110,14 @@ competences:
         solution: ln(5)
         auteur: Brouillon IA (Claude)
         correction:
+          methode: 'La fonction $\ln$ est la réciproque de $\exp$ : pour $a > 0$, $e^x = a \iff x = \ln a$.'
           etapes:
-          - $e^x = 5 \iff x = \ln 5$.
+          - 'L''équation est définie pour tout réel $x$, et $5 > 0$ : la valeur exacte cherchée existe.'
+          - 'On applique $\ln$ aux deux membres : $\ln\left(e^x\right) = \ln 5$.'
+          - 'Comme $\ln\left(e^x\right) = x$ pour tout réel $x$, on obtient $x = \ln 5$.'
+          - 'Vérification : $e^{\ln 5} = 5$, l''égalité de départ est bien retrouvée.'
+          erreurs_frequentes:
+          - 'Chercher une seconde solution, comme pour $x^2 = 5$ : l''exponentielle est strictement croissante, l''équation $e^x = 5$ a une seule solution.'
           resultat: ln(5)
       - code: TLE-LN-DEF-06
         difficulte: 4
@@ -208,8 +214,14 @@ competences:
         solution: 2x/(x^2 + 1)
         auteur: Brouillon IA (Claude)
         correction:
+          methode: 'Formule de dérivation d''une composée : si $u > 0$, $\left(\ln u\right)^{\prime} = \dfrac{u^{\prime}}{u}$.'
           etapes:
-          - $(\ln u)' = \dfrac{u'}{u}$ avec $u = x^2 + 1$, $u' = 2x$.
+          - 'On pose $u(x) = x^2 + 1$, donc $u^{\prime}(x) = 2x$ ; $u > 0$ sur $\mathbb{R}$.'
+          - 'On applique la formule : $f^{\prime}(x) = \dfrac{u^{\prime}(x)}{u(x)} = \dfrac{2x}{x^2 + 1}$.'
+          - '$f^{\prime}$ a le signe de $x$ : $f$ décroît puis croît, ce qui est cohérent avec le minimum de $f$ en $x = 0$.'
+          - 'Vérification : $f^{\prime}(0) = 0$ (tangente horizontale au minimum) et $f^{\prime}(x) \to 0$ quand $x \to \pm\infty$, conformément à l''allure de $\ln\left(x^2 + 1\right)$.'
+          erreurs_frequentes:
+          - 'Répondre $f^{\prime}(x) = \dfrac{1}{x^2 + 1}$ en oubliant de multiplier par $u^{\prime}(x)$.'
           resultat: 2x/(x^2 + 1)
       - code: TLE-LN-ETU-04
         difficulte: 3
