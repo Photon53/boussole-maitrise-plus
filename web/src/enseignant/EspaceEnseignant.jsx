@@ -105,6 +105,7 @@ export function PageSimple({ marque, children }) {
         <nav aria-label="Espaces">
           <a href="/eleve">Espace élève</a>
           <a href="/parent">Espace parent</a>
+          <a href="/francais">Français (préparation)</a>
         </nav>
       </header>
       <main>{children}</main>
@@ -125,6 +126,11 @@ export function AccesReserve({ titre, compte, autreEspace, onDeconnexion }) {
         {autreEspace && (
           <a className="bouton" href={autreEspace.vers}>
             {autreEspace.libelle}
+          </a>
+        )}
+        {autreEspace && autreEspace.vers !== "/francais" && (
+          <a className="bouton secondaire" href="/francais">
+            Aller à l'espace Français (préparation)
           </a>
         )}
         <button type="button" className="lien" onClick={onDeconnexion}>
