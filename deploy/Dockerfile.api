@@ -52,8 +52,9 @@ RUN mkdir -p /data/fichiers && chown pkp:pkp /data/fichiers
 USER pkp
 EXPOSE 8000
 
+# Uvicorn seul (#116) : migrations, import du contenu et contrôle de la base forment une étape séparée, lancée
+# avec la même image (service « preparation » de docker-compose.yml ; boussole-dev-sync en DEV).
 # 1 seul worker : la limitation des connexions est en mémoire (voir app/limitation.py).
 # --proxy-headers : l'IP du client vient de Caddy. Sûr car l'API n'est joignable
 # que depuis le réseau Docker interne (aucun port publié).
-# Au démarrage : migrations, puis import du contenu pédagogique (idempotent).
-CMD ["sh", "-c", "alembic upgrade head && python -m app.contenu importer && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips='*'"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips=*"]

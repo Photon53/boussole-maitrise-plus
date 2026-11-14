@@ -34,8 +34,12 @@ docker compose exec api python -m app.admin creer --email prof@lycee.fr --nom "M
 Vérifier : `https://<domaine>/api/health` répond `{"status":"ok"}`, puis se connecter sur
 `https://<domaine>/enseignant`.
 
-Les migrations de base de données sont appliquées automatiquement à chaque démarrage de l'API.
-Les données de démo ne sont **jamais** chargées en production.
+Avant l'API, le service ponctuel `preparation` applique les migrations, importe le contenu pédagogique
+(idempotent) et contrôle la base (`python -m app.production verifier`). S'il échoue, l'API ne démarre pas :
+lire `docker compose logs preparation`. Un redémarrage de l'API seule (`docker compose restart api`) ne migre
+plus la base ; `docker compose up -d` relance la préparation.
+Les données de démo ne sont **jamais** chargées en production : `python -m app.db.seed` refuse de s'exécuter
+avec `PKP_ENVIRONNEMENT=production`, et la préparation échoue si un compte de démonstration est présent.
 
 ## Oracle Cloud (Oracle Linux) : script d'installation
 
