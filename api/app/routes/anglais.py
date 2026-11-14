@@ -9,7 +9,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import archives, anglais_contenu, correction, journal, permissions
+from app import archives, anglais_contenu, correction, enfants, journal, permissions
 from app.anglais_pdf import produire_pdf
 from app.anglais_pictos import image_svg
 from app.auth import EnseignantAnglais, EnseignantAuthentifie, SessionDB
@@ -357,7 +357,11 @@ def nouveaux_codes(groupe_id: int, enseignant: EnseignantAnglais, session: Sessi
                    tous: bool = False) -> list[CodeEleveAnglais]:
     """Codes des élèves qui n'en ont pas, ou de tous (les anciens codes cessent alors de fonctionner)."""
     groupe = _mon_groupe(session, groupe_id, enseignant)
-    eleves = sorted((e for e in groupe.eleves if tous or e.code_hash is None), key=lambda e: e.prenom.lower())
+    # Un enfant de famille garde sa carte : elle est gérée par l'administrateur et ses parents (#115).
+    eleves = sorted(
+        (e for e in groupe.eleves if e.enfant is None and (tous or e.code_hash is None)),
+        key=lambda e: e.prenom.lower(),
+    )
     codes = [attribuer_code(session, e) for e in eleves]
     session.commit()
     return codes
@@ -367,6 +371,8 @@ def nouveaux_codes(groupe_id: int, enseignant: EnseignantAnglais, session: Sessi
 def regenerer_code(groupe_id: int, eleve_id: int, enseignant: EnseignantAnglais, session: SessionDB) -> CodeEleveAnglais:
     """Code perdu : un nouveau code remplace l'ancien et déconnecte l'élève partout."""
     eleve = _mon_eleve(session, _mon_groupe(session, groupe_id, enseignant), eleve_id)
+    if eleve.enfant is not None:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, enfants.CARTE_DE_FAMILLE)
     code = attribuer_code(session, eleve)
     session.commit()
     return code

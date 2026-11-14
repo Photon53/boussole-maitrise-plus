@@ -284,7 +284,11 @@ def inscrire_eleves(
 def generer_codes_manquants(classe_id: int, enseignant: EnseignantCourant, session: SessionDB) -> list[CodeEleve]:
     """Pour les élèves inscrits avant les codes personnels : leur en attribuer un."""
     classe = _ma_classe(session, classe_id, enseignant)
-    codes = [_attribuer_code(e) for e in sorted(classe.eleves, key=lambda e: e.prenom) if e.code_hash is None]
+    # Un enfant de famille garde sa carte : elle est gérée par l'administrateur et ses parents (#115).
+    codes = [
+        _attribuer_code(e) for e in sorted(classe.eleves, key=lambda e: e.prenom)
+        if e.code_hash is None and e.enfant is None
+    ]
     session.commit()
     return codes
 
@@ -296,6 +300,8 @@ def cartes_de_la_classe(classe_id: int, enseignant: EnseignantCourant, session: 
     classe = _ma_classe(session, classe_id, enseignant)
     cartes = []
     for eleve in sorted(classe.eleves, key=lambda e: e.prenom):
+        if eleve.enfant is not None:  # carte de famille : jamais régénérée par un professeur (#115)
+            continue
         cartes.append(_attribuer_code(eleve))
         for autre in inscriptions.liees(session, eleve):
             autre.code_hash = eleve.code_hash  # un seul code pour toutes les inscriptions du même élève
@@ -322,6 +328,8 @@ def nouveau_code(eleve_id: int, enseignant: EnseignantCourant, session: SessionD
     """Code oublié ou divulgué : en génère un nouveau ; l'ancien et ses sessions cessent de fonctionner.
     Il vaut pour toutes les inscriptions reliées du même élève (un seul code à retenir)."""
     eleve = _mon_eleve(session, eleve_id, enseignant)
+    if eleve.enfant is not None:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, enfants.CARTE_DE_FAMILLE)
     code = _attribuer_code(eleve)
     for autre in inscriptions.liees(session, eleve):
         autre.code_hash = eleve.code_hash
