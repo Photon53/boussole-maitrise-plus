@@ -52,7 +52,7 @@ Légende : ✅ assuré par le logiciel (et testé) · ☐ à faire par l'établi
 | ✅ | Démarrage refusé en production sans clé secrète forte, avec SQLite ou avec CORS ouvert | `app/config.py` |
 | ✅ | Limitation des tentatives : 5 échecs / 15 min par compte enseignant ; 30 codes classe faux / 15 min par IP | `app/limitation.py` |
 | ✅ | Cloisonnement : un enseignant ne voit que ses classes (404 sinon) ; un parent ne voit que ses enfants, et plus rien si le professeur est désactivé | `routes/enseignants.py`, `routes/parents.py` |
-| ✅ | Parent : mot de passe provisoire à changer à la première connexion (12 caractères minimum), 5 échecs / 15 min par compte, jeton invalidé par un changement ou une réinitialisation ; réinitialisation par un administrateur journalisée | `routes/parents.py`, `routes/admin.py` |
+| ✅ | Parent : mot de passe provisoire à changer à la première connexion (12 caractères minimum), 5 échecs / 15 min par compte, jeton invalidé par un changement ou une réinitialisation ; réinitialisation par un administrateur journalisée ; par un professeur, seulement si le parent ne suit que ses élèves (#114). La carte d'un enfant de famille n'est renouvelée que par l'administrateur ou le parent (#115) | `routes/parents.py`, `routes/admin.py` |
 | ✅ | Code choisi par le parent pour l'enfant : 8 à 16 lettres et chiffres, au moins une lettre et un chiffre, 4 caractères différents, sans le prénom ni l'identifiant ; stocké haché ; l'ancien code et les sessions de l'enfant cessent de fonctionner | `security.probleme_code_choisi` |
 | ✅ | Messages de connexion identiques que le compte existe ou non | `routes/enseignants.py` |
 | ✅ | API et base non exposées sur Internet (réseau Docker interne) | `docker-compose.yml` |
