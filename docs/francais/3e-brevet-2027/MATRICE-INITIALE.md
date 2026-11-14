@@ -30,9 +30,9 @@ Les codes ci-dessous sont des identifiants documentaires locaux, pas des codes o
 | FR3-E03 | Rédaction d’imagination | S2 rédaction | Aucun sujet développé | À produire |
 | FR3-E04 | Rédaction de réflexion | S2 rédaction | Aucun sujet développé | À produire |
 | FR3-G01 | Syntaxe et propositions | S1 Langue | Aucun cours dédié | À produire |
-| FR3-G02 | Accords et conjugaison | S1 Langue | Aucun cours dédié | À produire |
+| FR3-G02 | Accords et conjugaison | S1 Langue | Dossier 02 : accords, présent et imparfait ; autres conjugaisons non couvertes | Préparé partiellement, non validé |
 | FR3-G03 | Lexique et cohérence | S1 Langue | Q2 et Q7 | À compléter |
-| FR3-G04 | Transformations de texte | S2 réécriture | Aucun exercice dédié | À produire |
+| FR3-G04 | Transformations de texte | S2 réécriture | Dossier 02 : Q6–Q8 et T3 | Préparé partiellement, non validé |
 | FR3-G05 | Dictée et relecture | S2 dictée | Aucun support audio | À produire |
 | FR3-O01 | Compréhension et expression orales | S1 Oral | Échange possible en séance | À compléter |
 | FR3-B01 | Gestion d’une épreuve complète | S2 | Séance courte uniquement | À produire |
@@ -57,3 +57,11 @@ S1 est synthétisé ici, sans transcription exhaustive. La préparation de l’�
 - Les réponses rédigées sont accompagnées par un professeur ; aucune correction automatique de texte libre annoncée.
 - Après relecture : appliquer [le protocole #24](../../PROTOCOLE-RELECTURE-PEDAGOGIQUE.md).
 - Compléter la matrice et le rapprochement avec le programme avant de conclure l’audit #55.
+
+## Deuxième dossier préparatoire — 14/11/2026
+
+- [Fiche élève — accords et réécriture](02-accords-et-reecriture-eleve.md).
+- [Corrigés et conduite de séance](02-accords-et-reecriture-professeur.md).
+- Rédaction originale par Codex, issue #55 ; relecture humaine et essai encore à réaliser.
+- Support documentaire uniquement : le dossier 02 n’est pas ajouté au fichier d’import du premier dossier.
+- Évolution du premier dossier : PR #94 et #99 fusionnées ; import et recette réelle en DEV à confirmer dans #98.
