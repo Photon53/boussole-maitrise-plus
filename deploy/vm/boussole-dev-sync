@@ -158,7 +158,10 @@ dc_dev() {   # dc_dev <fichier d'images> <args compose…>
 images_env() { printf 'BOUSSOLE_API_IMAGE=%s\nBOUSSOLE_WEB_IMAGE=%s\n' "$2" "$3" > "$1"; }
 image_porte_digest() {   # image_porte_digest <conteneur|image> <référence repo@sha256:…>
   # --type container : sur une image, « docker inspect -f {{.Image}} » ne renvoie pas d'erreur mais « <no value> ».
-  local img; img="$($DOCKER inspect --type container -f '{{.Image}}' "$1" 2>/dev/null || echo "$1")"
+  # La sortie n'est retenue que si la commande réussit et n'est pas vide : Docker 29 (image store containerd)
+  # écrit une ligne vide avant « No such container », qui préfixait sinon la référence d'un saut de ligne.
+  local img
+  img="$($DOCKER inspect --type container -f '{{.Image}}' "$1" 2>/dev/null)" && [[ -n "$img" ]] || img="$1"
   $DOCKER image inspect -f '{{json .RepoDigests}}' "$img" 2>/dev/null | grep -qF "\"$2\""
 }
 
