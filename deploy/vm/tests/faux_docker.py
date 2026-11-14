@@ -193,6 +193,9 @@ def main():
         modele, cible = args[args.index("-f") + 1], args[-1]
         s, c = conteneur_par_id(e, cible)
         if c is None:
+            # Docker 29 (image store containerd) écrit une ligne vide sur la sortie standard avant l'erreur
+            # « No such container » : boussole-dev-sync ne doit pas confondre cette sortie avec un identifiant.
+            print()
             sys.exit(1)  # pas un conteneur (image) : boussole-dev-sync se rabat sur la référence
         if ".State.Running" in modele:
             print("true" if c["running"] else "false")
