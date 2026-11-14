@@ -414,6 +414,14 @@ def reinitialiser_parent(parent_id: int, enseignant: EnseignantCourant, session:
     parent = session.get(models.Parent, parent_id)
     if parent is None or not any(e.classe.enseignant_id == enseignant.id for e in parent.enfants):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Parent introuvable.")
+    # Le mot de passe provisoire ouvre tout le compte : le professeur ne l'obtient que si le parent ne suit
+    # que ses élèves. Sinon, rattacher l'adresse d'un parent à son élève suffirait à prendre son compte (#114).
+    if not parents.suivi_seulement_par(parent, enseignant.id):
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "Ce parent suit aussi des enfants d'autres professeurs ou de l'établissement : "
+            "demandez la réinitialisation à l'administrateur.",
+        )
     provisoire = parents.reinitialiser(parent)
     session.commit()
     return ParentCree(parent=parents.vue(parent, enseignant.id), mot_de_passe_provisoire=provisoire)
