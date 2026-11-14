@@ -237,10 +237,11 @@ competences:
           - 'On identifie le rayon : $r = 5$ cm.'
           - 'On calcule le carré du rayon : $5^2 = 25$.'
           - 'On multiplie par $\pi \approx 3{,}14$ : $3{,}14 \times 25$.'
-          - 'On obtient $78{,}5$ cm² ; vérification : $3{,}14 \times 25 = 3{,}14 \times 100 \div 4 = 314 \div 4 = 78{,}5$.'
+          - On obtient $78{,}5$ cm²
+          - 'Vérification : $3{,}14 \times 25 = 3{,}14 \times 100 \div 4 = 314 \div 4 = 78{,}5$.'
+          resultat: 78,5
           erreurs_frequentes:
           - Utiliser $2\pi r$ (périmètre) au lieu de $\pi r^2$ (aire), ou oublier d'élever le rayon au carré.
-          resultat: 78,5
       - code: 5E-SOLIDES-06
         difficulte: 5
         type: numerique
