@@ -348,22 +348,37 @@ def test_une_famille_n_atteint_pas_les_enfants_d_une_autre(client):
     connecter_carte(client, fb["cartes"][0])
 
 
-# --- Écart signalé, en attente de décision du propriétaire --------------------------------------------
+# --- Corrigés PKP Math (ARCH-4, décision du propriétaire du 14/11/2026) ---------------------------------
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="#17 : /pkp-math/chapitres/{id} sert solution et correction aux élèves, y compris pour la question "
-    "en cours de séance (écart avec ARCH-4). Fiche corrigée voulue ou fuite : décision du propriétaire.",
-)
-def test_un_eleve_ne_lit_pas_la_solution_de_sa_question_en_cours(client):
-    h = connecter_eleve(client)
-    seance = client.post("/seances", headers=h).json()["id"]
-    question = client.get(f"/seances/{seance}/question", headers=h).json()
-    solutions = {
-        q["id"]: q["solution"]
+def _fiche(client, h) -> dict[int, dict]:
+    """Toutes les questions des fiches PKP Math visibles par ce jeton, par identifiant."""
+    return {
+        q["id"]: q
         for ch in client.get("/pkp-math/catalogue", headers=h).json()
         for c in client.get(f"/pkp-math/chapitres/{ch['id']}", headers=h).json()["competences"]
         for q in c["questions"]
     }
-    assert not solutions.get(question["id"])
+
+
+def test_l_eleve_ne_lit_le_corrige_qu_apres_sa_reponse(client):
+    h = connecter_eleve(client, "Inès")  # aucune réponse dans les données de démo
+    seance = client.post("/seances", headers=h).json()["id"]
+    question = client.get(f"/seances/{seance}/question", headers=h).json()["id"]
+    avant = _fiche(client, h)
+    assert avant[question]["solution"] == "" and avant[question]["correction"] is None
+    assert avant[question]["corrige_visible"] is False
+    assert not any(q["solution"] or q["correction"] for q in avant.values())
+
+    r = client.post(f"/seances/{seance}/reponses", headers=h, json={"question_id": question, "reponse_donnee": "0"})
+    assert r.status_code == 200, r.text
+    apres = _fiche(client, h)[question]
+    assert apres["corrige_visible"] is True and apres["solution"]
+    # Seule la question répondue est dévoilée.
+    assert sum(q["corrige_visible"] for q in _fiche(client, h).values()) == 1
+
+
+def test_les_adultes_lisent_tous_les_corriges(client):
+    for h in (connecter_parent(client), connecter_enseignant(client)):
+        fiche = _fiche(client, h)
+        assert fiche and all(q["corrige_visible"] and q["solution"] for q in fiche.values())
