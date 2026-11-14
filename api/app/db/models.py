@@ -394,6 +394,73 @@ class ProgressionAnglais(Base):
     eleve: Mapped[EleveAnglais] = relationship(back_populates="progression")
 
 
+STATUTS_DOSSIER_FRANCAIS = ("brouillon", "soumis", "valide", "refuse", "archive")
+
+
+class DossierFrancais(Base):
+    """Dossier de français (leçon, textes, questions et supports professeur), importé de contenu/francais (#98).
+
+    Même circuit que les séances d'anglais : version courante = la dernière ; version validée = la dernière validée.
+    Aucun élève n'y accède : il n'existe pas de route élève pour le français (V2-D12 en attente).
+    """
+
+    __tablename__ = "dossier_francais"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    code: Mapped[str] = mapped_column(String(30), unique=True)
+    domaine_code: Mapped[str] = mapped_column(ForeignKey("domaine_pedagogique.code", ondelete="RESTRICT"), index=True)
+    niveau: Mapped[str] = mapped_column(String(4))
+    titre: Mapped[str] = mapped_column(String(200))
+
+    versions: Mapped[list["DossierFrancaisVersion"]] = relationship(
+        back_populates="dossier", cascade="all, delete-orphan", passive_deletes=True,
+        order_by="DossierFrancaisVersion.numero",
+    )
+
+    @property
+    def courante(self) -> "DossierFrancaisVersion":
+        return self.versions[-1]
+
+    @property
+    def validee(self) -> "DossierFrancaisVersion | None":
+        return next((v for v in reversed(self.versions) if v.statut == "valide"), None)
+
+
+class DossierFrancaisVersion(Base):
+    """Une version importée : partie élève et partie professeur séparées, empreinte du fichier source."""
+
+    __tablename__ = "dossier_francais_version"
+    __table_args__ = (
+        UniqueConstraint("dossier_id", "numero", name="uq_dossier_francais_version_numero"),
+        # Import idempotent : un même fichier source ne crée jamais deux versions d'un dossier.
+        UniqueConstraint("dossier_id", "empreinte", name="uq_dossier_francais_version_empreinte"),
+        CheckConstraint(
+            "statut IN ('brouillon', 'soumis', 'valide', 'refuse', 'archive')", name="ck_dossier_francais_version_statut"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    dossier_id: Mapped[int] = mapped_column(ForeignKey("dossier_francais.id", ondelete="CASCADE"), index=True)
+    numero: Mapped[int] = mapped_column(Integer)
+    # Partie élève (leçon, textes, consignes) et partie professeur (corrigés, déroulement, grille) : jamais mélangées.
+    eleve: Mapped[dict] = mapped_column(JSON)
+    professeur: Mapped[dict] = mapped_column(JSON)
+    # Format, attribution, registre des sources, cible et codes locaux.
+    meta: Mapped[dict] = mapped_column(JSON)
+    empreinte: Mapped[str] = mapped_column(String(64))
+    statut: Mapped[str] = mapped_column(String(10), default="soumis")
+    # Auteur vide = contenu importé du dépôt (rédaction par un agent, voir meta.attribution).
+    auteur_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, server_default=func.now())
+    validateur_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    decide_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    motif_refus: Mapped[str | None] = mapped_column(Text)
+
+    dossier: Mapped[DossierFrancais] = relationship(back_populates="versions")
+    auteur: Mapped["Enseignant | None"] = relationship(foreign_keys=[auteur_id])
+    validateur: Mapped["Enseignant | None"] = relationship(foreign_keys=[validateur_id])
+
+
 class Chapitre(Base):
     __tablename__ = "chapitre"
     __table_args__ = (UniqueConstraint("niveau", "parcours", "ordre", name="uq_chapitre_niveau_parcours_ordre"),)
