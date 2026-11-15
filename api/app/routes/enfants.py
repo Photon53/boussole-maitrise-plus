@@ -8,7 +8,7 @@ maths (créées directement dans une classe) passent par la même connexion.
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, Request, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app import enfants, limitation
 from app.auth import CARTE_BLOQUEE, CLASSE_ARCHIVEE, ELEVE, ELEVE_ANGLAIS, ENFANT, EnfantCourant, SessionDB, carte_bloquee
@@ -33,8 +33,8 @@ def connexion(corps: ConnexionIdentifiant, request: Request, session: SessionDB)
     limitation.par_ip.enregistrer(ip)
     duree_h = settings.duree_jeton_eleve_longue_j * 24 if corps.rester_connecte else settings.duree_jeton_eleve_h
 
-    enfant = session.scalar(select(models.Enfant).where(models.Enfant.identifiant == identifiant))
-    eleve = None if enfant else session.scalar(select(models.Eleve).where(models.Eleve.identifiant == identifiant))
+    enfant = session.scalar(select(models.Enfant).where(func.lower(models.Enfant.identifiant) == identifiant))
+    eleve = None if enfant else session.scalar(select(models.Eleve).where(func.lower(models.Eleve.identifiant) == identifiant))
     titulaire = enfant or eleve
     empreinte = titulaire.code_hash if titulaire and titulaire.code_hash else _code_leurre()  # même durée
     if not verifier_code_eleve(corps.code_personnel, empreinte) or not (titulaire and titulaire.code_hash):

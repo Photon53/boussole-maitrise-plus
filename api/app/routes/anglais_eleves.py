@@ -7,7 +7,7 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Request, status
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app import anglais_contenu, limitation, permissions
 from app.auth import CARTE_BLOQUEE, CLASSE_ARCHIVEE, ELEVE_ANGLAIS, EleveAnglaisCourant, SessionDB, carte_bloquee
@@ -53,7 +53,7 @@ def connexion(corps: ConnexionIdentifiant, request: Request, session: SessionDB)
     limitation.verifier((limitation.par_ip, ip), (limitation.codes_inconnus, ip), (limitation.echecs_code_eleve, compte))
     limitation.par_ip.enregistrer(ip)
 
-    eleve = session.scalar(select(models.EleveAnglais).where(models.EleveAnglais.identifiant == identifiant))
+    eleve = session.scalar(select(models.EleveAnglais).where(func.lower(models.EleveAnglais.identifiant) == identifiant))
     empreinte = eleve.code_hash if eleve and eleve.code_hash else _code_leurre()  # même durée dans tous les cas
     if not verifier_code_eleve(corps.code_personnel, empreinte) or not (eleve and eleve.code_hash):
         if eleve is None:

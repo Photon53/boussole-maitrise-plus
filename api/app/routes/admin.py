@@ -405,7 +405,7 @@ def _famille(p: models.Parent) -> FamilleAdmin:
             EnfantRattache(id=e.id, prenom=e.prenom, classe=e.classe.code, niveau=e.classe.niveau, enseignant=e.classe.enseignant.nom)
             for e in sorted(p.enfants, key=lambda e: (e.prenom, e.classe.code))
         ],
-        famille=[f"{f.prenom} {f.nom}".strip() + f" ({f.niveau.value})" for f in sorted(p.famille, key=lambda f: f.prenom)],
+        famille=[f"{f.prenom} ({f.niveau.value})" for f in sorted(p.famille, key=lambda f: f.prenom)],
         bloque=p.bloque_le is not None,
     )
 

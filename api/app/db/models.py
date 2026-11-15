@@ -19,6 +19,7 @@ from sqlalchemy import (
     JSON,
     Float,
     ForeignKey,
+    Index,
     Integer,
     MetaData,
     String,
@@ -28,6 +29,7 @@ from sqlalchemy import (
     event,
     false,
     func,
+    text,
     true,
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, relationship
@@ -172,7 +174,11 @@ class Classe(Base):
 
 class Eleve(Base):
     __tablename__ = "eleve"
-    __table_args__ = (UniqueConstraint("prenom", "classe_id", name="uq_eleve_prenom_classe"),)
+    __table_args__ = (
+        UniqueConstraint("prenom", "classe_id", name="uq_eleve_prenom_classe"),
+        # Identifiant comparé sans casse (« Lina1 » = « lina1 », RGPD-1, #87).
+        Index("uq_eleve_identifiant_minuscules", text("lower(identifiant)"), unique=True),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     prenom: Mapped[str] = mapped_column(String(50))
@@ -236,11 +242,12 @@ class Enfant(Base):
     """
 
     __tablename__ = "enfant"
+    __table_args__ = (Index("uq_enfant_identifiant_minuscules", text("lower(identifiant)"), unique=True),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
+    # Prénom seul : un enfant n'a aucun nom de famille (décision RGPD-1, #87). Deux homonymes d'une même classe
+    # se distinguent par leur identifiant (« Lina2 »), affiché à la place du prénom.
     prenom: Mapped[str] = mapped_column(String(50))
-    # Initiale ou nom de famille, facultatif : distingue deux enfants de même prénom dans une classe.
-    nom: Mapped[str] = mapped_column(String(50), default="", server_default="")
     niveau: Mapped[Niveau] = mapped_column(_enum(Niveau, "niveau"))
     identifiant: Mapped[str] = mapped_column(String(40), unique=True)
     code_hash: Mapped[str | None] = mapped_column(String(255))
@@ -256,6 +263,19 @@ class Enfant(Base):
     inscriptions_anglais: Mapped[list["EleveAnglais"]] = relationship(
         back_populates="enfant", cascade="all, delete-orphan", passive_deletes=True
     )
+
+
+class CompteurIdentifiant(Base):
+    """Dernier numéro attribué pour une base d'identifiant (« lina » → 7 : le prochain est « Lina8 »).
+
+    Décision RGPD-1 (#87) : un numéro n'est jamais réattribué, même après suppression ou purge du compte. Aucun
+    lien vers un compte, aucune date : la base (prénom normalisé, tronqué) et un nombre, rien d'autre.
+    """
+
+    __tablename__ = "compteur_identifiant"
+
+    base: Mapped[str] = mapped_column(String(40), primary_key=True)
+    dernier: Mapped[int] = mapped_column(Integer, default=0)
 
 
 # Ordre d'affichage des niveaux d'anglais ; ceux qui sont ouverts sont les niveaux du domaine (EX.2).
@@ -324,7 +344,10 @@ class EleveAnglais(Base):
     """Élève d'un groupe d'anglais : un prénom, rien d'autre."""
 
     __tablename__ = "eleve_anglais"
-    __table_args__ = (UniqueConstraint("prenom", "groupe_id", name="uq_eleve_anglais_prenom_groupe"),)
+    __table_args__ = (
+        UniqueConstraint("prenom", "groupe_id", name="uq_eleve_anglais_prenom_groupe"),
+        Index("uq_eleve_anglais_identifiant_minuscules", text("lower(identifiant)"), unique=True),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     prenom: Mapped[str] = mapped_column(String(50))

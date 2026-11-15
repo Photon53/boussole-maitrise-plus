@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import EspaceEleve from "../eleve/EspaceEleve.jsx";
+import EspaceEleve, { lireCarte } from "../eleve/EspaceEleve.jsx";
 import Exercice, { decouperQcm } from "../eleve/Exercice.jsx";
 import { fausseApi } from "./setup.js";
 
@@ -117,7 +117,7 @@ describe("connexion par carte (identifiant + code)", () => {
 
 describe("enfant d'une famille : une carte, puis la matière", () => {
   const ESPACE = {
-    id: 7, prenom: "Inès", nom: "Martin", niveau: "2nde", identifiant: "ines-k7m4",
+    id: 7, prenom: "Inès", niveau: "2nde", identifiant: "ines-k7m4",
     matieres: [
       { code: "maths", libelle: "Boussole Maths", disponible: true },
       { code: "anglais", libelle: "Boussole Anglais", disponible: true },
@@ -270,5 +270,15 @@ describe("séance d'exercices", () => {
     await userEvent.click(await screen.findByRole("button", { name: "Terminer la séance" }));
     expect(await screen.findByText("1 bonne réponse sur 1.")).toBeInTheDocument();
     expect(sessionStorage.getItem("pkp.seance")).toBeNull();
+  });
+});
+
+// Issue #87 — Identifiant prénom + numéro (Claude)
+describe("QR code de la carte : ancien et nouveau format d'identifiant", () => {
+  it("lit « lina-k7m4 » comme « Lina1 », majuscule comprise", () => {
+    expect(lireCarte("#carte=lina-k7m4.ABC234")).toEqual({ identifiant: "lina-k7m4", code: "ABC234" });
+    expect(lireCarte("#carte=Lina1.ABC234")).toEqual({ identifiant: "Lina1", code: "ABC234" });
+    expect(lireCarte("#carte=JeanPierre12.XYZ789")).toEqual({ identifiant: "JeanPierre12", code: "XYZ789" });
+    expect(lireCarte("#carte=Lina1")).toBeNull();
   });
 });

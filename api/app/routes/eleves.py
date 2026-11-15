@@ -20,7 +20,7 @@ from pkp_engine import (
     verifier,
 )
 from pkp_engine.formes import LIBELLES as LIBELLES_FORMES
-from sqlalchemy import String, and_, cast, select
+from sqlalchemy import String, and_, cast, func, select
 
 from app import exemplaires, inscriptions, limitation, permissions
 from app.auth import CARTE_BLOQUEE, CLASSE_ARCHIVEE, ELEVE, EleveCourant, SessionDB, carte_bloquee
@@ -105,7 +105,7 @@ def connexion(corps: ConnexionEleve, request: Request, session: SessionDB) -> Je
     le prénom ou le code : on ne révèle pas quels élèves existent.
     """
     ip = limitation.adresse_ip(request)
-    compte = f"eleve:{corps.code_classe}:{corps.prenom}"
+    compte = f"eleve:{corps.code_classe}:{corps.prenom.lower()}"
     limitation.verifier(
         (limitation.par_ip, ip), (limitation.codes_inconnus, ip), (limitation.echecs_code_eleve, compte)
     )
@@ -116,7 +116,7 @@ def connexion(corps: ConnexionEleve, request: Request, session: SessionDB) -> Je
         limitation.codes_inconnus.enregistrer(ip)  # freine la recherche de codes classe
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, ECHEC_CONNEXION)
     eleve = session.scalar(
-        select(models.Eleve).where(models.Eleve.classe_id == classe.id, models.Eleve.prenom == corps.prenom)
+        select(models.Eleve).where(models.Eleve.classe_id == classe.id, func.lower(models.Eleve.prenom) == corps.prenom.lower())
     )
     empreinte = eleve.code_hash if eleve and eleve.code_hash else _code_leurre()  # même durée dans tous les cas
     if not verifier_code_eleve(corps.code_personnel, empreinte) or not (eleve and eleve.code_hash):
@@ -137,7 +137,7 @@ CARTE_ANGLAIS = "Cette carte est une carte Boussole Anglais : connecte-toi sur l
 
 
 def _carte_anglais(session: SessionDB, identifiant: str, code: str) -> bool:
-    eleve = session.scalar(select(models.EleveAnglais).where(models.EleveAnglais.identifiant == identifiant))
+    eleve = session.scalar(select(models.EleveAnglais).where(func.lower(models.EleveAnglais.identifiant) == identifiant))
     return bool(eleve and eleve.code_hash and verifier_code_eleve(code, eleve.code_hash))
 
 
@@ -154,7 +154,7 @@ def connexion_identifiant(corps: ConnexionIdentifiant, request: Request, session
     limitation.verifier((limitation.par_ip, ip), (limitation.codes_inconnus, ip), (limitation.echecs_code_eleve, compte))
     limitation.par_ip.enregistrer(ip)
 
-    eleve = session.scalar(select(models.Eleve).where(models.Eleve.identifiant == identifiant))
+    eleve = session.scalar(select(models.Eleve).where(func.lower(models.Eleve.identifiant) == identifiant))
     empreinte = eleve.code_hash if eleve and eleve.code_hash else _code_leurre()  # même durée dans tous les cas
     if not verifier_code_eleve(corps.code_personnel, empreinte) or not (eleve and eleve.code_hash):
         if eleve is None and _carte_anglais(session, identifiant, corps.code_personnel):

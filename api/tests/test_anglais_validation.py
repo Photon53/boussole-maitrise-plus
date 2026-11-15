@@ -31,7 +31,7 @@ def _texte_pdf(contenu: bytes) -> str:
 def test_l_inscription_donne_identifiant_et_code(client):
     h = connecter_anglais(client)
     gid, carte = _groupe_avec_eleve(client, h)
-    assert carte["identifiant"].startswith("lina-") and len(carte["code"]) == 6
+    assert carte["identifiant"] == "Lina1" and len(carte["code"]) == 6  # nouveau format (RGPD-1, #87)
     eleve = client.get("/anglais/groupes", headers=h).json()[0]["eleves"][0]
     assert eleve["identifiant"] == carte["identifiant"] and eleve["a_un_code"] is True
     assert "code" not in eleve  # seule l'empreinte est gardée
