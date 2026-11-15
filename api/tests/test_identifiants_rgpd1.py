@@ -225,21 +225,37 @@ def test_meme_reponse_que_l_identifiant_existe_ou_non(client):
 
 def test_un_code_essaye_sur_des_identifiants_devinables_est_freine_par_adresse(client, session):
     """Balayage « Lina1, Lina2… » avec un même code depuis une adresse : chaque compte existe (codes_inconnus ne
-    joue pas), seul le plafond par adresse (300 essais / 15 min) arrête le balayage."""
+    joue pas). SEC-D5 : au 61e échec depuis cette adresse, toute connexion élève y est refusée (429), y compris par
+    une autre route de connexion élève."""
     from app import limitation
     from app.config import settings
 
-    for _ in range(70):  # plus de 300 / 5 comptes : le blocage par compte ne joue pas avant celui par adresse
+    for _ in range(20):  # au plus 60 / 20 = 3 échecs par compte : le blocage par compte (5) ne joue pas
         enfants.creer(session, "Lina", Niveau.SECONDE)
     session.commit()
-    codes = []
-    for n in range(1, settings.connexion_max_par_ip + 2):
-        codes.append(_connexion(client, f"Lina{(n % 70) + 1}", "ABCDEF").status_code)
-    assert set(codes[: settings.connexion_max_par_ip]) == {401} and codes[-1] == 429
+    maxi = settings.connexion_eleve_max_echecs_par_ip
+    assert maxi == 60
+    codes = [_connexion(client, f"Lina{(n % 20) + 1}", "ABCDEF").status_code for n in range(maxi + 1)]
+    assert set(codes[:maxi]) == {401} and codes[-1] == 429
+    autre_route = client.post("/eleves/connexion/identifiant", json={"identifiant": "Lina1", "code_personnel": "ABCDEF"})
+    assert autre_route.status_code == 429
     # Par compte : 5 échecs, puis ce compte est bloqué même depuis une autre adresse (même clé de compte).
-    limitation.par_ip.reinitialiser()
+    limitation.echecs_eleve_par_ip.reinitialiser()
     statuts = [_connexion(client, "Lina1", "ABCDEF").status_code for _ in range(settings.connexion_eleve_max_echecs_code + 1)]
     assert statuts[-1] == 429
+
+
+def test_une_classe_derriere_une_meme_adresse_n_est_pas_bloquee(client, session):
+    """SEC-D5 : seuls les échecs comptent. 35 élèves qui se connectent depuis la même adresse, avec quelques fautes
+    de frappe, passent tous."""
+    cartes = []
+    for _ in range(35):
+        enfant, code = enfants.creer(session, "Eva", Niveau.SECONDE)
+        cartes.append((enfant.identifiant, code))
+    session.commit()
+    for identifiant, code in cartes[:10]:  # dix fautes de frappe, puis tout le monde se connecte
+        assert _connexion(client, identifiant, "ZZZZZZ").status_code == 401
+    assert all(_connexion(client, identifiant, code).status_code == 200 for identifiant, code in cartes)
 
 
 def test_prenom_d_une_lettre(client):
