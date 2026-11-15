@@ -118,6 +118,14 @@ et ne supprime jamais une question (ARCH-3).
 
 ## 3. Migrations 0032 et 0033
 
+> **Mise à jour (15/11/2026, réconciliation `main` ↔ `develop`)** : `main`, déjà en production, a reçu par le
+> commit direct `aacff2c` ses propres migrations `0032` à `0036` (`question_texte`, `parcours_professionnel`,
+> `demandes_d_aide`, `remarques`, `prevalidation_ia`). Pour ne pas toucher la chaîne déjà appliquée en production,
+> les deux migrations de `develop` décrites ci-dessous sont **renumérotées** : `0032_dossiers_de_francais` devient
+> **`0037`** (sur `0036`) et `0033_mode_de_correction_des_quiz` devient **`0038`** (sur `0037`). La chaîne est
+> `0031 → 0032 … 0036 (main) → 0037 → 0038`. Conséquence : la base DEV, déjà en `0033` de `develop`, n'est plus
+> compatible et doit être recréée (données synthétiques). Le tableau ci-dessous garde les anciens numéros.
+
 | | 0032 `dossiers_de_francais` | 0033 `mode_de_correction_des_quiz` |
 |---|---|---|
 | `down_revision` | `0031` | **`0032`** |

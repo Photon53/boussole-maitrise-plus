@@ -98,7 +98,7 @@ export default function App() {
         )}
       </main>
       <footer className="pied">
-        <span>© {new Date().getFullYear()} Boussole Maîtrise+</span>
+        <span>© {new Date().getFullYear()} Boussole</span>
         <span>Aucun traceur publicitaire · Données des élèves réduites au prénom</span>
       </footer>
     </div>

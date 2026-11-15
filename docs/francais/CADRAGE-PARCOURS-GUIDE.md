@@ -35,7 +35,7 @@ Base examinée : `develop` à `faf854dec90c816eab9c0d7cf8620a22357522bb`.
 | Élément | Existant | Conséquence |
 |---|---|---|
 | Contenu | `api/app/francais.py`, contrat `boussole-francais-dossier/1` | Garder la compatibilité et l’import idempotent |
-| Stockage | `DossierFrancais`, `DossierFrancaisVersion`, migration 0032 | Référencer une version ; ne pas recopier les dossiers par présentation |
+| Stockage | `DossierFrancais`, `DossierFrancaisVersion`, migration 0037 | Référencer une version ; ne pas recopier les dossiers par présentation |
 | Réponses | Mode `retour_humain` seulement ; aucune réponse française stockée | Ne pas annoncer de quiz corrigé, d’envoi au professeur ou de sauvegarde d’élève déjà disponible |
 | API | `api/app/routes/francais.py` : adultes habilités, aperçu séparé des supports professeur | Préserver les refus existants et les corrigés séparés |
 | Interface | `web/src/francais/EspaceFrancais.jsx` : liste, aperçu, supports, historique/validation | Étendre l’espace existant, sans remplacer les écrans de validation |

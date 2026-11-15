@@ -1,61 +1,61 @@
-// Issue #98 — Intégration du premier dossier Français 3e en DEV (Claude)
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
-import EspaceFrancais from "../francais/EspaceFrancais.jsx";
+import { describe, expect, it, vi } from "vitest";
+import { solutionLisible } from "../composants.jsx";
+import EspaceEnfant from "../eleve/EspaceEnfant.jsx";
+import Classes from "../enseignant/Classes.jsx";
 import { fausseApi } from "./setup.js";
 
-const RESUME = {
-  code: "FR3-DNB27-01", titre: "Comprendre un texte et justifier sa réponse", domaine: "francais-college", niveau: "3e",
-  libelle_domaine: "Français collège", version: 1, statut: "soumis", motif_refus: null, version_validee: null,
-  nb_questions: 11, cible: "DNB général, session 2027", competences_locales: ["FR3-L01"],
-  attribution: { redaction: "Codex", redaction_issue: 55, integration: "Claude", integration_issue: 98 },
-  registre: {}, auteur: null, validateur: null, decide_le: null, visible_eleves: false, peut_valider: false,
-};
-const ELEVE = {
-  presentation: ["Français — 3e"], objectifs: ["Repérer une information."],
-  lecon: [{ titre: "1. Je comprends", markdown: "Une information **explicite** est donnée directement." }],
-  textes: [{ code: "TEXTE-1", titre: "La place près de la fenêtre", lignes: ["La porte de la salle était déjà ouverte."], mention: null }],
-  consignes_questions: [],
-  questions: [{ code: "Q1", partie: "entrainement", texte: "TEXTE-1", difficulte_proposee: 1, consigne: "Quel projet ?", coup_de_pouce: null, retour: "humain" }],
-  je_verifie: null,
-};
-const PROFESSEUR = {
-  presentation: [], deroulement: null, principes_correction: "Accepter une autre réponse cohérente.",
-  questions: [{ code: "Q1", partie: "entrainement", consigne: "Quel projet ?", corrige: { question: "Q1", paragraphes: ["Un jardin avec des bancs."] } }],
-  grille: null, controle_avant_utilisation: ["Relire le texte."], remarques: [], retour_seance: null,
-};
+const CLASSE_FR = { id: 5, code: "5E-FR-ABCDE", niveau: "5e", parcours: "tronc-commun", matiere: "francais", nb_eleves: 0 };
 
-function connecte() {
-  sessionStorage.setItem("pkp.enseignant", JSON.stringify({ jeton: "j", nom: "Mme Martin", role: "enseignant", mdp_provisoire: false }));
-}
-
-describe("Français : préparation réservée aux adultes", () => {
-  it("un compte sans habilitation française voit un accès réservé", async () => {
-    connecte();
-    fausseApi({ "GET /francais/dossiers": { status: 403, json: { detail: "Réservé" } } });
-    render(<EspaceFrancais />);
-    expect(await screen.findByText("Espace réservé aux adultes habilités en français")).toBeInTheDocument();
+describe("PKP Français (F1)", () => {
+  it("le professeur habilité choisit la matière : pas de parcours ni de Terminale en français", async () => {
+    const appels = fausseApi({
+      "GET /enseignants/classes": { json: [] },
+      "POST /enseignants/classes": { status: 201, json: CLASSE_FR },
+      "GET /enseignants/classes/5/eleves": { json: [] },
+    });
+    render(<Classes jeton="j" onExpire={vi.fn()} maths francais />);
+    await userEvent.selectOptions(await screen.findByLabelText("Matière de la nouvelle classe"), "francais");
+    expect(screen.queryByLabelText("Parcours de la nouvelle classe")).not.toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: "Terminale" })).not.toBeInTheDocument();
+    await userEvent.selectOptions(screen.getByLabelText("Niveau de la nouvelle classe"), "5e");
+    await userEvent.click(screen.getByRole("button", { name: "Créer une classe" }));
+    expect(appels.find((a) => a.cle === "POST /enseignants/classes").corps).toEqual({ matiere: "francais", niveau: "5e" });
+    expect(await screen.findByText(/5E-FR-ABCDE/, { selector: ".succes" })).toBeInTheDocument();
   });
 
-  it("l'aperçu élève ne montre pas le corrigé ; l'onglet professeur le montre", async () => {
-    connecte();
-    fausseApi({
-      "GET /francais/dossiers": { json: [RESUME] },
-      "GET /francais/dossiers/FR3-DNB27-01/eleve": { json: { ...RESUME, eleve: ELEVE } },
-      "GET /francais/dossiers/FR3-DNB27-01/professeur": { json: { ...RESUME, professeur: PROFESSEUR } },
-    });
-    render(<EspaceFrancais />);
-    expect(await screen.findByText(/non publiés aux élèves/)).toBeInTheDocument();
-    expect(screen.getByText(/Non visible des élèves/)).toBeInTheDocument();
-    expect(screen.getByText(/Rédaction : Codex/)).toBeInTheDocument();
+  it("sans habilitation en français, pas de choix de matière", async () => {
+    fausseApi({ "GET /enseignants/classes": { json: [] } });
+    render(<Classes jeton="j" onExpire={vi.fn()} />);
+    await screen.findByText(/Aucune classe/);
+    expect(screen.queryByLabelText("Matière de la nouvelle classe")).not.toBeInTheDocument();
+  });
 
-    await userEvent.click(screen.getByRole("button", { name: "Ouvrir" }));
-    expect(await screen.findByText("La porte de la salle était déjà ouverte.")).toBeInTheDocument();
-    expect(screen.getByText("Réponse rédigée : retour du professeur.")).toBeInTheDocument();
-    expect(screen.queryByText("Un jardin avec des bancs.")).not.toBeInTheDocument();
+  it("l'enfant ouvre sa classe de français dans l'espace d'entraînement", async () => {
+    const espace = {
+      id: 1, prenom: "Inès", nom: "Martin", niveau: "5e", identifiant: "ines.m",
+      matieres: [
+        { code: "maths", libelle: "Boussole Maths", disponible: true },
+        { code: "anglais", libelle: "Boussole Anglais", disponible: true },
+        { code: "francais", libelle: "Boussole Français", disponible: true },
+      ],
+      maths: [], anglais: [],
+      francais: [{ eleve_id: 9, code_classe: "5E-FR-ABCDE", niveau: "5e", parcours: "tronc-commun", libelle_parcours: "Français", enseignant: "Mme Lettres" }],
+    };
+    const jeton = { jeton: "e", eleve: { id: 9, matiere: "francais" } };
+    fausseApi({ "GET /enfants/moi": { json: espace }, "POST /enfants/moi/maths/9": { json: jeton } });
+    const onOuvrir = vi.fn();
+    render(<EspaceEnfant session={{ jeton: "j", enfant: espace }} onOuvrirMaths={onOuvrir} onDeconnexion={vi.fn()} />);
+    await userEvent.click(screen.getByRole("button", { name: /Boussole Français/ }));
+    expect(screen.getByText("Mme Lettres", { exact: false })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "S'entraîner" }));
+    expect(onOuvrir).toHaveBeenCalledWith(jeton);
+  });
 
-    await userEvent.click(screen.getByRole("tab", { name: "Supports professeur (corrigés)" }));
-    expect(await screen.findByText("Un jardin avec des bancs.")).toBeInTheDocument();
+  it("une réponse courte s'affiche avec ses autres réponses acceptées", () => {
+    expect(solutionLisible("texte", "finissent | ils finissent")).toBe("finissent (aussi accepté : ils finissent)");
+    expect(solutionLisible("texte", "à")).toBe("à");
+    expect(solutionLisible("numerique", "1/2")).toBe("1/2");
   });
 });

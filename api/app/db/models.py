@@ -520,7 +520,7 @@ class DossierFrancaisVersion(Base):
 
 class Chapitre(Base):
     __tablename__ = "chapitre"
-    __table_args__ = (UniqueConstraint("niveau", "parcours", "ordre", name="uq_chapitre_niveau_parcours_ordre"),)
+    __table_args__ = (UniqueConstraint("domaine_code", "niveau", "parcours", "ordre", name="uq_chapitre_domaine_niveau_parcours_ordre"),)
 
     id: Mapped[int] = mapped_column(primary_key=True)
     # Identifiant stable venant des fichiers contenu/*.yaml (import idempotent).
@@ -681,6 +681,79 @@ class Reponse(Base):
 
     seance: Mapped[Seance] = relationship(back_populates="reponses")
     question: Mapped[Question] = relationship()
+
+
+class Remarque(Base):
+    """Remarque ou suggestion d'un élève, d'un parent ou d'un professeur (ticket #30).
+
+    Anonyme : aucune identité n'est enregistrée (ni nom, ni rôle, ni identifiant de compte) ; l'auteur suit sa
+    remarque avec la référence et le code de suivi confidentiel (seule son empreinte est conservée).
+    Avec son nom : rôle, identifiant et nom affiché de l'auteur, visibles des administrateurs qui la traitent.
+    """
+
+    __tablename__ = "remarque"
+    __table_args__ = (
+        CheckConstraint(
+            "categorie IN ('bug', 'dysfonctionnement', 'amelioration-fonctionnelle', 'amelioration-pedagogique', "
+            "'erreur-pedagogique', 'lien-inaccessible', 'question', 'autre')",
+            name="categorie",
+        ),
+        CheckConstraint("statut IN ('recue', 'en-cours', 'resolue', 'fermee')", name="statut"),
+        CheckConstraint("priorite IN ('basse', 'normale', 'haute')", name="priorite"),
+        CheckConstraint("NOT anonyme OR (auteur_role IS NULL AND auteur_id IS NULL AND auteur_nom IS NULL)", name="anonymat"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    reference: Mapped[str] = mapped_column(String(20), unique=True)
+    code_suivi_empreinte: Mapped[str] = mapped_column(String(64))
+    categorie: Mapped[str] = mapped_column(String(30), index=True)
+    description: Mapped[str] = mapped_column(String(3000))
+    page: Mapped[str | None] = mapped_column(String(300))  # lien, page, cours ou exercice concerné
+    anonyme: Mapped[bool] = mapped_column(Boolean)
+    auteur_role: Mapped[str | None] = mapped_column(String(12))  # eleve, parent, professeur
+    auteur_id: Mapped[int | None] = mapped_column(Integer)
+    auteur_nom: Mapped[str | None] = mapped_column(String(120))
+    statut: Mapped[str] = mapped_column(String(10), default="recue", index=True)
+    priorite: Mapped[str] = mapped_column(String(10), default="normale")
+    assignee_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    reponse: Mapped[str | None] = mapped_column(String(3000))
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, index=True)
+    maj_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
+
+    assignee: Mapped["Enseignant | None"] = relationship()
+
+
+class DemandeAide(Base):
+    """« Je n'ai pas compris » d'un élève (ticket #28), sur un cours, un exercice ou sa correction.
+
+    Pour un cours, chaque avis (« J'ai compris » / « Je n'ai pas compris ») ajoute une ligne : l'avis courant est
+    la ligne la plus récente de l'élève pour cette compétence, l'historique des changements d'avis est conservé.
+    Le professeur marque une demande « prise en charge » puis « résolue » sans rien effacer.
+    C'est une auto-déclaration de l'élève : elle ne change pas la maîtrise mesurée.
+    """
+
+    __tablename__ = "demande_aide"
+    __table_args__ = (
+        CheckConstraint("objet IN ('cours', 'exercice', 'corrige')", name="objet"),
+        CheckConstraint("statut IN ('compris', 'ouverte', 'prise-en-charge', 'resolue')", name="statut"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True)
+    competence_id: Mapped[int] = mapped_column(ForeignKey("competence.id", ondelete="CASCADE"), index=True)
+    question_id: Mapped[int | None] = mapped_column(ForeignKey("question.id", ondelete="CASCADE"))
+    seance_id: Mapped[int | None] = mapped_column(ForeignKey("seance.id", ondelete="SET NULL"))
+    objet: Mapped[str] = mapped_column(String(10))
+    # « compris » : avis positif sur un cours (aucune demande) ; sinon une demande et son suivi.
+    statut: Mapped[str] = mapped_column(String(20))
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, index=True)
+    traitee_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    traitee_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+
+    eleve: Mapped["Eleve"] = relationship()
+    competence: Mapped["Competence"] = relationship()
+    question: Mapped["Question | None"] = relationship()
+    traitee_par: Mapped["Enseignant | None"] = relationship()
 
 
 class JournalAdmin(Base):
@@ -854,6 +927,87 @@ class ArchiveInscription(Base):
     motif: Mapped[str] = mapped_column(String(60))
     resume: Mapped[dict] = mapped_column(JSON)
     contenu: Mapped[dict] = mapped_column(JSON)
+
+
+class CompteServiceIA(Base):
+    """Compte de service du vérificateur IA (ticket #48), distinct des comptes humains.
+
+    Seule l'empreinte HMAC du jeton est conservée : le jeton est montré une fois à l'administrateur, qui le range dans
+    le gestionnaire de secrets du service IA. Durée limitée, révocation et renouvellement par un administrateur.
+    Le jeton n'ouvre que les routes /service-ia : lecture des exercices demandés et dépôt des rapports.
+    """
+
+    __tablename__ = "compte_service_ia"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    nom: Mapped[str] = mapped_column(String(80))
+    empreinte: Mapped[str] = mapped_column(String(64), unique=True)
+    prefixe: Mapped[str] = mapped_column(String(24))  # début du jeton, pour le reconnaître sans le révéler
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
+    cree_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    expire_le: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoque_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoque_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    dernier_usage_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class PrevalidationIA(Base):
+    """Une demande de prévalidation IA d'un exercice, puis son rapport (ticket #48).
+
+    Distincte de la validation pédagogique humaine : elle ne change jamais `Question.statut_validation`, ni le contenu.
+    `version` est l'empreinte du contenu examiné : si l'exercice change ensuite, le rapport devient obsolète.
+    """
+
+    __tablename__ = "prevalidation_ia"
+    __table_args__ = (
+        CheckConstraint("statut IN ('en-attente', 'terminee', 'annulee')", name="statut"),
+        CheckConstraint(
+            "resultat IS NULL OR resultat IN ('aucune-anomalie', 'a-revoir', 'erreur-detectee', 'incertain')",
+            name="resultat",
+        ),
+        CheckConstraint("verite_humaine IS NULL OR verite_humaine IN ('erronee', 'correcte')", name="verite_humaine"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("question.id", ondelete="CASCADE"), index=True)
+    lot: Mapped[str] = mapped_column(String(24), index=True)
+    version: Mapped[str] = mapped_column(String(64))
+    # Exemplaire examiné d'une question à valeurs variables : le même pour l'énoncé et pour le corrigé.
+    tirage: Mapped[dict | None] = mapped_column(JSON)
+    statut: Mapped[str] = mapped_column(String(12), default="en-attente", index=True)
+    resultat: Mapped[str | None] = mapped_column(String(20))
+    demandee_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    demandee_par_nom: Mapped[str] = mapped_column(String(100))
+    demandee_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, index=True)
+    compte_service_id: Mapped[int | None] = mapped_column(ForeignKey("compte_service_ia.id", ondelete="SET NULL"))
+    enonce_lu_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    corrige_lu_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    rendue_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    modele: Mapped[str | None] = mapped_column(String(100))
+    version_modele: Mapped[str | None] = mapped_column(String(100))
+    rapport: Mapped[dict | None] = mapped_column(JSON)
+    # Essai sur un lot relu par des professeurs : l'exercice était-il réellement erroné ? Mesure des erreurs non détectées.
+    verite_humaine: Mapped[str | None] = mapped_column(String(10))
+    verite_commentaire: Mapped[str | None] = mapped_column(String(1000))
+    verite_par_nom: Mapped[str | None] = mapped_column(String(100))
+    verite_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    question: Mapped["Question"] = relationship()
+    compte_service: Mapped["CompteServiceIA | None"] = relationship()
+
+
+class AccesServiceIA(Base):
+    """Journal des appels du compte de service IA, acceptés ou refusés (ticket #48)."""
+
+    __tablename__ = "acces_service_ia"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    compte_service_id: Mapped[int | None] = mapped_column(ForeignKey("compte_service_ia.id", ondelete="SET NULL"), index=True)
+    action: Mapped[str] = mapped_column(String(40))
+    prevalidation_id: Mapped[int | None] = mapped_column(Integer)
+    code_http: Mapped[int] = mapped_column(Integer)
+    ip: Mapped[str | None] = mapped_column(String(45))
+    le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, index=True)
 
 
 class SuppressionInterdite(RuntimeError):

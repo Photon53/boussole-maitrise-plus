@@ -10,7 +10,7 @@ ouverture du Français aux élèves, aucune validation pédagogique par un agent
 | **Préparé** | PR en brouillon vers `develop`, CI verte sur le SHA exact | Claude |
 | **Fusionné** | PR fusionnée dans `develop` (SHA de fusion) | propriétaire |
 | **Publié** | run « DEV - publication des versions » réussi, `releases/desired.json` = SHA de fusion | GitHub Actions |
-| **Déployé en DEV** | `boussole-dev-sync --etat` : version active = SHA de fusion, révision Alembic `0032` | VM (timer ou `--appliquer`) |
+| **Déployé en DEV** | `boussole-dev-sync --etat` : version active = SHA de fusion, révision Alembic `0037` | VM (timer ou `--appliquer`) |
 | **Importé en DEV** | sortie de `python -m app.francais importer`, puis seconde exécution « 1 inchangé(s) » | propriétaire (commande ci-dessous) |
 | **Vérifié en DEV** | contrôles des étapes 4 à 6 relevés et transmis dans #98 | propriétaire, puis relecture |
 
@@ -19,13 +19,13 @@ un dossier importé n'est **pas** ouvert aux élèves.
 
 ## 0. Ce que la fusion change en DEV
 
-- Migration `0032` : deux tables vides (`dossier_francais`, `dossier_francais_version`), appliquée par
+- Migration `0037` : deux tables vides (`dossier_francais`, `dossier_francais_version`), appliquée par
   `boussole-dev-sync` comme toute migration. Aucune donnée existante modifiée, aucun domaine activé.
 - Nouvelles routes `/api/francais/...` (adultes habilités seulement) et page `/francais`.
 - **Pas d'import automatique** : ni au démarrage, ni dans le cycle de `boussole-dev-sync` (seul
   `python -m app.contenu importer`, maths, y est rejoué). L'empreinte de données suivie par la synchronisation ne
   couvre pas les tables françaises.
-- Retour arrière : après `0032`, `boussole-dev-sync --version <sha antérieur>` sera refusé (pas de migration
+- Retour arrière : après `0037`, `boussole-dev-sync --version <sha antérieur>` sera refusé (pas de migration
   descendante, règle existante). Pour « retirer » le Français, désactiver le domaine (étape 6), sans supprimer.
 
 ## 1. Sur la VM : déploiement effectif
@@ -40,7 +40,7 @@ gcloud compute ssh boussole-dev --project mer-boussole-dev --zone europe-west9-a
 sudo boussole-dev-sync --etat
 ```
 
-Attendu : version active = SHA de fusion de la PR ; révision `0032`. Si le timer n'est pas actif, suivre la
+Attendu : version active = SHA de fusion de la PR ; révision `0037`. Si le timer n'est pas actif, suivre la
 procédure existante (`docs/exploitation/pipeline-dev-pr3b-deploiement.md` : `--simulation`, relecture, puis
 `--appliquer`) ; ne rien forcer.
 
@@ -56,7 +56,7 @@ DC="sudo docker compose -p boussole --env-file /opt/boussole-dev/deploy/.env --e
 $DC exec -T db psql -U pkp -d pkp -c "SELECT version_num FROM alembic_version;" -c "SELECT code, actif, public FROM domaine_pedagogique ORDER BY ordre;" -c "SELECT count(*) AS chapitres_francais FROM chapitre WHERE domaine_code LIKE 'francais%';" -c "SELECT count(*) AS seances_francais FROM seance_anglais WHERE domaine_code LIKE 'francais%';" -c "SELECT count(*) AS dossiers FROM dossier_francais;" -c "SELECT domaine_code, role, niveau, count(*) FROM habilitation WHERE domaine_code LIKE 'francais%' GROUP BY 1, 2, 3;"
 ```
 
-À transmettre dans #98 (aucune donnée personnelle dans ces requêtes). Attendu avant import : `0032`, Français
+À transmettre dans #98 (aucune donnée personnelle dans ces requêtes). Attendu avant import : `0037`, Français
 collège `public = f`, aucun chapitre ni séance français, `dossiers = 0`. Un chapitre français en base serait un
 contenu inconnu du dépôt : le signaler avant d'aller plus loin.
 

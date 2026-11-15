@@ -4,8 +4,8 @@ Issue #110 — Mode de correction choisi par le professeur (Claude). Les groupes
 défaut (après chaque question) ; le score du premier essai des progressions existantes reste inconnu (NULL).
 Aucune donnée existante supprimée.
 
-Revision ID: 0033
-Revises: 0032
+Revision ID: 0038
+Revises: 0037
 Create Date: 2026-11-14 21:27:56.490706
 """
 
@@ -14,8 +14,8 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '0033'
-down_revision: str | None = '0032'
+revision: str = '0038'
+down_revision: str | None = '0037'
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

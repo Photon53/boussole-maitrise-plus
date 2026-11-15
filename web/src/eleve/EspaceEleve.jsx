@@ -10,6 +10,7 @@ import Historique from "./Historique.jsx";
 import Progression from "./Progression.jsx";
 import EspaceEnfant, { CLE_ENFANT } from "./EspaceEnfant.jsx";
 import PkpMath from "../pkpmath/PkpMath.jsx";
+import Remarques from "../ui/Remarques.jsx";
 
 const CLE_COMPTE = "pkp.eleve";
 
@@ -128,7 +129,9 @@ export default function EspaceEleve() {
           Bonjour <strong>{compte.eleve.prenom}</strong>{" "}
           <span className="doux">
             · {compte.eleve.code_classe}
-            {compte.eleve.parcours && ` · ${libelleNiveauParcours(compte.eleve.niveau, compte.eleve.parcours)}`}
+            {compte.eleve.matiere === "francais"
+              ? ` · Français · ${compte.eleve.niveau}`
+              : compte.eleve.parcours && ` · ${libelleNiveauParcours(compte.eleve.niveau, compte.eleve.parcours)}`}
           </span>
         </p>
         {mesParcours.length > 1 && (
@@ -163,6 +166,7 @@ export default function EspaceEleve() {
           ["pkp", "Fiches et PDF"],
           ["historique", "Mon historique"],
           ["progression", "Ma progression"],
+          ["remarques", "Remarques"],
         ]}
       />
       {/* Toujours monté, seulement masqué : aller au cours ne fait pas perdre la question ni sa correction. */}
@@ -208,6 +212,7 @@ export default function EspaceEleve() {
         />
       )}
       {onglet === "progression" && <Progression key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
+      {onglet === "remarques" && <Remarques jeton={compte.jeton} onExpire={deconnecter} tutoiement />}
     </>
   );
 }

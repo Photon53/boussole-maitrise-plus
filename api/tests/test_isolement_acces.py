@@ -25,6 +25,8 @@ from tests.test_parents import connecter_parent
 
 REFUS = {401, 403}
 REFUS_OU_INTROUVABLE = {401, 403, 404}
+# Le compte de service IA est bloqué (429) après des échecs d'authentification répétés : c'est aussi un refus.
+REFUS_MATRICE = REFUS | {429}
 MDP = "mot-de-passe-de-test-2026"
 
 # Rôles dont le jeton est fabriqué par `acteurs`. « prof_francais » n'en fait pas partie : aucune des routes
@@ -49,6 +51,10 @@ ESPACES: list[tuple[str, set[str]]] = [
     (r"^/ressources/", {"eleve", "prof_maths", "admin"}),
     # Fiches de cours et corrigés : lecture multi-rôles, filtrée par chapitre ou niveau (routes/pkp_math.py).
     (r"^/pkp-math/", {"eleve", "enfant", "parent", "prof_maths", "admin"}),
+    # Remarques et signalements (routes/remarques.py) : tout compte connecté, quel que soit son espace.
+    (r"^/remarques", set(ROLES)),
+    # Prévalidation IA (routes/prevalidation_ia.py) : jeton du compte de service, aucun compte de démo.
+    (r"^/service-ia/", {"service_ia"}),
 ]
 
 VALEURS_FICTIVES = {"code": "x", "public": "eleve", "niveau": "2nde", "parcours": "tronc-commun"}
@@ -85,6 +91,8 @@ CORPS: dict[tuple[str, str], dict] = {
     ("POST", "/anglais/groupes/{groupe_id}/enfants"): {"enfant_ids": [1]},
     ("PUT", "/anglais/groupes/{groupe_id}/correction"): {"mode": "fin_du_quiz"},
     ("PUT", "/anglais/groupes/{groupe_id}/seances/{code}/correction"): {"mode": "fin_du_quiz"},
+    ("POST", "/enseignants/demandes/{demande_id}"): {"statut": "resolue"},
+    ("POST", "/remarques"): {"categorie": "bug", "description": "Remarque de test", "anonyme": False},
 }
 
 
@@ -174,7 +182,8 @@ def test_la_matrice_couvre_l_api():
 def test_sans_jeton_toute_route_protegee_refuse(client):
     fuites = []
     for methode, chemin in routes_protegees():
-        r = appeler(client, methode, remplir(chemin, VALEURS_FICTIVES))
+        # Corps valide quand il est connu : sinon la validation (422) masquerait l'absence de contrôle du jeton.
+        r = appeler(client, methode, remplir(chemin, VALEURS_FICTIVES), corps=CORPS.get((methode, chemin)))
         if r.status_code != 401:
             fuites.append(f"{methode} {chemin} → {r.status_code}")
     assert not fuites, fuites
@@ -203,7 +212,7 @@ def test_un_jeton_n_ouvre_que_son_espace(client, acteurs):
             if role in autorises:
                 continue
             r = appeler(client, methode, url, acteurs[role])
-            if r.status_code not in REFUS:
+            if r.status_code not in REFUS_MATRICE:
                 fuites.append(f"{role} : {methode} {chemin} → {r.status_code}")
     assert not fuites, "\n".join(fuites)
 
