@@ -155,14 +155,62 @@ Le `CMD` enchaîne `alembic upgrade head`, `python -m app.contenu importer` puis
 de l'API migre la base, et plusieurs répliques migreraient en concurrence. Le Compose DEV contourne déjà ce
 point (commande Uvicorn seule, étapes pilotées par `boussole-dev-sync`).
 
-## 5. Priorités de cette branche (ordre demandé par le propriétaire)
+## 5. Priorités traitées sur cette branche (ordre demandé par le propriétaire)
 
-1. **Verrouillage du mode production** : refuser les données de démonstration en production, tester les refus.
-2. **Réduction du contenu des images** : étape finale sans tests, PDF officiels, résidus ni outils DEV.
-3. **Séparation migrations/imports du démarrage de l'API** : étape ponctuelle avant l'API dans le Compose de
-   production, compatible avec les scripts de mise à jour existants (`docker compose up -d --build`).
+| # | Étape | Commit | Preuve |
+|---|---|---|---|
+| 1 | **Verrouillage du mode production** : `app.db.seed` refusé en production ; `python -m app.production verifier` (code 1 si un compte de démonstration est présent) ; origines CORS `https://` seulement | `security(production)` | `test_verrouillage_production.py` (dont `/docs`, `/redoc`, `/openapi.json` en 404 en production) |
+| 2 | **Réduction de l'image API** : deux étapes ; retirés tests, PDF officiels, `build/`, `egg-info`, copie installée de `pkp-api`, `watchfiles`, `websockets` ; `.dockerignore` élargi | `infra(images)` | mesure locale 375 → 362 Mo ; inventaire de l'image ; démarrage vérifié |
+| 3 | **Migrations et imports hors du démarrage** : `CMD` = Uvicorn seul ; service ponctuel `preparation` (migrations, import, contrôle de la base) dont l'API attend la réussite | `infra(deploy)` | essai Compose isolé sur PostgreSQL 16 : succès, redémarrage sans migration, refus sur compte de démonstration |
 
-Le détail, les preuves et les limites de chaque étape sont dans la description de la PR.
+Limites : la base d'essai était vierge (aucune donnée 0031 réelle ni synthétique migrée) ; aucune image publiée ni
+signée ; DEV non modifié (`boussole-dev-sync` pilote déjà migration et import, sans le contrôle de démonstration).
+
+## 6. Découpage proposé des travaux restants (tickets existants d'abord)
+
+Aucun ticket n'est créé par cette PR : chaque ligne indique le ticket existant qui porte le travail, ou un
+**sous-ticket de #116** à créer après accord (#116 reste le ticket principal).
+
+### 6.1 Bloquants avant la PR de livraison vers `main`
+
+| Ordre | Travail | Porteur | Remarque |
+|---|---|---|---|
+| 1 | Revue et fusion dans `develop` de cette PR (C-1, C-2, verrouillage, images, préparation) | #114, #115, #116 | une personne relit et fusionne |
+| 2 | SSRF de la vérification des liens (redirections, adresses internes) | **#3** | audit M-1 |
+| 3 | Contrôle structurel des PDF téléversés | **#4** | audit M-2 |
+| 4 | Navigation Français affichée seulement si un domaine Français est actif | **#102** (complément) | § 2.2 ; ou décision du propriétaire de garder l'annonce |
+| 5 | Migrations 0031 → 0033 sur PostgreSQL 16 avec données synthétiques ; ancien code sur schéma 0033 ; sauvegarde et restauration testées | **#8** + sous-ticket #116 « recette migrations » | § 3 point 4 |
+| 6 | Choix de `PKP_SERVIR_QUESTIONS_NON_VALIDEES` et liste des contenus commercialisés | **#14**, **#29** | décision du propriétaire |
+| 7 | Dépendances Python verrouillées (fichier de contraintes utilisé par l'image et la CI) ; images de base épinglées par empreinte | sous-ticket #116 « construction reproductible » | prérequis des digests du § 6 de #116 |
+| 8 | Scans : secrets, dépendances Python/npm, images | **#78** (outillage) + sous-ticket #116 « scans du candidat » | npm : vitest 2 / vite 5 vulnérables (outillage DEV, hors bundle) |
+
+### 6.2 Durcissement à planifier (non bloquant pour une recette, à trancher pour l'ouverture)
+
+| Travail | Porteur |
+|---|---|
+| Révocation des sessions côté serveur ; jetons hors de portée de JavaScript | **#5**, **#6** |
+| Limitation des tentatives : une clé de compte commune aux trois routes de connexion élève ; rejeu TOTP | **#7** |
+| Rattachement d'un compte parent existant par un professeur (révèle le compte, lui montre l'élève) | **#114** (décision du propriétaire) |
+| Recherche d'enfants : nom et identifiant visibles de tout professeur du niveau | **#87** (RGPD-1) |
+| Limite de taille des requêtes dans Caddy ; Caddy 2.8 à mettre à jour | sous-ticket #116 « déploiement » |
+| `dependabot.yml` à compléter (pip, npm, actions, docker) | **#78** |
+| Workflows obsolètes `import-pkp-main.yml`, `pkp-anglais-beta.yml` ; actions épinglées par SHA partout | issue dédiée (AGENTS.md § 1 : workflows) ; **#62** |
+
+### 6.3 Circuit de livraison (#116 § 6)
+
+| Travail | Porteur |
+|---|---|
+| Protections de `main` selon l'offre GitHub réelle ; environnement `production` protégé ou alternative documentée | **#83** + sous-ticket #116 « protections et approbation » |
+| Workflow manuel `release/*` → PR brouillon vers `main`, contrôle final obligatoire, manifeste et digests | sous-ticket #116 « pipeline de livraison » (s'appuie sur #65) |
+| Projet, identités WIF et secrets PROD distincts de `mer-boussole-dev` | sous-ticket #116 ; **#61**, **#60**, **#74** pour le DEV |
+| Supervision et alertes | **#20** |
+
+### 6.4 DEV, à coordonner sans bloquer la livraison
+
+- **#93** : le DEV tourne avec `PKP_ENVIRONNEMENT=production`. Toute dispense TOTP future (`PKP_ADMINS_SANS_TOTP`)
+  doit être **ignorée en production**, avec un test, et le contrôle de démonstration ne doit pas être ajouté à
+  `boussole-dev-sync` sans décision (la base DEV peut contenir des comptes de test).
+- **#79** (découpage d'`admin.py` et des gros composants) : après la livraison, pour éviter les conflits.
 
 ---
 <sub>🤖 Rédigé par **Claude** (Claude Code) pour l'issue #116, 14/11/2026.</sub>
