@@ -19,6 +19,8 @@ class TypeQuestion(str, Enum):
     QCM = "qcm"
     NUMERIQUE = "numerique"
     EXPRESSION = "expression"
+    # Réponse courte en toutes lettres (français : un mot, une forme verbale…) : voir `correction`.
+    TEXTE = "texte"
 
 
 class Forme(str, Enum):
@@ -39,6 +41,8 @@ class Question:
     difficulte: int  # 1 (facile) à 5 (difficile)
     archivee: bool = False
     forme: Forme | None = None  # None : seule la valeur compte
+    # Valeurs variables (gabarit) : chaque service tire de nouveaux nombres, ce n'est pas la même question.
+    variable: bool = False
 
 
 @dataclass(frozen=True)

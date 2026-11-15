@@ -7,7 +7,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { api } from "../api.js";
-import { Difficulte, Erreur, Onglets } from "../composants.jsx";
+import { Difficulte, Erreur, Onglets, solutionLisible } from "../composants.jsx";
 import { Maths } from "../maths.jsx";
 import { NIVEAUX, PARCOURS_PAR_NIVEAU } from "../parcours.js";
 import { Modale } from "../ui/Cadre.jsx";
@@ -385,9 +385,11 @@ function Corrige({ q }) {
   return (
     <div className="corrige-pkp">
       <p className="doux"><Maths texte={q.enonce} enLigne /></p>
+      {c?.formule && <p><strong>Formule :</strong> <Maths texte={c.formule} enLigne />{c.conditions && <> ({<Maths texte={c.conditions} enLigne />})</>}</p>}
       {c?.methode && <p><strong>Méthode :</strong> <Maths texte={c.methode} enLigne /></p>}
       {c?.etapes?.length > 0 && <ol>{c.etapes.map((e, i) => <li key={i}><Maths texte={e} enLigne /></li>)}</ol>}
-      <p><strong>Réponse :</strong> <Maths texte={c?.resultat ?? (q.type === "qcm" ? q.solution : `$${q.solution}$`)} enLigne /></p>
+      {c?.verification && <p><strong>Vérification :</strong> <Maths texte={c.verification} enLigne /></p>}
+      <p><strong>Réponse :</strong> <Maths texte={c?.resultat ?? (q.type === "qcm" ? q.solution : q.type === "texte" ? solutionLisible("texte", q.solution) : `$${q.solution}$`)} enLigne /></p>
     </div>
   );
 }
