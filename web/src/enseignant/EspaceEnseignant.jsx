@@ -42,7 +42,17 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
     setCompte(null);
   }
 
-  if (!compte) return <PageSimple><ConnexionEnseignant onConnexion={connecter} /></PageSimple>;
+  if (!compte) {
+    return (
+      <PageSimple>
+        <ConnexionEnseignant onConnexion={connecter}>
+          <p className="aide">
+            Vous enseignez le français ? <a href="/francais">Français (préparation)</a>
+          </p>
+        </ConnexionEnseignant>
+      </PageSimple>
+    );
+  }
   if (compte.mdp_provisoire) {
     return (
       <PageSimple>
@@ -140,6 +150,11 @@ export function AccesReserve({ titre, compte, autreEspace, onDeconnexion }) {
         {autreEspace && (
           <a className="bouton" href={autreEspace.vers}>
             {autreEspace.libelle}
+          </a>
+        )}
+        {autreEspace && autreEspace.vers !== "/francais" && (
+          <a className="bouton secondaire" href="/francais">
+            Aller à l'espace Français (préparation)
           </a>
         )}
         <button type="button" className="lien" onClick={onDeconnexion}>
