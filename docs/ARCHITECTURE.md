@@ -66,11 +66,18 @@ Toute modification d'un modèle exige une nouvelle migration :
   précédente ×0,9. Un a priori « 0 » de poids 1 freine les conclusions hâtives.
 - Seuil de maîtrise : 0,8, atteint après 5 réussites d'affilée (4 ne suffisent pas).
 
-### `choisir_prochaine_question(candidates, historique) -> Question | None`
-1. Questions archivées écartées ; plus rien → `None`.
-2. Compétence la moins maîtrisée parmi les candidates.
-3. Difficulté visée = 1 + arrondi(maîtrise × 4).
-4. Ordre de préférence : pas la question qui vient d'être posée, pas déjà réussie,
+### `choisir_prochaine_question(candidates, historique, espacement=20) -> Question | None`
+1. Questions archivées écartées.
+2. Une question réussie est « au repos » pendant `ESPACEMENT_REVISION` (20) réponses : elle ne revient pas
+   tout de suite (ticket #26). Ensuite elle redevient disponible (révision espacée). Une question ratée reste
+   disponible pour être retravaillée, jamais deux fois de suite s'il y a autre chose.
+3. Compétence la moins maîtrisée parmi celles qui ont une question disponible.
+4. Tout est au repos : repli sur une question à valeurs variables (autres nombres) ; sinon `None`. L'API
+   répond alors 204 et `GET /seances/{id}/epuisement` donne le motif (`aucune-question` ou
+   `toutes-reussies`) ; l'élève peut réviser (`GET /seances/{id}/question?revision=true`, `espacement=0`)
+   ou terminer la séance.
+5. Difficulté visée = 1 + arrondi(maîtrise × 4).
+6. Ordre de préférence : pas la question qui vient d'être posée, pas déjà réussie,
    la moins posée, la difficulté la plus proche, le plus petit id. Résultat déterministe.
 
 ## API (phase 4)
@@ -125,7 +132,7 @@ remplace ce mot de passe à sa première connexion sur `/parent`. Un même compt
 | `PUT /parents/enfants/{id}/code` | Code personnel choisi par le parent (8 à 16 lettres et chiffres) ; vaut pour les inscriptions reliées, ferme les sessions de l'enfant |
 
 ### Français (préparation, #98)
-Tables `dossier_francais` et `dossier_francais_version` (migration 0032) : parties élève et professeur séparées,
+Tables `dossier_francais` et `dossier_francais_version` (migration 0037) : parties élève et professeur séparées,
 empreinte du fichier source, circuit de validation des séances d'anglais. Contrat et accès :
 [francais/FORMAT-IMPORT.md](francais/FORMAT-IMPORT.md) ; procédure DEV : [francais/INTEGRATION-DEV.md](francais/INTEGRATION-DEV.md).
 

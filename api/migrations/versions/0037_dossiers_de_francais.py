@@ -3,8 +3,8 @@
 Issue #98 — Intégration du premier dossier Français 3e en DEV (Claude). Tables nouvelles uniquement : aucune donnée
 existante modifiée, aucun domaine activé ni ouvert au public.
 
-Revision ID: 0032
-Revises: 0031
+Revision ID: 0037
+Revises: 0036
 Create Date: 2026-11-14 18:00:00.000000
 """
 
@@ -13,8 +13,8 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = '0032'
-down_revision: str | None = '0031'
+revision: str = '0037'
+down_revision: str | None = '0036'
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

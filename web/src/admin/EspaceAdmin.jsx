@@ -12,6 +12,8 @@ import Eleves from "./Eleves.jsx";
 import Exercices from "./Exercices.jsx";
 import Familles from "./Familles.jsx";
 import Journal from "./Journal.jsx";
+import RemarquesAdmin from "./RemarquesAdmin.jsx";
+import PrevalidationIA from "./PrevalidationIA.jsx";
 import Professeurs from "./Professeurs.jsx";
 import RessourcesAdmin from "./RessourcesAdmin.jsx";
 import { DOMAINES_PAR_DEFAUT } from "./Qualifications.jsx";
@@ -32,12 +34,14 @@ const CLE_DOMAINE = "pkp.admin.domaine";
 const PAGES = [
   { groupe: "Pilotage", vers: "/admin", libelle: "Tableau de bord", icone: "tableau", Page: TableauDeBord, permission: "pilotage.global" },
   { groupe: "Pilotage", vers: "/admin/journal", libelle: "Journal", icone: "journal", Page: Journal, permission: "pilotage.global" },
+  { groupe: "Pilotage", vers: "/admin/remarques", libelle: "Remarques", icone: "crayon", Page: RemarquesAdmin, permission: "pilotage.global" },
   { groupe: "Comptes", vers: "/admin/professeurs", libelle: "Équipe", icone: "professeurs", Page: Professeurs, permission: "comptes.gerer" },
   { groupe: "Comptes", vers: "/admin/familles", libelle: "Familles", icone: "eleve", Page: Familles, permission: "parents.gerer" },
   { groupe: "Comptes", vers: "/admin/eleves", libelle: "Élèves et classes", icone: "classes", Page: Eleves, permission: "comptes.gerer" },
   { groupe: "Pédagogie", vers: "/admin/cours", libelle: "Cours", icone: "cours", Page: Contenu, permission: "contenu.modifier", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/exercices", libelle: "Exercices", icone: "exercices", Page: Exercices, permission: "contenu.modifier", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/ressources", libelle: "Ressources", icone: "ressources", Page: RessourcesAdmin, permission: "contenu.modifier", matiere: "maths" },
+  { groupe: "Pédagogie", vers: "/admin/prevalidation-ia", libelle: "Prévalidation IA", icone: "bouclier", Page: PrevalidationIA, permission: "prevalidation.ia", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/pkp-math", libelle: "Boussole Maths", icone: "pdf", Page: PkpMathAdmin, permission: "contenu.lire", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/anglais", libelle: "Boussole Anglais", icone: "eleve", Page: AnglaisAdmin, permission: "contenu.modifier", matiere: "anglais" },
   // L'espace Français utilise la session professeur ; le jeton d'administration n'y est pas transmis.

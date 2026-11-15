@@ -1,8 +1,6 @@
-# Boussole Maîtrise+
+# PKP Math Lycée
 
-**La boussole de votre réussite scolaire**
-
-Plateforme pédagogique adaptative pour le collège et le lycée (mathématiques et anglais ; autres matières à développer).
+Plateforme de soutien scolaire en mathématiques pour le lycée.
 
 ```
 web/ (React + Vite)  ──HTTP/JSON──▶  api/ (FastAPI)  ──▶  base de données
@@ -23,6 +21,7 @@ des 8 tables et le découpage en 6 phases.
 - Protection des données : [docs/RGPD.md](docs/RGPD.md) (checklist à valider avec le DPO)
 - Rédiger cours et exercices : [docs/CONTENU.md](docs/CONTENU.md) (fichiers `contenu/<niveau>/<parcours>/*.yaml`)
 - État de la banque (matrice de couverture, trous, sources) : [docs/CONTENU-INVENTAIRE.md](docs/CONTENU-INVENTAIRE.md)
+- Prévalidation IA des exercices, réservée aux administrateurs : [docs/PREVALIDATION-IA.md](docs/PREVALIDATION-IA.md)
 - Audit (protocoles, grille de gravité, résultats) : [docs/audit/README.md](docs/audit/README.md)
 - Version 2 commerciale (périmètre, exigences, recette, décisions) : [docs/CAHIER-DES-CHARGES-V2.md](docs/CAHIER-DES-CHARGES-V2.md)
 
@@ -33,7 +32,7 @@ Prérequis : [Python 3.11+](https://www.python.org/downloads/), [Node.js 20+](ht
 1. Installer l'environnement (une fois) — crée `.venv`, installe les dépendances, crée la base de démo :
    - Windows : `powershell -ExecutionPolicy Bypass -File scripts\installer-dev.ps1`
    - Mac/Linux : `bash scripts/installer-dev.sh`
-2. Dans VS Code : **Fichier > Ouvrir l'espace de travail à partir d'un fichier** → `boussole-maitrise-plus.code-workspace`.
+2. Dans VS Code : **Fichier > Ouvrir l'espace de travail à partir d'un fichier** → `pkp-math-lycee.code-workspace`.
    Accepter l'installation des extensions recommandées.
 3. **Exécuter et déboguer** (Ctrl+Maj+D) → **▶ Application complète (API + Front)** : API sur le port 8010 avec points d'arrêt,
    front sur http://localhost:5173 (accueil `/`, élève `/eleve`, professeur `/enseignant`, administration `/admin` ; comptes de démo décrits dans `api/app/db/seed.py`).

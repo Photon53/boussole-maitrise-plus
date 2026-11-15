@@ -64,6 +64,18 @@ def enseigne(enseignant: models.Enseignant, domaine: str, niveau: str | None = N
     )
 
 
+def enseigne_francais(enseignant: models.Enseignant) -> bool:
+    return any(h.domaine_code.startswith("francais-") for h in enseignant.habilitations)
+
+
+def refus_matiere_enseignee(enseignant: models.Enseignant, matiere: str, domaine: str, niveau) -> str | None:
+    """Un professeur ne crée de classe que dans sa matière (français : habilitation sur ce domaine et ce niveau)."""
+    if matiere == "francais":
+        niveau = getattr(niveau, "value", niveau)
+        return None if enseigne(enseignant, domaine, niveau) else f"Vous n'enseignez pas le français en {niveau}."
+    return None if enseignant.enseigne_maths else "Vous n'enseignez pas les mathématiques."
+
+
 def refus_niveau(session: Session, domaine: str, niveau: str) -> str | None:
     """Le niveau doit être l'un de ceux du domaine (remplace les contraintes `niveau IN (...)` de l'anglais)."""
     d = session.get(models.DomainePedagogique, domaine)
@@ -170,6 +182,14 @@ def domaines_valides(enseignant: models.Enseignant) -> set[str]:
     return {h.domaine_code for h in enseignant.habilitations if h.role == VALIDATEUR}
 
 
+DOMAINES_MATHS = (MATHS_COLLEGE, MATHS_LYCEE)
+
+
+def valide_les_maths(enseignant: models.Enseignant) -> bool:
+    """Validateur d'au moins un domaine de maths : page « Validation » de l'espace professeur (ticket #29)."""
+    return bool(domaines_valides(enseignant) & set(DOMAINES_MATHS))
+
+
 def refus_domaine_ferme(session: Session, domaine: str) -> str | None:
     """Un domaine non public n'accepte ni nouvelle séance d'élève, ni nouvelle classe ou nouveau groupe (EX.4)."""
     d = session.get(models.DomainePedagogique, domaine)
@@ -181,10 +201,12 @@ def refus_domaine_ferme(session: Session, domaine: str) -> str | None:
 # --- Permissions (CDC V2, EX.7) ------------------------------------------------------------------
 # Table de correspondance dans le code, pas un moteur configurable en base. L'admin a toutes les permissions
 # sauf `contenu.valider`, qui vient d'une habilitation de validateur, domaine par domaine (EX.9-bis).
+# `prevalidation.ia` (ticket #48) n'appartient qu'aux administrateurs : aucune habilitation ne la donne.
 
 PERMISSIONS = (
     "contenu.lire", "contenu.modifier", "contenu.soumettre", "contenu.valider", "contenu.publier",
     "comptes.gerer", "parents.gerer", "pilotage.global", "pilotage.domaine", "configuration",
+    "prevalidation.ia",
 )
 PAR_ROLE = {
     PROFESSEUR: ("contenu.lire", "contenu.soumettre", "pilotage.domaine"),
