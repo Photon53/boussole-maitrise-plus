@@ -1,0 +1,12 @@
+# Issue #8 — Sauvegardes automatisées et restauration testée (Claude)
+# Chaque nuit vers 2 h 30 (heure de la VM) ; rattrapée au démarrage si la VM était éteinte (RPO ≤ 24 h).
+[Unit]
+Description=Boussole : sauvegarde quotidienne de la production
+
+[Timer]
+OnCalendar=*-*-* 02:30:00
+RandomizedDelaySec=15min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

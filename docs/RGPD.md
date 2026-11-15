@@ -31,7 +31,7 @@ Légende : ✅ assuré par le logiciel (et testé) · ☐ à faire par l'établi
 | ✅ | Suppression d'une classe entière (fin d'année) | `DELETE /enseignants/classes/{id}` |
 | ✅ | Journaux serveur (contiennent des IP) bornés à 3 × 10 Mo par service | `docker-compose.yml` |
 | ☐ | Fixer la durée de conservation avec le DPO et l'inscrire au registre | `.env` |
-| ☐ | Durée de conservation des **sauvegardes** alignée (une sauvegarde contient des données purgées) | — |
+| ☐ | Durée de conservation des **sauvegardes** alignée (une sauvegarde contient des données purgées) : **60 jours** décidés par le propriétaire (15/11/2026, #8), à confirmer avec le DPO et à inscrire au registre | cycle de vie du bucket, `docs/exploitation/technique.md` T-04 |
 
 ## 3. Droits des personnes
 
@@ -58,7 +58,7 @@ Légende : ✅ assuré par le logiciel (et testé) · ☐ à faire par l'établi
 | ✅ | API et base non exposées sur Internet (réseau Docker interne) | `docker-compose.yml` |
 | ✅ | Documentation OpenAPI désactivée en production | `app/main.py` |
 | ☐ | Hébergement dans l'Union européenne, contrat de sous-traitance avec l'hébergeur | — |
-| ☐ | Sauvegardes chiffrées et testées (restauration) | `docs/DEPLOIEMENT.md` |
+| ☐ | Sauvegardes chiffrées et testées (restauration) : chiffrement `age` à clés publiques (la VM ne peut pas relire), copie hors VM, restauration isolée scriptée ; à cocher après la première restauration de contrôle en production (#8) | `deploy/sauvegarde-prod.sh`, `docs/exploitation/technique.md` T-04/T-05 |
 | ☐ | Mises à jour de sécurité du serveur et des images Docker | — |
 
 ## 5. Information et formalités

@@ -1,0 +1,10 @@
+# Issue #8 — Sauvegardes automatisées et restauration testée (Claude)
+# Copier dans /etc/boussole-sauvegarde/config (root, 600). Aucune valeur secrète : les clés age sont PUBLIQUES.
+DEPLOY=/home/ubuntu/boussole-maitrise-plus/deploy      # Oracle : /home/opc/boussole-maitrise-plus/deploy
+DESTINATION=gs://NOM-DU-BUCKET/production
+SITE=gcp                                               # gcp ou oracle
+AGE_DESTINATAIRES="age1... age1..."                    # clé principale + clé de secours, gardées hors VM
+GARDER_LOCAL=3
+AGE_MAX_HEURES=26
+# Oracle seulement : dossier gcloud où le compte de service a été activé (gcloud auth activate-service-account).
+GCLOUD_CONFIG=
