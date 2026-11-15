@@ -207,9 +207,12 @@ Aucun ticket n'est créé par cette PR : chaque ligne indique le ticket existant
 
 ### 6.4 DEV, à coordonner sans bloquer la livraison
 
-- **#93** : le DEV tourne avec `PKP_ENVIRONNEMENT=production`. Toute dispense TOTP future (`PKP_ADMINS_SANS_TOTP`)
-  doit être **ignorée en production**, avec un test, et le contrôle de démonstration ne doit pas être ajouté à
-  `boussole-dev-sync` sans décision (la base DEV peut contenir des comptes de test).
+- **#93** (traité sur cette branche, décision du propriétaire du 15/11/2026 : conserver des comptes de test en DEV
+  sans affaiblir l'authentification) : nouvel environnement `integration` pour la VM DEV, mêmes contrôles que la
+  production ; comptes de test reconnus à leur domaine réservé (`.test`…), autorisés en intégration, refusés en
+  production (création, connexion, contrôle de préparation). **Aucune dispense de TOTP** : la variante
+  `PKP_ADMINS_SANS_TOTP` du ticket et le script de bascule ne sont plus nécessaires. Activation sur la VM : réinstallation
+  du Compose DEV par le propriétaire (`deployer-dev-iap.sh`), non faite ici.
 - **#79** (découpage d'`admin.py` et des gros composants) : après la livraison, pour éviter les conflits.
 
 ---

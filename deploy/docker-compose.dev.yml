@@ -15,7 +15,9 @@
 # Projet Compose : « boussole » (option -p), comme le déploiement manuel.
 
 x-api-env: &api-env
-  PKP_ENVIRONNEMENT: production
+  # « integration » (#93) : mêmes contrôles que la production (secret, PostgreSQL, https, /docs fermé, second
+  # facteur des administrateurs) ; comptes de test autorisés (adresses @….test). Ne jamais l'utiliser en production.
+  PKP_ENVIRONNEMENT: integration
   PKP_DATABASE_URL: postgresql+psycopg://pkp:${PKP_DB_MOT_DE_PASSE:?définir PKP_DB_MOT_DE_PASSE dans .env}@db:5432/pkp
   PKP_SECRET_KEY: ${PKP_SECRET_KEY:?définir PKP_SECRET_KEY dans .env}
   PKP_CORS_ORIGINS: '["https://${PKP_DOMAINE}"]'

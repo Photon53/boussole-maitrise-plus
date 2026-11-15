@@ -4,15 +4,19 @@
 2. Crée, si absents, un enseignant, des classes, des élèves et un historique de réponses.
 Idempotent : relancer ne duplique rien.
 
-Compte enseignant de démo (local uniquement) :
-    email        : demo@pkp.test
-    mot de passe : valeur de PKP_DEMO_MOT_DE_PASSE, sinon « demo-pkp-2026 »
+Selon PKP_ENVIRONNEMENT (#93) :
+- dev (poste local) : mot de passe PKP_DEMO_MOT_DE_PASSE, sinon « demo-pkp-2026 » ; codes élèves fixes (CODES_DEMO) ;
+- integration (VM DEV) : PKP_DEMO_MOT_DE_PASSE obligatoire (12 caractères minimum, jamais la valeur publiée) ;
+  codes élèves tirés au hasard et affichés une seule fois ; l'administrateur de démo doit configurer son second
+  facteur (`python -m app.admin totp --email admin@pkp.test`) comme tout administrateur ;
+- production : refusé.
 
-Compte administrateur de démo (local uniquement, sans second facteur hors production) :
-    email        : admin@pkp.test
-    mot de passe : le même que l'enseignant de démo
+Comptes (adresses en @pkp.test, domaine réservé : comptes de test, voir app/comptes_de_test.py) :
+    enseignant     : demo@pkp.test
+    administrateur : admin@pkp.test (second facteur obligatoire hors poste local)
+    anglais        : anglais@pkp.test
 
-Codes personnels des élèves de démo (local uniquement) : voir CODES_DEMO ci-dessous,
+Codes personnels des élèves sur le poste local : voir CODES_DEMO ci-dessous,
 par exemple Lina / 2NDE-A-DEMO / PKP222, ou, avec l'identifiant de connexion, lina-demo / PKP222.
 """
 
@@ -28,7 +32,7 @@ from app.db import models
 from app.db.conversions import question_vers_domaine
 from app.progression import chapitres_du_programme
 from app.referentiel import Role, parcours_par_defaut
-from app.security import generer_identifiant, hacher_code_eleve, hacher_mot_de_passe
+from app.security import generer_code_eleve, generer_identifiant, hacher_code_eleve, hacher_mot_de_passe
 
 EMAIL_DEMO = "demo@pkp.test"
 EMAIL_ADMIN_DEMO = "admin@pkp.test"
@@ -60,16 +64,38 @@ class DemoInterdite(RuntimeError):
     """Données de démonstration demandées en production : comptes et codes connus de tous (#116)."""
 
 
-def charger_demo(session: Session) -> bool:
+MOT_DE_PASSE_DEMO_PUBLIE = "demo-pkp-2026"
+LONGUEUR_MIN_INTEGRATION = 12
+
+
+def _mot_de_passe_demo() -> str:
+    """Poste local : la valeur publiée ci-dessus. Intégration (VM DEV) : PKP_DEMO_MOT_DE_PASSE obligatoire, choisi
+    par l'équipe et jamais versionné (#93) ; les comptes restent soumis aux règles habituelles (TOTP admin)."""
+    from app.config import settings
+
+    mot_de_passe = os.environ.get("PKP_DEMO_MOT_DE_PASSE", "")
+    if settings.environnement == "dev":
+        return mot_de_passe or MOT_DE_PASSE_DEMO_PUBLIE
+    if len(mot_de_passe) < LONGUEUR_MIN_INTEGRATION or mot_de_passe == MOT_DE_PASSE_DEMO_PUBLIE:
+        raise DemoInterdite(
+            f"En intégration, définir PKP_DEMO_MOT_DE_PASSE ({LONGUEUR_MIN_INTEGRATION} caractères minimum, "
+            "différent de la valeur publiée dans le dépôt)."
+        )
+    return mot_de_passe
+
+
+def charger_demo(session: Session, codes_tires: dict[str, str] | None = None) -> bool:
     """Charge le contenu puis les données de démo. Renvoie False si la démo existait déjà.
-    Refusé en production : mots de passe et codes de la démo sont publiés dans ce fichier (#116)."""
+    Refusé en production : la démo est un jeu de comptes de test (#116, #93). Hors poste local, les codes des
+    élèves sont tirés au hasard et recopiés dans `codes_tires` (affichés une seule fois), au lieu de CODES_DEMO."""
     from app.config import settings
 
     if settings.production:
         raise DemoInterdite("Données de démonstration refusées en production (PKP_ENVIRONNEMENT=production).")
+    mot_de_passe = _mot_de_passe_demo()
+    codes = CODES_DEMO if settings.environnement == "dev" else {p: generer_code_eleve() for p in CODES_DEMO}
     contenu.importer(session, contenu.charger())
     anglais_contenu.importer_seances(session)  # soumises à validation : aucun élève ne les voit encore
-    mot_de_passe = os.environ.get("PKP_DEMO_MOT_DE_PASSE", "demo-pkp-2026")
 
     # Ajouté à part : une base de démo antérieure à la V2 reçoit aussi son administrateur.
     if not session.scalar(select(models.Enseignant).where(models.Enseignant.email == EMAIL_ADMIN_DEMO)):
@@ -115,10 +141,12 @@ def charger_demo(session: Session) -> bool:
         classe.chapitres_proposes = chapitres_du_programme(session, classe)
         for prenom in prenoms:
             eleves[prenom] = models.Eleve(
-                prenom=prenom, classe=classe, code_hash=hacher_code_eleve(CODES_DEMO[prenom]), identifiant=identifiant_demo(prenom)
+                prenom=prenom, classe=classe, code_hash=hacher_code_eleve(codes[prenom]), identifiant=identifiant_demo(prenom)
             )
             session.add(eleves[prenom])
     session.flush()
+    if codes_tires is not None and codes is not CODES_DEMO:
+        codes_tires.update({identifiant_demo(p): c for p, c in codes.items()})
 
     instant = datetime.now(UTC) - timedelta(days=1)
     for prenom, saisies in SEANCES:
@@ -146,10 +174,15 @@ def main() -> None:
     from app.db.session import SessionLocale
 
     with SessionLocale() as session:
+        codes: dict[str, str] = {}
         try:
-            print("Données de démo chargées." if charger_demo(session) else "Contenu à jour, démo déjà présente.")
+            print("Données de démo chargées." if charger_demo(session, codes) else "Contenu à jour, démo déjà présente.")
         except DemoInterdite as exc:
             raise SystemExit(str(exc)) from exc
+    if codes:
+        print("Codes des élèves de test (affichés une seule fois, à conserver dans le gestionnaire de l'équipe) :")
+        for identifiant, code in codes.items():
+            print(f"  {identifiant} : {code}")
 
 
 if __name__ == "__main__":

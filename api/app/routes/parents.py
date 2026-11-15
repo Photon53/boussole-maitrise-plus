@@ -12,7 +12,7 @@ from functools import cache
 from fastapi import APIRouter, HTTPException, Request, status
 from sqlalchemy import select
 
-from app import enfants as enfants_famille, inscriptions, limitation, parents
+from app import comptes_de_test, enfants as enfants_famille, inscriptions, limitation, parents
 from app.auth import COMPTE_PARENT_BLOQUE, PARENT, ParentAuthentifie, ParentCourant, SessionDB
 from app.config import settings
 from app.db import models
@@ -69,6 +69,7 @@ def connexion(corps: ConnexionEnseignant, request: Request, session: SessionDB) 
         limitation.echecs_enseignant.enregistrer(compte)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "E-mail ou mot de passe incorrect.")
     limitation.echecs_enseignant.effacer(compte)
+    comptes_de_test.refuser_en_production(parent.email)
     if parent.bloque_le is not None:
         raise HTTPException(status.HTTP_403_FORBIDDEN, COMPTE_PARENT_BLOQUE)
     if doit_rehacher(parent.mot_de_passe_hash):

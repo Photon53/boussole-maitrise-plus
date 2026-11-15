@@ -36,11 +36,11 @@ def test_base_vierge_prete_pour_la_production(session):
 def test_comptes_de_demonstration_detectes(client, fabrique):
     with fabrique() as s:
         trouves = production.problemes(s)
-    assert len(trouves) == len(production.EMAILS_DEMO)
-    assert all("démonstration" in t for t in trouves)
+    for email in ("demo@pkp.test", "admin@pkp.test", "anglais@pkp.test"):
+        assert any(email in t for t in trouves), email
 
 
-def test_commande_verifier_echoue_sur_une_base_de_demo(client, fabrique, monkeypatch, capsys):
+def test_commande_verifier_echoue_sur_une_base_de_demo(en_production, client, fabrique, monkeypatch, capsys):
     import app.db.session as module_session
 
     monkeypatch.setattr(module_session, "SessionLocale", fabrique)

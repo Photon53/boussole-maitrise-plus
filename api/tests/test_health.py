@@ -9,7 +9,8 @@ client = TestClient(app)
 def test_health():
     r = client.get("/health")
     assert r.status_code == 200
-    assert r.json() == {"status": "ok"}
+    # Hors production, l'environnement est indiqué (#93) ; les contrôles de déploiement ne lisent que « ok ».
+    assert r.json() == {"status": "ok", "environnement": "dev"}
 
 
 def test_question_publique_sans_solution():

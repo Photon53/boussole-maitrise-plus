@@ -9,7 +9,10 @@ CLE_DEV = "dev-uniquement-a-changer"
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_prefix="PKP_")
 
-    environnement: Literal["dev", "production"] = "dev"
+    # dev : poste local. integration : VM DEV, mêmes contrôles que la production (secret, PostgreSQL, https,
+    # documentation fermée, second facteur des administrateurs), comptes de test autorisés. production : comptes de
+    # test et de démonstration interdits (#93, voir app/comptes_de_test.py et docs/DEPLOIEMENT.md).
+    environnement: Literal["dev", "integration", "production"] = "dev"
     database_url: str = "sqlite:///./pkp.db"
     cors_origins: list[str] = ["http://localhost:5173"]
     # Clé de signature des jetons. Générer : python -c "import secrets; print(secrets.token_urlsafe(48))"
@@ -53,8 +56,14 @@ class Settings(BaseSettings):
         return self.environnement == "production"
 
     @property
+    def durci(self) -> bool:
+        """Serveur partagé (intégration ou production) : configuration contrôlée au démarrage, documentation
+        fermée, second facteur obligatoire. Seule la présence de comptes de test distingue les deux."""
+        return self.environnement in ("integration", "production")
+
+    @property
     def totp_requis(self) -> bool:
-        return self.production or self.totp_admin_obligatoire
+        return self.durci or self.totp_admin_obligatoire
 
     @model_validator(mode="before")
     @classmethod
@@ -68,7 +77,7 @@ class Settings(BaseSettings):
     def _verifier_production(self) -> "Settings":
         """En production, l'API refuse de démarrer avec une configuration dangereuse
         (pydantic transforme la ValueError en ValidationError au chargement)."""
-        if not self.production:
+        if not self.durci:
             return self
         problemes = []
         if self.secret_key == CLE_DEV or len(self.secret_key) < 32:
@@ -85,7 +94,7 @@ class Settings(BaseSettings):
                 "de la banque (les élèves voient des questions non relues), false ensuite."
             )
         if problemes:
-            raise ValueError("Configuration de production invalide :\n- " + "\n- ".join(problemes))
+            raise ValueError(f"Configuration de {self.environnement} invalide :\n- " + "\n- ".join(problemes))
         return self
 
 

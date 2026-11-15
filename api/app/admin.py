@@ -20,7 +20,8 @@ import sys
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import permissions
+from app import comptes_de_test, permissions
+from app.config import settings
 from app.db import models
 from app.referentiel import Role
 from app.security import generer_secret_totp, hacher_mot_de_passe, uri_totp
@@ -40,6 +41,8 @@ def _verifier_mot_de_passe(mot_de_passe: str) -> None:
 def creer_enseignant(session: Session, email: str, nom: str, mot_de_passe: str, admin: bool = False) -> models.Enseignant:
     email = email.strip().lower()
     _verifier_mot_de_passe(mot_de_passe)
+    if settings.production and comptes_de_test.est_compte_de_test(email):
+        raise ErreurAdmin(comptes_de_test.REFUS_PRODUCTION)
     if session.scalar(select(models.Enseignant).where(models.Enseignant.email == email)):
         raise ErreurAdmin(f"Un compte existe déjà pour {email}.")
     enseignant = models.Enseignant(

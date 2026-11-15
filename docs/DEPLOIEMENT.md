@@ -41,6 +41,27 @@ plus la base ; `docker compose up -d` relance la préparation.
 Les données de démo ne sont **jamais** chargées en production : `python -m app.db.seed` refuse de s'exécuter
 avec `PKP_ENVIRONNEMENT=production`, et la préparation échoue si un compte de démonstration est présent.
 
+## Environnements : poste local, intégration (VM DEV), production
+
+`PKP_ENVIRONNEMENT` prend trois valeurs (#93). L'intégration a **exactement** les contrôles de la production ;
+seuls les comptes de test l'en distinguent.
+
+| | `dev` (poste local) | `integration` (VM DEV) | `production` |
+|---|---|---|---|
+| Configuration contrôlée au démarrage (secret de 32 caractères, PostgreSQL, origines `https://`, choix explicite des questions non validées) | non | **oui** | **oui** |
+| `/docs`, `/redoc`, `/openapi.json` | ouverts | fermés | fermés |
+| Second facteur des administrateurs | facultatif | **obligatoire** | **obligatoire** |
+| Comptes de test (adresse en `.test`, `.example`, `.invalid`, `.localhost`, `example.com/.net/.org`) | autorisés | **autorisés** | **refusés** à la création, à la connexion (403 après le mot de passe) et par `python -m app.production verifier` |
+| `python -m app.db.seed` | mot de passe et codes publiés | `PKP_DEMO_MOT_DE_PASSE` obligatoire (12 caractères, pas la valeur publiée) ; codes élèves tirés au hasard, affichés une fois | **refusé** |
+| `/health` | `{"status": "ok", "environnement": "dev"}` | `… "environnement": "integration"` | `{"status": "ok"}` |
+
+Aucune dispense de mot de passe ni de second facteur n'existe, dans aucun environnement. Un administrateur de test
+configure son second facteur comme les autres (`python -m app.admin totp --email admin.recette@boussole.test`) ; le
+secret est rangé dans le gestionnaire de l'équipe DEV.
+
+Créer un compte de test sur la VM DEV : `python -m app.admin creer --email prof.essai@boussole.test --nom "Prof essai"`
+(mot de passe demandé, 12 caractères minimum). Ces adresses n'appartiennent à personne et ne reçoivent aucun courriel.
+
 ## Oracle Cloud (Oracle Linux) : script d'installation
 
 `deploy/installer-oracle.sh` fait toute l'installation sur une VM Oracle Linux 9 ou 10 : fichier d'échange si

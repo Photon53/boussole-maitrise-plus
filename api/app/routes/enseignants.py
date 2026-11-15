@@ -26,7 +26,7 @@ from app.progression import (
     progression_eleve,
     resume_eleve,
 )
-from app import enfants, inscriptions, parents, permissions
+from app import comptes_de_test, enfants, inscriptions, parents, permissions
 from app.referentiel import ABREVIATIONS_PARCOURS, domaine_maths
 from app.schemas import (
     EleveRenommage,
@@ -94,6 +94,7 @@ def verifier_identifiants(corps: ConnexionEnseignant, request: Request, session:
         limitation.echecs_enseignant.enregistrer(compte)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email ou mot de passe incorrect.")
     limitation.echecs_enseignant.effacer(compte)
+    comptes_de_test.refuser_en_production(enseignant.email)
     if not enseignant.actif:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Ce compte est désactivé. Contactez l'équipe Boussole.")
     if doit_rehacher(enseignant.mot_de_passe_hash):

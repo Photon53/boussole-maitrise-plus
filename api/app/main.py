@@ -10,12 +10,16 @@ from app.routes import admin, admin_contenu, archivage, cours, domaines, eleves,
 app = FastAPI(
     title="Boussole Maîtrise+",
     version="1.0.0",
-    docs_url=None if settings.production else "/docs",
+    docs_url=None if settings.durci else "/docs",
     redoc_url=None,
-    openapi_url=None if settings.production else "/openapi.json",
+    openapi_url=None if settings.durci else "/openapi.json",
 )
 
-if settings.production and settings.servir_questions_non_validees:
+logging.getLogger("uvicorn.error").info(
+    "Environnement : %s%s", settings.environnement,
+    " (comptes de test autorisés)" if not settings.production else " (comptes de test interdits)",
+)
+if settings.durci and settings.servir_questions_non_validees:
     logging.getLogger("uvicorn.error").warning(
         "PKP_SERVIR_QUESTIONS_NON_VALIDEES=true : les compétences sans question validée servent des questions non relues."
     )
