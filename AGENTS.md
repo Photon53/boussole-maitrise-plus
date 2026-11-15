@@ -52,7 +52,7 @@ Ces points ne se négocient pas et ne demandent pas d'arbitrage : ils sont déj�
 
 **Scripts d'exploitation — interdits** (ils supposent Cloud Shell, des identifiants GCP ou la VM) :
 
-- `deploy/*.sh` et `deploy/vm/boussole-dev-sync` ;
+- `deploy/*.sh` (dont `deploy/sauvegarde-prod.sh`, sauf son banc simulé) et `deploy/vm/boussole-dev-sync` ;
 - `scripts/audit-dev-compte-compute.sh`, `scripts/bootstrap-gcp-dev.sh`, `scripts/boussole-dev.sh`,
   `scripts/controle-acces-sauvegardes.sh`, `scripts/deployer-dev-iap.sh`, `scripts/dev-publier-version.sh`,
   `scripts/reprise-terraform-dev.sh`, `scripts/terraform-dev-cloudshell.sh`, `scripts/wif-dev-comptes-separes.sh` ;
@@ -67,6 +67,7 @@ Un nouveau script qui touche au cloud, à la VM ou aux secrets s'ajoute à cette
 - `scripts/test-dev-publier-version.sh` ;
 - `deploy/vm/tests/test-boussole-dev-sync.sh`, `deploy/vm/tests/test-refus-deploiement-manuel.sh` ;
 - `scripts/tests/test-controle-acces-sauvegardes.sh` ;
+- `deploy/sauvegarde/tests/test-sauvegarde-prod.sh` (faux `docker` et faux `gcloud`, vrai `age`) ;
 - `bash -n <script>` sur n'importe quel script (vérification de syntaxe, rien n'est exécuté).
 
 **Autres scripts** : lire et vérifier leurs effets ; demander une décision uniquement s'ils dépassent le périmètre autorisé ou restent ambigus. Le nom seul ne permet pas de décider : `installer-dev.sh` et `deployer-dev-iap.sh` ont des effets différents. Les interdictions explicites ci-dessus restent applicables.
@@ -234,6 +235,7 @@ bash -n deploy/vm/boussole-dev-sync
 bash deploy/vm/tests/test-boussole-dev-sync.sh
 bash deploy/vm/tests/test-refus-deploiement-manuel.sh
 bash scripts/tests/test-controle-acces-sauvegardes.sh
+bash deploy/sauvegarde/tests/test-sauvegarde-prod.sh
 ```
 
 Si la CI évolue, `ci.yml` fait foi et cette liste doit être mise à jour dans la même PR.
