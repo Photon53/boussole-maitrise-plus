@@ -3,7 +3,7 @@ import { api } from "./api.js";
 import { MARQUE } from "./marque.js";
 import { ETAPES } from "./methodeEtapes.js";
 import { DOMAINES_PAR_DEFAUT, ETATS, repartirParcours } from "./parcoursPublics.js";
-import Icone from "./ui/Icone.jsx";
+import Icone, { RoseDesVents } from "./ui/Icone.jsx";
 
 // KaTeX n'est chargé que pour la question d'essai, pas pour le reste de l'accueil.
 const ExempleQuestion = lazy(() => import("./ExempleQuestion.jsx"));
@@ -290,6 +290,7 @@ export default function Accueil({ marque = MARQUE }) {
   return (
     <div className="accueil">
       <section className="accueil-hero" aria-labelledby="titre-accueil">
+        {marque.monogramme && <RoseDesVents />}
         <span className="badge accent">{marque.badge}</span>
         <h1 id="titre-accueil">{marque.titre}</h1>
         <p>
