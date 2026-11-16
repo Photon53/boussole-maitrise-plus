@@ -701,3 +701,18 @@ th.col-case, td.col-case { width: 2.5rem; text-align: center; }
 tr.ligne-erreur td { background: var(--alerte-doux); }
 .barre-selection select { width: auto; max-width: 100%; }
 .badge.insecable { white-space: nowrap; }
+
+/* --- Accueils et aide « Comment bien travailler ? » (#148) --------------------------------- */
+
+/* Les cinq étapes en une ligne chacune : titre puis phrase courte, sur une colonne en mobile. */
+.methode-courte { list-style: none; counter-reset: etape; padding: 0; margin: 12px 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+.methode-courte li { counter-increment: etape; display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border: 1px solid var(--bordure); border-radius: var(--rayon-petit); background: var(--surface); }
+.methode-courte li strong::before { content: counter(etape) ". "; color: var(--action); }
+.methode-courte li span { font-size: var(--t-s); }
+.accueil-hero .bouton-principal { font-size: 1.05rem; padding: 12px 22px; }
+.accueil-seance .actions { margin-top: 12px; }
+.conseils-travail { margin-top: 16px; border-top: 1px solid var(--bordure); padding-top: 12px; }
+.conseils-travail summary { cursor: pointer; font-weight: 600; color: var(--action); }
+.conseils-travail .conseils { margin: 8px 0; padding-left: 20px; }
+.conseils-travail .conseils li { margin: 4px 0; }
+.aide.conseil { margin-top: 12px; }
