@@ -10,13 +10,15 @@ Comportement des images du registre (« meta ») :
   head            révision Alembic attendue par le code
   revisions       révisions connues du code (alembic current échoue sur une révision inconnue)
   cassee          l'application ne répond pas (contrôles de santé en échec)
-  migration_ko    alembic upgrade échoue (après avoir posé une révision intermédiaire si « rev_partielle »)
-  import_ko       l'import pédagogique échoue
+  migration_ko    alembic upgrade échoue (après avoir posé une révision intermédiaire si « rev_partielle ») ;
+                  « message_ko » (texte ou liste de lignes, facultatif) est alors écrit sur la sortie d'erreur à la place du message
+  import_ko       l'import pédagogique échoue (même usage de « message_ko »)
   import_modifie  l'import modifie les données (nouvelle empreinte)
   echec_publie    contrôles internes réussis, application publiée en échec (échec après ouverture)
 
 Interruption : si l'état contient « tuer_si » et que la commande appelée le contient, tout le groupe de
-processus (boussole-dev-sync lancé par setsid) est tué, comme lors d'un arrêt brutal de la VM.
+processus (boussole-dev-sync lancé par setsid) est tué, comme lors d'un arrêt brutal de la VM ; si l'état
+contient « sortie_avant_arret », ce texte est d'abord écrit sur la sortie d'erreur (sortie partielle).
 """
 import io
 import json
@@ -132,14 +134,14 @@ def compose(e, args):
                 if m.get("rev_partielle"):
                     db["revision"] = m["rev_partielle"]
                     sauver(e)
-                print("migration en échec", file=sys.stderr)
+                print(message_ko(m, "migration en échec"), file=sys.stderr)
                 sys.exit(1)
             db["revision"] = m["head"]
             sauver(e)
             return
         if commande[:3] == ["python", "-m", "app.contenu"]:
             if m.get("import_ko"):
-                print("import en échec", file=sys.stderr)
+                print(message_ko(m, "import en échec"), file=sys.stderr)
                 sys.exit(1)
             simulation = "--simulation" in commande
             if m.get("import_modifie") and db["empreinte"] != m["import_modifie"]:
@@ -165,6 +167,11 @@ def api_saine(e):
     return bool(c and c["running"] and not meta(e, c["image"]).get("cassee"))
 
 
+def message_ko(m, defaut):
+    msg = m.get("message_ko", defaut)
+    return "\n".join(msg) if isinstance(msg, list) else msg
+
+
 def main():
     args = sys.argv[1:]
     e = charger()
@@ -173,6 +180,8 @@ def main():
     if e.get("tuer_si") and e["tuer_si"] in ligne:
         e["tuer_si"] = None
         sauver(e)
+        if e.get("sortie_avant_arret"):
+            print(e["sortie_avant_arret"], file=sys.stderr, flush=True)
         os.killpg(os.getpgid(0), signal.SIGKILL)
     sauver(e)
     cmd = args[0]
