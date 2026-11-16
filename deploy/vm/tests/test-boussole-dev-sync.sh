@@ -390,26 +390,48 @@ inchanges() { [[ "$(lire_py "e[\"db\"][\"revision\"]")" == 0031 && "$(lire_py "e
 arretes()   { [[ "$(lire_py "[e[\"conteneurs\"][s][\"running\"] for s in (\"api\",\"purge\",\"web\")]")" == "[False, False, False]" ]]; }
 preparer_v1() { initialiser; publier v1 "$META_0031"; pointer v1; sync --adopter; sync --appliquer; }
 
+# Sortie de la migration en échec : 50 lignes de trace puis l'erreur PostgreSQL, avec l'URL de la base (mot de passe)
+# et la clé de l'application. Les 40 dernières lignes sont journalisées, la sortie complète est conservée, masquée.
+META_M1="$(python3 -c 'import json; print(json.dumps({"head": "0031", "revisions": ["0030", "0031"], "migration_ko": True,
+  "message_ko": [f"trace {i:03d}" for i in range(1, 51)] + [
+    "sqlalchemy.exc.IntegrityError: (psycopg.errors.UniqueViolation) duplicate key value violates unique constraint uq_test_0039",
+    "DETAIL:  Key (identifiant)=(Test1) already exists.",
+    "connexion : postgresql+psycopg://pkp:mdp-de-test@db:5432/pkp ; PKP_SECRET_KEY=secret-de-test-ne-doit-pas-fuiter ; password=mdp-de-test"]}))')"
 preparer_v1
-publier m1 '{"head": "0031", "revisions": ["0030", "0031"], "migration_ko": true}'; pointer m1
+publier m1 "$META_M1"; pointer m1
 marquer; sync --appliquer
 verif "Échec PENDANT la migration (révision et empreinte inchangées) : retour interdit" 2 "pendant la phase « migration »" \
   'inchanges && arretes && [[ "$(jv "$E/etat/intervention-requise.json" etape)" == migration ]] && ! appels_depuis | grep -q images-relance.env'
 
+CONSERVEE="$E/etat/intervention-migration.txt"
+verif "Migration en échec : erreur réelle dans journald et dans le journal fichier" 2 "unique constraint uq_test_0039" \
+  'grep -qF "uq_test_0039" "$E/journal.log" && grep -qF "  | DETAIL:  Key (identifiant)=(Test1) already exists." "$E/journal.log"'
+verif "Migration en échec : seules les 40 dernières lignes sont journalisées" 2 "40 dernières lignes" \
+  'grep -qF "| trace 014" "$E/journal.log" && ! grep -qF "| trace 013" "$E/journal.log"'
+verif "Migration en échec : sortie complète conservée (600) et référencée dans intervention-requise.json" 2 "$CONSERVEE" \
+  '[[ "$(jv "$E/etat/intervention-requise.json" sorties)" == "$CONSERVEE" && "$(stat -c %a "$CONSERVEE")" == 600 ]] && grep -qF "trace 001" "$CONSERVEE" && grep -qF "uq_test_0039" "$CONSERVEE"'
+verif "Migration en échec : mot de passe de la base et clé masqués (fichier conservé, journaux)" 2 "pkp:***@db:5432/pkp" \
+  'grep -qF "pkp:***@db:5432/pkp" "$CONSERVEE" && ! grep -qE "secret-de-test|mdp-de-test" "$CONSERVEE" "$E/journal.log" "$T/sortie" "$E/etat/intervention-requise.json"'
+verif "Migration en échec : copie conservée après suppression du dossier de travail" 2 "" '! compgen -G "$E/etat/travail.*" >/dev/null'
+
 preparer_v1
-publier m2 '{"head": "0031", "revisions": ["0030", "0031"], "import_ko": true}'; pointer m2
+publier m2 '{"head": "0031", "revisions": ["0030", "0031"], "import_ko": true, "message_ko": "ERREUR import : chapitre « ch-inconnu » absent du référentiel"}'; pointer m2
 marquer; sync --appliquer
 verif "Échec PENDANT l'import (révision et empreinte inchangées) : retour interdit" 2 "pendant la phase « import »" \
   'inchanges && arretes && [[ "$(jv "$E/etat/intervention-requise.json" etape)" == import ]] && ! appels_depuis | grep -q images-relance.env'
+verif "Import en échec : erreur réelle journalisée et conservée" 2 "ch-inconnu" \
+  'grep -qF "ch-inconnu" "$E/journal.log" && grep -qF "ch-inconnu" "$E/etat/intervention-import.txt" && [[ "$(jv "$E/etat/intervention-requise.json" sorties)" == "$E/etat/intervention-import.txt" ]]'
 
 preparer_v1
 publier m3 "$META_0031"; pointer m3
-etat_py "e['tuer_si'] = 'alembic upgrade'"
+etat_py "e['tuer_si'] = 'alembic upgrade'" "e['sortie_avant_arret'] = 'INFO  [alembic] Running upgrade 0031 -> 0039 (partiel) postgresql://pkp:mdp-de-test@db/pkp'"
 sync --appliquer
 verif "Interruption brutale PENDANT la migration" 137 "" '[[ "$(jv "$E/etat/en-cours.json" etape)" == migration ]]'
 marquer; sync --appliquer
 verif "Reprise après interruption pendant la migration (révision et empreinte inchangées) : retour interdit" 2 "pendant la phase « migration »" \
   'inchanges && arretes && [[ ! -f "$E/etat/en-cours.json" ]] && ! appels_depuis | grep -qE "images-relance.env|^pull|alembic upgrade"'
+verif "Reprise après interruption : sortie partielle de la migration conservée, masquée et référencée" 2 "Running upgrade 0031 -> 0039" \
+  'grep -qF "pkp:***@db/pkp" "$E/etat/intervention-migration.txt" && ! grep -qF mdp-de-test "$E/etat/intervention-migration.txt" "$E/journal.log" && [[ "$(jv "$E/etat/intervention-requise.json" sorties)" == "$E/etat/intervention-migration.txt" ]]'
 
 preparer_v1
 publier m4 "$META_0031"; pointer m4
