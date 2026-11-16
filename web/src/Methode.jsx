@@ -1,9 +1,38 @@
-import { MARQUE } from "./marque.js";
 import { Maths } from "./maths.jsx";
 
-// Les cinq étapes vivent dans un module sans KaTeX : l'accueil public et l'espace élève les affichent aussi.
-export { ETAPES } from "./methodeEtapes.js";
-import { ETAPES } from "./methodeEtapes.js";
+/** Les cinq étapes de la méthode PKP, et où l'élève les trouve dans chaque leçon. */
+export const ETAPES = [
+  {
+    cle: "comprendre",
+    titre: "Je comprends",
+    dans: "Objectifs et cours structuré de chaque leçon.",
+    critere: "Je sais expliquer la notion avec mes propres mots et reconnaitre ce qu'on me demande.",
+  },
+  {
+    cle: "memoriser",
+    titre: "Je mémorise",
+    dans: "« L'essentiel », les méthodes avec exemple résolu, l'encadré « Attention à… ».",
+    critere: "Ma fiche contient les définitions, propriétés, formules, un exemple résolu et les erreurs classiques.",
+  },
+  {
+    cle: "entrainer",
+    titre: "Je m'entraîne",
+    dans: "Exercices des niveaux 1 à 3, avec la réponse attendue et la partie du cours à utiliser.",
+    critere: "J'applique une méthode connue, puis je gagne en autonomie.",
+  },
+  {
+    cle: "depasser",
+    titre: "Je me dépasse",
+    dans: "Exercices des niveaux 4 et 5 : synthèse et problèmes.",
+    critere: "Je choisis une méthode, je combine plusieurs notions, je cherche une solution.",
+  },
+  {
+    cle: "verifier",
+    titre: "Je vérifie",
+    dans: "Ma maîtrise de la compétence et mon historique.",
+    critere: "Je contrôle mes résultats, j'identifie mes erreurs et je retravaille ce qui n'est pas acquis.",
+  },
+];
 
 // Exemples variés (algèbre, analyse, géométrie, statistiques, probabilités) : les gestes sont transversaux.
 const GESTES = [
@@ -155,7 +184,7 @@ export default function Methode() {
               </span>
               <div>
                 <strong>{e.titre}</strong>
-                <p className="doux">Dans {MARQUE.nom} : {e.dans}</p>
+                <p className="doux">Dans Boussole : {e.dans}</p>
                 <p>{e.critere}</p>
               </div>
             </li>
@@ -223,7 +252,7 @@ export default function Methode() {
           </li>
           <li>
             <strong>Carnet d'erreurs :</strong> pour chaque erreur, note ce que tu as fait, pourquoi c'était faux, la bonne
-            méthode, et refais un exercice semblable deux jours plus tard sans regarder la correction. Le carnet intégré à {MARQUE.nom}
+            méthode, et refais un exercice semblable deux jours plus tard sans regarder la correction. Le carnet intégré à Boussole
             arrive bientôt ; en attendant, l'onglet « Mon historique » liste déjà toutes tes erreurs avec leur correction
             (case « Seulement mes erreurs ») : c'est le point de départ de ton carnet.
           </li>

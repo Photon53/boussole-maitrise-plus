@@ -1,7 +1,5 @@
 import { lazy, Suspense, useEffect, useState } from "react";
 import { api } from "./api.js";
-import { MARQUE } from "./marque.js";
-import { ETAPES } from "./methodeEtapes.js";
 import { DOMAINES_PAR_DEFAUT, ETATS, repartirParcours } from "./parcoursPublics.js";
 import Icone from "./ui/Icone.jsx";
 
@@ -59,7 +57,7 @@ function Profils() {
         <li className="carte profil">
           <Icone nom="professeurs" taille={32} />
           <h3>Je suis parent</h3>
-          <p>Suivez le travail de votre enfant : les séances faites, les notions acquises et celles à revoir.</p>
+          <p>Suivez les progrès de votre enfant, son travail et ses réussites, depuis un téléphone ou un ordinateur.</p>
           <div className="profil-liens">
             <LienEspace href="/parent" profil="Parent">
               Espace parent
@@ -70,7 +68,7 @@ function Profils() {
         <li className="carte profil">
           <Icone nom="classes" taille={32} />
           <h3>Je suis professeur</h3>
-          <p>Vos classes et vos élèves, la séance en direct, les cours, la banque de questions et les fiches PDF par chapitre.</p>
+          <p>Des séances prêtes à l'emploi, des contenus relus par des collègues et le suivi de vos classes en un coup d'œil.</p>
           <div className="profil-liens">
             <LienEspace href="/enseignant" profil="Professeur">
               Maths
@@ -86,28 +84,6 @@ function Profils() {
           <p className="doux profil-aide">Français : préparation réservée aux adultes habilités, sans accès élève.</p>
         </li>
       </ul>
-    </section>
-  );
-}
-
-// --- La méthode en bref -------------------------------------------------------------------------
-
-/** Les cinq étapes en une ligne chacune ; le détail reste sur la page Méthode, facultative. */
-function MethodeCourte({ marque }) {
-  return (
-    <section aria-labelledby="titre-methode" className="accueil-methode">
-      <h2 id="titre-methode">La méthode en cinq étapes</h2>
-      <ol className="methode-courte">
-        {ETAPES.map((e) => (
-          <li key={e.cle}>
-            <strong>{e.titre}</strong>
-            <span className="doux">{e.court}</span>
-          </li>
-        ))}
-      </ol>
-      <p>
-        <a href="/methode">{marque.spirale ? "Découvrir la Méthode Spirale" : "Lire la méthode en détail"}</a>
-      </p>
     </section>
   );
 }
@@ -167,17 +143,17 @@ function Etapes() {
 
 // --- Parcours prêts et en chantier ---------------------------------------------------------------
 
-/** Titre d'un parcours : « Boussole Maths » (ou « PKP Maths »), puis le cycle. */
-function TitreParcours({ domaine, prefixe }) {
+/** Titre d'un parcours : « Boussole Maths », puis le cycle. */
+function TitreParcours({ domaine }) {
   return (
     <h4>
-      {prefixe} <em>{domaine.matiereLisible}</em> <span className="parcours-cycle">{domaine.cycleLisible}</span>
+      Boussole <em>{domaine.matiereLisible}</em> <span className="parcours-cycle">{domaine.cycleLisible}</span>
     </h4>
   );
 }
 
 /** Les parcours prêts puis les chantiers ; l'état suit les réglages des domaines, avec un repli statique hors ligne. */
-function Parcours({ marque }) {
+function Parcours() {
   const domaines = useDonneePublique("/domaines/publics", DOMAINES_PAR_DEFAUT, (l) => Array.isArray(l) && l.length > 0);
   const { prets, chantiers } = repartirParcours(domaines);
 
@@ -196,7 +172,7 @@ function Parcours({ marque }) {
                 {ETATS.ouvert.libelle}
               </span>
             </div>
-            <TitreParcours domaine={d} prefixe={marque.prefixeParcours} />
+            <TitreParcours domaine={d} />
             {d.description && <p className="doux">{d.description}</p>}
           </li>
         ))}
@@ -219,7 +195,7 @@ function Parcours({ marque }) {
                     {ETATS[d.etat].libelle}
                   </span>
                 </div>
-                <TitreParcours domaine={d} prefixe={marque.prefixeParcours} />
+                <TitreParcours domaine={d} />
                 <p className="doux">{ETATS[d.etat].detail}.</p>
               </li>
             ))}
@@ -233,7 +209,7 @@ function Parcours({ marque }) {
 // --- Questions fréquentes ------------------------------------------------------------------------
 
 // `masquee` : réponse rédigée mais retirée de la page pour l'instant (choix du professeur, bêta).
-const faq = (nom) => [
+const FAQ = [
   {
     masquee: true,
     question: "Quelles données sont enregistrées sur mon enfant ?",
@@ -251,7 +227,7 @@ const faq = (nom) => [
   {
     question: "Faut-il installer une application ?",
     reponse:
-      `Non. ${nom} s'utilise dans le navigateur d'un téléphone, d'une tablette ou d'un ordinateur. Fermer l'onglet ` +
+      "Non. Boussole s'utilise dans le navigateur d'un téléphone, d'une tablette ou d'un ordinateur. Fermer l'onglet " +
       "déconnecte, pratique sur un poste partagé.",
   },
   {
@@ -263,12 +239,12 @@ const faq = (nom) => [
   },
 ];
 
-function QuestionsFrequentes({ marque }) {
+function QuestionsFrequentes() {
   return (
     <section aria-labelledby="titre-faq">
       <h2 id="titre-faq">Questions fréquentes</h2>
       <div className="faq">
-        {faq(marque.nom).filter((f) => !f.masquee).map((f) => (
+        {FAQ.filter((f) => !f.masquee).map((f) => (
           <details key={f.question}>
             <summary>{f.question}</summary>
             <p>{f.reponse}</p>
@@ -281,42 +257,31 @@ function QuestionsFrequentes({ marque }) {
 
 // --- Page ---------------------------------------------------------------------------------------
 
-/**
- * Page d'accueil publique, commune aux deux variantes (Boussole Maîtrise+, PKP Éducation) : une action principale,
- * la méthode en bref, une entrée par profil, le fonctionnement, un essai, les parcours réellement ouverts, la FAQ.
- * `marque` : textes et identité de la variante (voir marque.js) ; seule la présentation change.
- */
-export default function Accueil({ marque = MARQUE }) {
+/** Page d'accueil publique : une entrée par profil, le fonctionnement, un essai, les parcours, puis les questions fréquentes. */
+export default function Accueil() {
   return (
     <div className="accueil">
-      <section className="accueil-hero" aria-labelledby="titre-accueil">
-        <span className="badge accent">{marque.badge}</span>
-        <h1 id="titre-accueil">{marque.titre}</h1>
+      <section className="accueil-hero">
+        <span className="badge accent">Collège · Lycée</span>
+        <h1>Comprendre, progresser, prendre confiance !</h1>
         <p>
-          <strong>{marque.accroche}</strong>
+          <strong>Des cours clairs, des exercices corrigés pas à pas et un entraînement à ton rythme</strong>, préparés et relus par des
+          professeurs.
         </p>
-        <p>{marque.publics}</p>
-        {marque.spirale && (
-          <p className="spirale-definition">
-            Avec la Méthode Spirale, <strong>on revient sur les notions jusqu'à ce qu'elles tiennent</strong> : c'est ça, viser la
-            Maîtrise+.
-          </p>
-        )}
+        <p className="spirale-definition">
+          Avec la Méthode Spirale, <strong>on revient sur les notions jusqu'à ce qu'elles tiennent</strong> : c'est ça, viser la
+          Maîtrise+.
+        </p>
         <div className="actions">
-          <a className="bouton bouton-principal" href="/eleve">
-            Commencer à travailler
-          </a>
-          <a className="bouton secondaire" href="#titre-methode">
-            Découvrir la méthode
-          </a>
-          <a className="bouton secondaire" href="#titre-exemple">
+          <a className="bouton" href="#titre-exemple">
             Essayer une question
           </a>
+          <a className="bouton secondaire" href="/methode">
+            Découvrir la Méthode Spirale
+          </a>
         </div>
-        <p className="doux petit">Élève : connecte-toi avec la carte ou le code remis par ton professeur.</p>
       </section>
 
-      <MethodeCourte marque={marque} />
       <Profils />
       <Chiffres />
       <Etapes />
@@ -329,16 +294,13 @@ export default function Accueil({ marque = MARQUE }) {
         </Suspense>
       </section>
 
-      <Parcours marque={marque} />
-      <QuestionsFrequentes marque={marque} />
+      <Parcours />
+      <QuestionsFrequentes />
 
       <p className="accroche">
-        {marque.conclusion.map((ligne, i) => (
-          <span key={ligne}>
-            {i > 0 && <br />}
-            {ligne}
-          </span>
-        ))}
+        On ne réussit pas parce qu'on est né fort : on progresse en comprenant, en pratiquant et en persévérant.
+        <br />
+        Comprendre aujourd'hui, réussir demain !
       </p>
     </div>
   );

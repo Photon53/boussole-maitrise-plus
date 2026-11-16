@@ -64,13 +64,12 @@ export function Monogramme({ taille = 32 }) {
   );
 }
 
-/** `nom`, `marque` et `monogramme` : identité de la variante (Boussole Maîtrise+ par défaut, PKP Éducation). */
-export function Logo({ vers = "/", nom = "Boussole", marque = "Maîtrise+", monogramme = true }) {
+export function Logo({ vers = "/", marque = "Maîtrise+" }) {
   return (
     <a className="logo" href={vers}>
-      {monogramme && <Monogramme />}
+      <Monogramme />
       <span>
-        {nom} <em>{marque}</em>
+        Boussole <em>{marque}</em>
       </span>
     </a>
   );

@@ -1,6 +1,5 @@
 import { Suspense, lazy } from "react";
 import Accueil from "./Accueil.jsx";
-import { MARQUE } from "./marque.js";
 import { useChemin } from "./navigation.js";
 import { Logo } from "./ui/Icone.jsx";
 
@@ -65,9 +64,9 @@ export default function App() {
   return (
     <div className="page">
       <header className="entete">
-        <Logo nom={MARQUE.nom} marque={MARQUE.suffixe} monogramme={MARQUE.monogramme} />
+        <Logo />
         <nav aria-label="Espaces">
-          {!methode && <a href="/methode">{MARQUE.spirale ? "La Méthode Spirale" : "La méthode"}</a>}
+          {!methode && <a href="/methode">La Méthode Spirale</a>}
           {eleveAnglais ? (
             <a href="/anglais">Espace professeur</a>
           ) : eleve ? (
@@ -99,9 +98,7 @@ export default function App() {
         )}
       </main>
       <footer className="pied">
-        <span>
-          © {new Date().getFullYear()} {MARQUE.nom} {MARQUE.suffixe}
-        </span>
+        <span>© {new Date().getFullYear()} Boussole</span>
         <span>Aucun traceur publicitaire · Données des élèves réduites au prénom</span>
       </footer>
     </div>

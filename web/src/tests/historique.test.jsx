@@ -48,7 +48,7 @@ describe("lien entre exercices, cours et historique", () => {
       "GET /cours/10": { json: LECON },
     });
     render(<EspaceEleve />);
-    await userEvent.click(screen.getByRole("button", { name: "Commencer à travailler" }));
+    await userEvent.click(screen.getByRole("button", { name: "Démarrer une séance" }));
     await userEvent.type(await screen.findByLabelText("Ta réponse"), "1{Enter}");
     expect(await screen.findByText("Pas tout à fait.")).toBeInTheDocument();
 
@@ -115,7 +115,7 @@ describe("partie du cours à utiliser", () => {
       },
     });
     render(<EspaceEleve />);
-    await userEvent.click(screen.getByRole("button", { name: "Commencer à travailler" }));
+    await userEvent.click(screen.getByRole("button", { name: "Démarrer une séance" }));
     await userEvent.type(await screen.findByLabelText("Ta réponse"), "1{Enter}");
     expect(await screen.findByText(`Partie du cours à utiliser : ${LECON.libelle}`)).toBeVisible();
     expect(screen.getByText(/pas encore rédigée/)).toBeVisible(); // ouvert d'office après une erreur
