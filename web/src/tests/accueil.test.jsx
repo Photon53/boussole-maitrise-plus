@@ -84,6 +84,8 @@ describe("page d'accueil : attirer élèves, parents et professeurs", () => {
     render(<Accueil />);
     expect(screen.getByText(/on revient sur les notions jusqu'à ce qu'elles tiennent/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Découvrir la Méthode Spirale" })).toHaveAttribute("href", "/methode");
+    expect(screen.getByText(/à travailler en autonomie ou avec tes professeurs/)).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/relus par des professeurs/);
     expect(document.body.textContent).not.toMatch(/\bPKP\b/);
   });
 
