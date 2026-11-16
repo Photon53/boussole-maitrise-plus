@@ -107,13 +107,15 @@ def connexion(corps: ConnexionEleve, request: Request, session: SessionDB) -> Je
     ip = limitation.adresse_ip(request)
     compte = f"eleve:{corps.code_classe}:{corps.prenom.lower()}"
     limitation.verifier(
-        (limitation.par_ip, ip), (limitation.codes_inconnus, ip), (limitation.echecs_code_eleve, compte)
+        (limitation.par_ip, ip), (limitation.codes_inconnus, ip), (limitation.echecs_code_eleve, compte),
+        (limitation.echecs_eleve_par_ip, ip),
     )
     limitation.par_ip.enregistrer(ip)
 
     classe = session.scalar(select(models.Classe).where(models.Classe.code == corps.code_classe))
     if classe is None:
         limitation.codes_inconnus.enregistrer(ip)  # freine la recherche de codes classe
+        limitation.echecs_eleve_par_ip.enregistrer(ip)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, ECHEC_CONNEXION)
     eleve = session.scalar(
         select(models.Eleve).where(models.Eleve.classe_id == classe.id, func.lower(models.Eleve.prenom) == corps.prenom.lower())
@@ -121,6 +123,7 @@ def connexion(corps: ConnexionEleve, request: Request, session: SessionDB) -> Je
     empreinte = eleve.code_hash if eleve and eleve.code_hash else _code_leurre()  # même durée dans tous les cas
     if not verifier_code_eleve(corps.code_personnel, empreinte) or not (eleve and eleve.code_hash):
         limitation.echecs_code_eleve.enregistrer(compte)
+        limitation.echecs_eleve_par_ip.enregistrer(ip)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, ECHEC_CONNEXION)
     limitation.echecs_code_eleve.effacer(compte)
     if carte_bloquee(eleve):
@@ -151,7 +154,7 @@ def connexion_identifiant(corps: ConnexionIdentifiant, request: Request, session
     ip = limitation.adresse_ip(request)
     identifiant = normaliser_identifiant(corps.identifiant)
     compte = f"eleve-id:{identifiant}"
-    limitation.verifier((limitation.par_ip, ip), (limitation.codes_inconnus, ip), (limitation.echecs_code_eleve, compte))
+    limitation.verifier((limitation.par_ip, ip), (limitation.codes_inconnus, ip), (limitation.echecs_code_eleve, compte), (limitation.echecs_eleve_par_ip, ip))
     limitation.par_ip.enregistrer(ip)
 
     eleve = session.scalar(select(models.Eleve).where(func.lower(models.Eleve.identifiant) == identifiant))
@@ -164,6 +167,7 @@ def connexion_identifiant(corps: ConnexionIdentifiant, request: Request, session
         if eleve is None:
             limitation.codes_inconnus.enregistrer(ip)  # freine la recherche d'identifiants
         limitation.echecs_code_eleve.enregistrer(compte)
+        limitation.echecs_eleve_par_ip.enregistrer(ip)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, ECHEC_IDENTIFIANT)
     limitation.echecs_code_eleve.effacer(compte)
     if carte_bloquee(eleve):

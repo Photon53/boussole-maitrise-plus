@@ -42,7 +42,7 @@ chaque essai.
 Avant RGPD-1, il fallait d'abord trouver un identifiant existant. `codes_inconnus` (30 identifiants inexistants par
 adresse) rendait ce balayage inefficace.
 
-## 4. Proposition (décision **SEC-D5**, en attente du propriétaire)
+## 4. Proposition et décision **SEC-D5**
 
 1. **Limite par adresse sur les échecs** de connexion par carte : `echecs_carte_par_ip` = **60 échecs / 15 min**,
    en plus des 300 tentatives. Une classe de 35 élèves derrière la même adresse (réseau d'établissement) garde de la
@@ -52,5 +52,10 @@ adresse) rendait ce balayage inefficace.
 3. Plus tard, si le besoin se confirme : allonger le code personnel des nouvelles cartes à 7 caractères
    (31⁷ ≈ 27 milliards, trente fois plus), sans toucher aux cartes déjà distribuées.
 
-Ces trois points changent le comportement visible pour les classes. Ils ne sont **pas** appliqués par #87 : ils
-attendent la décision du propriétaire.
+**Décision du propriétaire (15/11/2026)** : le point 1 est **appliqué** (`limitation.echecs_eleve_par_ip`, réglage
+`PKP_CONNEXION_ELEVE_MAX_ECHECS_PAR_IP`, défaut 60). Il vaut pour toutes les connexions élève : carte d'enfant,
+identifiant, prénom + code classe et anglais. Les points 2 et 3 ne sont pas retenus à ce stade.
+
+Contrôlé par `test_un_code_essaye_sur_des_identifiants_devinables_est_freine_par_adresse` : au 61ᵉ échec, l'adresse
+reçoit 429, y compris par une autre route de connexion élève. `test_une_classe_derriere_une_meme_adresse_n_est_pas_bloquee`
+vérifie que 35 élèves derrière une même adresse, avec dix fautes de frappe, se connectent tous.

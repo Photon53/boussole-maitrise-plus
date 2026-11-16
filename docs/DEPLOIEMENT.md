@@ -115,5 +115,7 @@ Sauvegardes : chiffrées, copiées hors du serveur, gardées 60 jours, restaurat
   les compteurs à zéro.
 - **Blocage d'un compte enseignant** : 5 mots de passe faux en 15 min bloquent ce compte
   15 min, même pour son propriétaire. C'est voulu, mais un tiers peut le provoquer.
-- **Lycée derrière une seule IP** : les plafonds par IP (300 connexions, 30 codes classe faux
-  par 15 min) sont réglés pour une classe entière ; voir `PKP_CONNEXION_*` dans `app/config.py`.
+- **Lycée derrière une seule IP** : les plafonds par IP (300 connexions, 30 codes classe faux et
+  60 échecs de connexion élève par 15 min, SEC-D5) sont réglés pour une classe entière ; voir `PKP_CONNEXION_*`
+  dans `app/config.py`. Plusieurs classes qui se connectent en même temps derrière la même adresse peuvent
+  approcher le plafond de 60 échecs : l'augmenter avec `PKP_CONNEXION_ELEVE_MAX_ECHECS_PAR_IP` dans `.env` si besoin.

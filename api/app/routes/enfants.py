@@ -29,7 +29,7 @@ def connexion(corps: ConnexionIdentifiant, request: Request, session: SessionDB)
     ip = limitation.adresse_ip(request)
     identifiant = normaliser_identifiant(corps.identifiant)
     compte = f"carte:{identifiant}"
-    limitation.verifier((limitation.par_ip, ip), (limitation.codes_inconnus, ip), (limitation.echecs_code_eleve, compte))
+    limitation.verifier((limitation.par_ip, ip), (limitation.codes_inconnus, ip), (limitation.echecs_code_eleve, compte), (limitation.echecs_eleve_par_ip, ip))
     limitation.par_ip.enregistrer(ip)
     duree_h = settings.duree_jeton_eleve_longue_j * 24 if corps.rester_connecte else settings.duree_jeton_eleve_h
 
@@ -43,6 +43,7 @@ def connexion(corps: ConnexionIdentifiant, request: Request, session: SessionDB)
         if titulaire is None:
             limitation.codes_inconnus.enregistrer(ip)  # freine la recherche d'identifiants
         limitation.echecs_code_eleve.enregistrer(compte)
+        limitation.echecs_eleve_par_ip.enregistrer(ip)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, ECHEC_IDENTIFIANT)
     limitation.echecs_code_eleve.effacer(compte)
     if carte_bloquee(titulaire):
