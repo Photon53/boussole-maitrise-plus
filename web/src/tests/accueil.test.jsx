@@ -84,6 +84,8 @@ describe("page d'accueil : attirer élèves, parents et professeurs", () => {
     render(<Accueil />);
     expect(screen.getByText(/on revient sur les notions jusqu'à ce qu'elles tiennent/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Découvrir la Méthode Spirale" })).toHaveAttribute("href", "/methode");
+    expect(screen.getByText(/à travailler en autonomie ou avec tes professeurs/)).toBeInTheDocument();
+    expect(document.body.textContent).not.toMatch(/relus par des professeurs/);
     expect(document.body.textContent).not.toMatch(/\bPKP\b/);
   });
 
@@ -95,7 +97,8 @@ describe("page d'accueil : attirer élèves, parents et professeurs", () => {
     expect(within(chiffres).getByText("42")).toBeInTheDocument();
     expect(within(chiffres).getByText(/^1.234$/)).toBeInTheDocument(); // espace insécable fine en français
     expect(within(chiffres).queryByText(/séances d'anglais/)).not.toBeInTheDocument();
-    expect(within(chiffres).getByText("Par des profs")).toBeInTheDocument();
+    expect(within(chiffres).getByText("En autonomie")).toBeInTheDocument();
+    expect(within(chiffres).queryByText("Par des profs")).not.toBeInTheDocument();
   });
 
   it("laisse essayer une question sans compte, avec la correction", async () => {

@@ -59,6 +59,9 @@ echecs_enseignant = Limiteur(settings.connexion_enseignant_max_echecs, _fenetre)
 codes_inconnus = Limiteur(settings.connexion_eleve_max_codes_inconnus, _fenetre)
 # 5 essais par compte et par 15 min : deviner un code parmi 887 millions est hors de portée.
 echecs_code_eleve = Limiteur(settings.connexion_eleve_max_echecs_code, _fenetre)
+# Décision SEC-D5 (#87) : échecs de connexion élève par adresse, tous comptes confondus. Freine l'essai d'un même
+# code sur de nombreux identifiants devinables (« Lina1 », « Lina2 »…), que codes_inconnus ne voit pas.
+echecs_eleve_par_ip = Limiteur(settings.connexion_eleve_max_echecs_par_ip, _fenetre)
 
 # Remarques et suggestions (ticket #30) : contre le spam, par compte et par adresse ; suivi : contre la devinette.
 remarques_par_compte = Limiteur(10, 3600)
@@ -70,7 +73,7 @@ service_ia_par_compte = Limiteur(settings.service_ia_requetes_par_minute, 60)
 service_ia_refus_par_ip = Limiteur(20, 15 * 60)
 
 TOUS = (
-    par_ip, echecs_enseignant, codes_inconnus, echecs_code_eleve, remarques_par_compte, remarques_par_ip,
+    par_ip, echecs_enseignant, codes_inconnus, echecs_code_eleve, echecs_eleve_par_ip, remarques_par_compte, remarques_par_ip,
     suivi_remarques_par_ip, service_ia_par_compte, service_ia_refus_par_ip,
 )
 

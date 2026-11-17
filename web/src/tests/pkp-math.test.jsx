@@ -76,7 +76,7 @@ describe("Boussole Maths", () => {
 describe("espace parent : enfants de la famille", () => {
   const SUIVI = {
     enfant: {
-      id: 7, prenom: "Inès", nom: "Martin", niveau: "2nde", identifiant: "ines-k7m4", a_un_code: true, derniere_connexion: null,
+      id: 7, prenom: "Inès", niveau: "2nde", identifiant: "ines-k7m4", a_un_code: true, derniere_connexion: null,
       maths: [{ eleve_id: 11, code_classe: "2NDE-TC-AAAAA", niveau: "2nde", parcours: "tronc-commun", libelle_parcours: "Tronc commun", enseignant: "M. Prof" }],
       anglais: [],
     },
