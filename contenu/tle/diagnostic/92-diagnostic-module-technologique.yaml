@@ -1,10 +1,11 @@
-# Diagnostic d'entrée en Terminale — module « voie technologique » (issue #162).
+# Diagnostic d'entrée en Terminale — module « voie technologique » (issue #162). Rangé sous contenu/<niveau>/diagnostic/ : jamais servi à l'entraînement.
 chapitre:
   code: TLE-DIAG-TECH
   niveau: Tle
   nature: diagnostic
   programme_prerequis: 1re-technologique-2019
   publics: [technologique]
+  ordre: 92
   titre: Diagnostic d'entrée, acquis de 1re technologique
 
 competences:

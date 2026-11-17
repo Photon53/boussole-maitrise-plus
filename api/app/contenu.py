@@ -40,11 +40,13 @@ from app.db import models
 from app.referentiel import (
     LICENCES_NON_CLAIRES,
     PARCOURS_PAR_NIVEAU,
+    NatureChapitre,
     SOURCE_PKP,
     Adaptation,
     Parcours,
     StatutValidation,
     domaine_de,
+    est_principal,
     refus_matiere,
 )
 
@@ -58,6 +60,9 @@ DOSSIERS_NIVEAU = {
 }
 
 Code = Annotated[str, Field(pattern=r"^[A-Z0-9][A-Z0-9-]{1,59}$")]
+# Types réservés aux chapitres de diagnostic (issue #162) : l'écran d'entraînement ne les affiche pas encore.
+TYPES_DIAGNOSTIC = frozenset({TypeQuestion.CHOIX_MULTIPLES, TypeQuestion.REDACTION})
+DOSSIER_DIAGNOSTIC = "diagnostic"
 
 
 class _Strict(BaseModel):
@@ -146,6 +151,8 @@ class QuestionYaml(_Strict):
     def _forme_pour_les_expressions(self):
         if self.forme is not None and self.type is not TypeQuestion.EXPRESSION:
             raise ValueError("`forme` ne concerne que les questions de type « expression »")
+        if self.gabarit is not None and self.type in TYPES_DIAGNOSTIC:
+            raise ValueError(f"pas de valeurs variables (`gabarit`) pour une question « {self.type.value} »")
         return self
 
     @model_validator(mode="after")
@@ -236,9 +243,40 @@ class ChapitreYaml(_Strict):
     # Maths par défaut ; « francais » : rangé sous contenu/francais/, tronc commun, de la 6e à la 1re.
     matiere: Literal["maths", "francais"] = "maths"
     niveau: Niveau
-    parcours: Parcours
+    # Diagnostic (issue #162) : pas de `parcours` (il est déduit du premier public), mais `publics` et
+    # `programme_prerequis` ; rangé sous contenu/<niveau>/diagnostic/.
+    nature: NatureChapitre = NatureChapitre.APPRENTISSAGE
+    parcours: Parcours | None = None
+    publics: list[Parcours] = []
+    programme_prerequis: Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9-]{1,39}$")] | None = None
     ordre: Annotated[int, Field(ge=1, le=99)]
     titre: Annotated[str, Field(min_length=1, max_length=200)]
+
+    @property
+    def diagnostic(self) -> bool:
+        return self.nature is NatureChapitre.DIAGNOSTIC
+
+    @model_validator(mode="after")
+    def _nature(self):
+        if not self.diagnostic:
+            if self.parcours is None:
+                raise ValueError("`parcours` obligatoire")
+            if self.publics or self.programme_prerequis:
+                raise ValueError("`publics` et `programme_prerequis` ne concernent que les chapitres de diagnostic")
+            return self
+        if self.matiere != "maths":
+            raise ValueError("un chapitre de diagnostic est un chapitre de maths")
+        if self.parcours is not None:
+            raise ValueError("un chapitre de diagnostic n'a pas de `parcours` : indiquer les `publics`")
+        if not self.publics or len(set(self.publics)) != len(self.publics):
+            raise ValueError("`publics` : au moins un parcours, sans doublon")
+        refuses = [p.value for p in self.publics if p not in PARCOURS_PAR_NIVEAU[self.niveau] or not est_principal(p)]
+        if refuses:
+            raise ValueError(f"`publics` : {', '.join(refuses)} n'est pas un parcours principal en {self.niveau.value}")
+        if self.programme_prerequis is None:
+            raise ValueError("`programme_prerequis` obligatoire : programme suivi l'année précédente (ex. 4e-2020)")
+        self.parcours = self.publics[0]
+        return self
 
     @model_validator(mode="after")
     def _parcours_du_niveau(self):
@@ -259,6 +297,21 @@ class FichierContenu(_Strict):
     chapitre: ChapitreYaml
     competences: Annotated[list[CompetenceYaml], Field(min_length=1)]
 
+    @model_validator(mode="after")
+    def _types_du_diagnostic(self):
+        if self.chapitre.diagnostic:
+            variables = [q.code for c in self.competences for q in c.questions if q.gabarit is not None]
+            if variables:
+                raise ValueError(f"pas de valeurs variables (`gabarit`) dans un diagnostic : {', '.join(variables)}")
+            return self
+        if not self.chapitre.diagnostic:
+            reserves = [q.code for c in self.competences for q in c.questions if q.type in TYPES_DIAGNOSTIC]
+            if reserves:
+                raise ValueError(
+                    f"types « choix_multiples » et « redaction » réservés aux chapitres de diagnostic : {', '.join(reserves)}"
+                )
+        return self
+
 
 class ContenuInvalide(Exception):
     def __init__(self, erreurs: list[str]):
@@ -274,11 +327,20 @@ def _dollars_equilibres(texte: str) -> bool:
 
 
 def _verifier_question(q: QuestionYaml) -> str | None:
-    if q.type is TypeQuestion.QCM:
+    if q.type is TypeQuestion.REDACTION:
+        return None  # réponse attendue pour le professeur : le moteur ne la lit pas
+    if q.type in (TypeQuestion.QCM, TypeQuestion.CHOIX_MULTIPLES):
         # Même découpage que l'écran élève (decouperQcm) : « P(A) » y serait pris pour une option.
         lettres = re.findall(r"\b([A-F])\)", q.enonce)
         if lettres != [chr(ord("A") + i) for i in range(len(lettres))] or len(lettres) < 2:
             return f"choix illisibles ({' '.join(l + ')' for l in lettres)}) : écrire « A) …  B) … », sans « X) » dans le texte"
+        if q.type is TypeQuestion.CHOIX_MULTIPLES:
+            if not re.fullmatch(r"[A-F]+", q.solution) or list(q.solution) != sorted(set(q.solution)):
+                return f"solution « {q.solution} » : lettres des bonnes réponses, sans doublon, dans l'ordre (ex. « AC »)"
+            absentes = [l for l in q.solution if l not in lettres]
+            if absentes:
+                return f"solution « {q.solution} » : {', '.join(absentes)} absente(s) des choix de l'énoncé"
+            return None
         if not re.search(rf"(?<![A-Za-z]){re.escape(q.solution)}\)", q.enonce):
             return f"solution « {q.solution} » absente des choix de l'énoncé (attendu « {q.solution}) … »)"
         return None
@@ -313,11 +375,15 @@ def _verifier_correction(q: QuestionYaml) -> list[str]:
             erreurs.append("le relecteur (`validation.par`) ne peut pas être l'auteur de la question")
     c = q.correction
     if c is None:
+        if q.type is TypeQuestion.REDACTION:
+            erreurs.append("une question « redaction » a un corrigé (`correction`) : c'est le guide du professeur")
         return erreurs
     textes = textes_de_correction(c)
     if not all(_dollars_equilibres(t) for t in textes):
         erreurs.append("nombre impair de « $ » dans la correction")
-    if q.type is TypeQuestion.QCM:
+    if q.type is TypeQuestion.REDACTION:
+        return erreurs  # `resultat` libre : aucune comparaison automatique
+    if q.type in (TypeQuestion.QCM, TypeQuestion.CHOIX_MULTIPLES):
         if c.resultat is not None and c.resultat.strip() != q.solution.strip():
             erreurs.append(f"correction.resultat « {c.resultat} » différent de la solution « {q.solution} »")
         return erreurs
@@ -414,9 +480,11 @@ def charger(
             erreurs.extend(f"{nom} : {'.'.join(map(str, e['loc']))} : {e['msg']}" for e in exc.errors())
             continue
         ch = contenu.chapitre
-        attendu = ("francais/" if ch.matiere == "francais" else "") + f"{DOSSIERS_NIVEAU[ch.niveau]}/{ch.parcours.value}/"
+        rangement = DOSSIER_DIAGNOSTIC if ch.diagnostic else ch.parcours.value
+        attendu = ("francais/" if ch.matiere == "francais" else "") + f"{DOSSIERS_NIVEAU[ch.niveau]}/{rangement}/"
         if not nom.startswith(attendu) or nom.count("/") != attendu.count("/"):
-            erreurs.append(f"{nom} : à ranger dans contenu/{attendu} (niveau {ch.niveau.value}, parcours {ch.parcours.value})")
+            erreurs.append(f"{nom} : à ranger dans contenu/{attendu} (niveau {ch.niveau.value}, "
+                           + ("diagnostic" if ch.diagnostic else f"parcours {ch.parcours.value}") + ")")
         for c in contenu.competences:
             for champ, texte in c.textes():
                 if texte and not _dollars_equilibres(texte):
@@ -440,7 +508,7 @@ def charger(
         raise ContenuInvalide(erreurs)
     return sorted(
         fichiers,
-        key=lambda f: (f[1].chapitre.matiere != "maths", ORDRE_NIVEAUX[f[1].chapitre.niveau],
+        key=lambda f: (f[1].chapitre.matiere != "maths", ORDRE_NIVEAUX[f[1].chapitre.niveau], f[1].chapitre.diagnostic,
                        ORDRE_PARCOURS[f[1].chapitre.parcours], f[1].chapitre.ordre),
     )
 
@@ -537,17 +605,18 @@ def importer(
         if chapitre is None:
             chapitre = models.Chapitre(
                 code=ch.code, niveau=ch.niveau, parcours=ch.parcours, ordre=ch.ordre, titre=ch.titre,
-                domaine_code=domaine_de(ch.matiere, ch.niveau),
+                domaine_code=domaine_de(ch.matiere, ch.niveau), **_nature(ch),
             )
             session.add(chapitre)
             rapport.crees["chapitres"] += 1
         else:
-            avant = (chapitre.code, chapitre.niveau, chapitre.parcours, chapitre.titre)
+            avant = (chapitre.code, chapitre.niveau, chapitre.parcours, chapitre.titre, chapitre.nature, chapitre.publics,
+                     chapitre.programme_prerequis)
             _appliquer(
                 chapitre, {"code": ch.code, "niveau": ch.niveau, "parcours": ch.parcours, "titre": ch.titre, "ordre": ch.ordre,
-                 "domaine_code": domaine_de(ch.matiere, ch.niveau)}
+                 "domaine_code": domaine_de(ch.matiere, ch.niveau), **_nature(ch)}
             )
-            rapport.modifies["chapitres"] += avant != (ch.code, ch.niveau, ch.parcours, ch.titre)
+            rapport.modifies["chapitres"] += avant != (ch.code, ch.niveau, ch.parcours, ch.titre, *_nature(ch).values())
 
         for rang, c in enumerate(contenu.competences, start=1):
             competence = session.scalar(select(models.Competence).where(models.Competence.code == c.code))
@@ -578,6 +647,15 @@ def importer(
     else:
         session.commit()
     return rapport
+
+
+def _nature(ch: ChapitreYaml) -> dict:
+    """Nature du chapitre ; pour un diagnostic, ses publics et le programme interrogé (issue #162)."""
+    return {
+        "nature": ch.nature,
+        "publics": [p.value for p in ch.publics] if ch.diagnostic else None,
+        "programme_prerequis": ch.programme_prerequis,
+    }
 
 
 def _pedagogie(c: CompetenceYaml) -> dict:
@@ -693,25 +771,30 @@ def inventaire(fichiers: list[tuple[Path, FichierContenu]]) -> str:
     niveau_courant = None
     for _, f in fichiers:
         ch = f.chapitre
-        if (ch.niveau, ch.parcours) != niveau_courant:
+        groupe = (ch.niveau, None) if ch.diagnostic else (ch.niveau, ch.parcours)
+        if groupe != niveau_courant:
             if niveau_courant is not None:
                 lignes.append("")
-            niveau_courant = (ch.niveau, ch.parcours)
-            lignes += [f"### {ch.niveau.value} — {LIBELLES_PARCOURS[ch.parcours]}", "",
+            niveau_courant = groupe
+            titre = "Diagnostic des acquis antérieurs" if ch.diagnostic else LIBELLES_PARCOURS[ch.parcours]
+            lignes += [f"### {ch.niveau.value} — {titre}", "",
                        "| Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |",
                        "|---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|"]
         for c in f.competences:
             qs = [q for q in c.questions if not q.archivee]
             par_difficulte = Counter(q.difficulte for q in qs)
-            cellules = [str(par_difficulte[d]) if par_difficulte[d] else "⚠ 0" for d in DIFFICULTES]
+            vide = "—" if ch.diagnostic else "⚠ 0"
+            cellules = [str(par_difficulte[d]) if par_difficulte[d] else vide for d in DIFFICULTES]
             manquantes = [str(d) for d in DIFFICULTES if not par_difficulte[d]]
-            if manquantes:
+            # Un diagnostic interroge les acquis antérieurs et renvoie au cours du prérequis : ni cours propre,
+            # ni les cinq difficultés. L'exemption ne vaut que pour les chapitres de nature « diagnostic ».
+            if manquantes and not ch.diagnostic:
                 trous.append(f"`{c.code}` ({c.libelle}) : aucune question de difficulté {', '.join(manquantes)}")
-            if c.cours is None:
+            if c.cours is None and not ch.diagnostic:
                 trous.append(f"`{c.code}` ({c.libelle}) : pas de cours")
             a_valider = sum(q.validation.statut is not StatutValidation.VALIDEE for q in qs)
             lignes.append(
-                f"| {ch.ordre}. {ch.titre} | `{c.code}` {c.libelle} | {'✓' if c.cours else '⚠'} | "
+                f"| {ch.ordre}. {ch.titre} | `{c.code}` {c.libelle} | {'✓' if c.cours else '—' if ch.diagnostic else '⚠'} | "
                 + " | ".join(cellules) + f" | {len(qs)} | {a_valider} |"
             )
     lignes += ["", "## Trous à combler", ""] + ([f"- {t}" for t in trous] or ["Aucun."])
@@ -740,7 +823,7 @@ def niveau_de_corrige(q: QuestionYaml) -> str:
     if c is None or (len(c.etapes) < ETAPES_MIN and not (c.methode or c.formule or c.rappel)):
         return RESULTAT_SEUL
     explique = bool(c.methode or c.formule)
-    verifie = bool(c.verification) or q.type is TypeQuestion.QCM
+    verifie = bool(c.verification) or q.type in (TypeQuestion.QCM, TypeQuestion.CHOIX_MULTIPLES, TypeQuestion.REDACTION)
     return COMPLET if explique and len(c.etapes) >= ETAPES_MIN and verifie else A_COMPLETER
 
 

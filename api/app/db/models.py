@@ -37,10 +37,12 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, rela
 from app.referentiel import (
     SOURCE_PKP,
     Adaptation,
+    NatureChapitre,
     Parcours,
     PorteeRessource,
     PublicRessource,
     Role,
+    StatutObservation,
     StatutValidation,
     TypeRessource,
 )
@@ -558,6 +560,14 @@ class Chapitre(Base):
     domaine_code: Mapped[str] = mapped_column(
         ForeignKey("domaine_pedagogique.code", ondelete="RESTRICT"), index=True, default="maths-lycee", server_default="maths-lycee"
     )
+    # Issue #162 : un chapitre de diagnostic n'est jamais ouvert à une classe ni servi en séance d'entraînement.
+    nature: Mapped[NatureChapitre] = mapped_column(
+        _enum(NatureChapitre, "nature_chapitre"), default=NatureChapitre.APPRENTISSAGE,
+        server_default=NatureChapitre.APPRENTISSAGE.value,
+    )
+    # Diagnostic : parcours des classes concernées, programme de l'année précédente interrogé.
+    publics: Mapped[list | None] = mapped_column(JSON)
+    programme_prerequis: Mapped[str | None] = mapped_column(String(40))
 
     competences: Mapped[list["Competence"]] = relationship(back_populates="chapitre")
 
@@ -704,6 +714,29 @@ class Reponse(Base):
 
     seance: Mapped[Seance] = relationship(back_populates="reponses")
     question: Mapped[Question] = relationship()
+
+
+class ObservationDiagnostic(Base):
+    """Réponse d'un élève à une question de diagnostic (issue #162).
+
+    Table distincte de `reponse` : le taux de maîtrise, calculé sur `reponse`, ne voit jamais le diagnostic.
+    Une réponse rédigée reste « en attente de correction » jusqu'à la décision d'un professeur.
+    """
+
+    __tablename__ = "observation_diagnostic"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("question.id", ondelete="RESTRICT"), index=True)
+    reponse_donnee: Mapped[str] = mapped_column(Text)
+    statut: Mapped[StatutObservation] = mapped_column(_enum(StatutObservation, "statut_observation"), index=True)
+    observe_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
+    corrige_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    corrige_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    eleve: Mapped["Eleve"] = relationship()
+    question: Mapped[Question] = relationship()
+    corrige_par: Mapped["Enseignant | None"] = relationship()
 
 
 class Remarque(Base):

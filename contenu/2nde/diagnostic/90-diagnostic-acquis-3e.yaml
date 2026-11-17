@@ -1,4 +1,4 @@
-# Diagnostic d'entrée en 2nde — acquis de 3e, repères de 2020 (issue #162).
+# Diagnostic d'entrée en 2nde — acquis de 3e, repères de 2020 (issue #162). Rangé sous contenu/<niveau>/diagnostic/ : jamais servi à l'entraînement.
 # Exclues car relevant de la 2nde : 2N-13 (systèmes), 2N-14 (inéquations, remplacée par un test de solution).
 # 2N-08 et 2N-09 : valeurs changées (doublons de 3E-13 et 3E-15). 3E-14 (réciproque de Thalès) rapatriée ici.
 chapitre:
@@ -7,6 +7,7 @@ chapitre:
   nature: diagnostic
   programme_prerequis: 3e-2020
   publics: [tronc-commun, professionnel]
+  ordre: 90
   titre: Diagnostic d'entrée, acquis de 3e
 
 competences:

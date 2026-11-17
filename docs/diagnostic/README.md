@@ -1,8 +1,9 @@
 <!-- Issue #162 — Diagnostic des acquis antérieurs, note de cadrage (Claude) -->
 # Diagnostic des acquis antérieurs
 
-Suivi : issue #162. Statut : **banque transcrite (lot 1), à relire par un professeur** ; le moteur ne lit pas encore
-ces fichiers (lot 2). Ils sont rangés dans `docs/diagnostic/banque/` et rejoindront `contenu/` au lot 2.
+Suivi : issue #162. Statut : **banque importée (lots 1 et 2), à relire par un professeur**. Les fichiers sont rangés
+dans `contenu/<niveau>/diagnostic/`. Aucune question n'est montrée à un élève tant qu'elle n'est pas validée, et la
+passation elle-même arrive au lot 3 (§ 8).
 
 ## 1. Objectif
 
@@ -38,7 +39,7 @@ Ce qui compte est le programme **que l'élève a suivi l'année précédente**, 
 
 | Entrée en | Année précédente suivie en 2025-2026 sous | Code |
 |---|---|---|
-| 6e | programme du cycle 3 de 2025, **si appliqué en CM2 dès 2025-2026 : à vérifier** | `cm2-2020` provisoire |
+| 6e | **ancien** programme du cycle 3 (2015, consolidé en 2020) : l'arrêté du 10 avril 2025 n'applique le programme de 2025 au CM2 qu'à la rentrée 2026 | `cm2-2020` |
 | 5e | programme du cycle 3 de 2025 (6e, en vigueur le 01/09/2025) | `6e-2025` |
 | 4e | repères de 2020 (le programme de 5e de 2026 commence en 2026-2027) | `5e-2020` |
 | 3e | repères de 2020 | `4e-2020` |
@@ -46,7 +47,7 @@ Ce qui compte est le programme **que l'élève a suivi l'année précédente**, 
 | 1re | programme de 2nde de 2019 | `2nde-2019` |
 | Terminale | programmes de 1re de 2019 | `1re-specialite-2019`, `1re-technologique-2019` |
 
-En 2027-2028, l'entrée en 4e, 1re et Terminale passera aux programmes de 2026 : il faudra une version de la
+En 2027-2028, l'entrée en 6e passera au programme du cycle 3 de 2025 et l'entrée en 4e, 1re et Terminale aux programmes de 2026 : il faudra une version de la
 banque par programme, choisie selon l'année scolaire de passation. Les référentiels `5e-2020`, `2nde-2019` et
 `1re-*-2019` ne sont pas dans `referentiels/` : les codes sont posés, les attendus ne sont pas encore rattachés.
 
@@ -58,9 +59,10 @@ Identique à `contenu/` (`docs/CONTENU.md`), avec :
 chapitre:
   code: 3E-DIAG-4E
   niveau: 3e
-  nature: diagnostic                 # remplace `parcours` et `ordre`
+  nature: diagnostic                 # remplace `parcours` (déduit du premier public)
   programme_prerequis: 4e-2020       # programme suivi l'année précédente
-  publics: [tronc-commun]            # parcours des classes concernées
+  publics: [tronc-commun]            # parcours principaux des classes concernées
+  ordre: 90                          # 90 et plus : pas de collision avec les chapitres d'entraînement
 competences:
 - code: 3E-DIAG-TRIANGLE
   prerequis: [4E-PYTHAGORE, 4E-THALES, 4E-COSINUS]   # chapitres où reprendre en cas de difficulté
@@ -73,21 +75,25 @@ Chaque question rappelle en commentaire son identifiant de la banque initiale (`
 
 ## 5. Contenu de la banque
 
-| Fichier | Publics | Questions | dont rédaction | dont choix multiples |
-|---|---|---:|---:|---:|
-| `6e-acquis-cm2.yaml` | 6e | 18 | 3 | 0 |
-| `5e-acquis-6e.yaml` | 5e | 17 | 3 | 1 |
-| `4e-acquis-5e.yaml` | 4e | 20 | 1 | 1 |
-| `3e-acquis-4e.yaml` | 3e | 20 | 2 | 0 |
-| `2nde-acquis-3e.yaml` | 2nde GT et pro | 20 | 1 | 0 |
-| `1re-acquis-2nde.yaml` | 1re (toutes voies) | 20 | 1 | 0 |
-| `tle-socle.yaml` | Terminale (tous parcours) | 6 | 0 | 0 |
-| `tle-module-specialite.yaml` | spécialité, expertes, complémentaires | 6 | 0 | 0 |
-| `tle-module-technologique.yaml` | voie technologique | 6 | 0 | 0 |
+`publics` liste les **parcours de classe** (`app/referentiel.py`) qui reçoivent le questionnaire. Les classes
+d'option (`mise-a-niveau`, `excellence`, `examens`) n'en reçoivent pas : l'élève passe le diagnostic dans sa classe
+principale.
+
+| Fichier | Niveau | `publics` | Questions | dont rédaction | dont choix multiples |
+|---|---|---|---:|---:|---:|
+| `6e/diagnostic/90-diagnostic-acquis-cm2.yaml` | 6e | `tronc-commun` | 18 | 3 | 0 |
+| `5e/diagnostic/90-diagnostic-acquis-6e.yaml` | 5e | `tronc-commun` | 17 | 3 | 1 |
+| `4e/diagnostic/90-diagnostic-acquis-5e.yaml` | 4e | `tronc-commun` | 20 | 1 | 1 |
+| `3e/diagnostic/90-diagnostic-acquis-4e.yaml` | 3e | `tronc-commun` | 20 | 2 | 0 |
+| `2nde/diagnostic/90-diagnostic-acquis-3e.yaml` | 2nde | `tronc-commun`, `professionnel` (tous viennent de 3e) | 20 | 1 | 0 |
+| `1re/diagnostic/90-diagnostic-acquis-2nde.yaml` | 1re | `specialite`, `scientifique`, `technologique` (tous viennent de 2nde GT) | 20 | 1 | 0 |
+| `tle/diagnostic/90-diagnostic-socle.yaml` | Tle | `specialite`, `complementaires`, `technologique` | 6 | 0 | 0 |
+| `tle/diagnostic/91-diagnostic-module-specialite.yaml` | Tle | `specialite`, `complementaires` (spécialité suivie en 1re ; maths expertes : option de la classe de spécialité) | 6 | 0 | 0 |
+| `tle/diagnostic/92-diagnostic-module-technologique.yaml` | Tle | `technologique` | 6 | 0 | 0 |
 | **Total** | | **133** | **11** | **2** |
 
-Les questions automatisables sont vérifiées par `app.contenu` (solution lisible, corrigé cohérent, prérequis
-existants) ; les deux types nouveaux par un contrôle de structure en attendant le lot 2.
+Toutes les questions sont vérifiées par `python -m app.contenu verifier` (solution lisible, corrigé cohérent,
+prérequis existants, lettres des choix multiples, corrigé des rédactions).
 
 ## 6. Corrections apportées à la banque fusionnée (152 questions)
 
@@ -122,7 +128,30 @@ MC-02 et 1R-20 / TE-06 (valeurs changées).
 spécialité. Le module MC-01 à MC-06 ne correspond à aucun parcours de 1re : il n'est pas transcrit ; il pourrait
 servir aux élèves de 1re sans spécialité (à décider).
 
-## 7. Limites connues
+## 7. Règles appliquées par le code (lot 2)
+
+| Règle | Où |
+|---|---|
+| `choix_multiples` : ensemble exact des lettres cochées, ordre indifférent, aucun crédit partiel ; le `qcm` reste à une seule lettre | `pkp_engine/correction.py` |
+| `redaction` : jamais corrigée par le moteur (`CorrectionHumaineRequise`) ; observation « en attente de correction » jusqu'à la décision du professeur de la classe | `pkp_engine/correction.py`, `api/app/diagnostic.py` |
+| Les deux types sont réservés aux chapitres de diagnostic (fichiers et interface d'administration) | `api/app/contenu.py`, `routes/admin_contenu.py` |
+| Exemption « cours + difficultés 1 à 5 » : chapitres de nature `diagnostic` seulement | `contenu.inventaire` |
+| Non-diffusion : un chapitre de diagnostic n'est ni proposé au professeur pour ses classes, ni servi en séance, ni montré aux élèves, enfants et parents (`/pkp-math`), ni compté sur la page publique | `progression.filtre_apprentissage`, `routes/eleves.py`, `routes/pkp_math.py`, `routes/domaines.py` |
+| Diffusion du diagnostic : questions **validées** seulement, quel que soit `PKP_SERVIR_QUESTIONS_NON_VALIDEES`, et seulement au niveau et aux `publics` du chapitre | `diagnostic.questions_diffusables` |
+| Observations dans `observation_diagnostic`, jamais dans `reponse` : le taux de maîtrise, l'historique et le suivi n'en tiennent pas compte ; elles figurent dans l'export RGPD de l'élève | migration `0040`, `progression.export_eleve` |
+
+Tests : `api/tests/test_diagnostic.py`, `engine/tests/test_types_diagnostic.py`.
+
+## 8. Lots suivants
+
+- **Lot 3, passation** : routes élève sur `diagnostic.questions_diffusables` et `enregistrer_observation`, écran à une
+  question, « Je ne sais pas », relances.
+- **Lot 4, rédaction** : dépôt d'image ou de PDF, correction dans l'interface (`corriger_observation`), export PDF.
+- **Lot 5, bilan** par compétence ; inclure les observations dans les archives de classe.
+- Modifier une question de diagnostic se fait dans les fichiers : l'interface d'administration refuse les deux types
+  nouveaux.
+
+## 9. Limites connues
 
 - Pas de figure : les questions « graphique » (5E-16, 2N-18…) donnent les données en texte. Les figures demandent
   une prise en charge des images dans l'énoncé.

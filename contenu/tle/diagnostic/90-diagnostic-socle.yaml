@@ -1,11 +1,12 @@
-# Diagnostic d'entrée en Terminale — socle commun à tous les parcours (issue #162).
+# Diagnostic d'entrée en Terminale — socle commun à tous les parcours (issue #162). Rangé sous contenu/<niveau>/diagnostic/ : jamais servi à l'entraînement.
 # Repère des bases plus anciennes avant le module de l'enseignement suivi en 1re.
 chapitre:
   code: TLE-DIAG-SOCLE
   niveau: Tle
   nature: diagnostic
   programme_prerequis: 2nde-2019
-  publics: [specialite, complementaires, expertes, technologique]
+  publics: [specialite, complementaires, technologique]
+  ordre: 90
   titre: Diagnostic d'entrée, socle commun
 
 competences:

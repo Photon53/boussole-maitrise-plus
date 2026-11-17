@@ -1,4 +1,4 @@
-# Diagnostic d'entrée en 3e — acquis de 4e (issue #162).
+# Diagnostic d'entrée en 3e — acquis de 4e (issue #162). Rangé sous contenu/<niveau>/diagnostic/ : jamais servi à l'entraînement.
 # Seuls les acquis de 4e (repères 2020) sont interrogés : ni réciproque de Thalès, ni trigonométrie de 3e.
 # Les identifiants de la banque (3E-01…) figurent en commentaire au-dessus de chaque question.
 chapitre:
@@ -7,6 +7,7 @@ chapitre:
   nature: diagnostic
   programme_prerequis: 4e-2020
   publics: [tronc-commun]
+  ordre: 90
   titre: Diagnostic d'entrée, acquis de 4e
 
 competences:

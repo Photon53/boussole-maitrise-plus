@@ -1,11 +1,13 @@
-# Diagnostic d'entrée en Terminale — module « spécialité de 1re » (issue #162).
-# Pour les élèves ayant suivi la spécialité en 1re : spécialité, maths expertes ET maths complémentaires.
+# Diagnostic d'entrée en Terminale — module « spécialité de 1re » (issue #162). Rangé sous contenu/<niveau>/diagnostic/ : jamais servi à l'entraînement.
+# Pour les élèves ayant suivi la spécialité en 1re : spécialité (maths expertes comprises : option de la classe de
+# spécialité, pas un parcours principal) et maths complémentaires.
 chapitre:
   code: TLE-DIAG-SPE
   niveau: Tle
   nature: diagnostic
   programme_prerequis: 1re-specialite-2019
-  publics: [specialite, complementaires, expertes]
+  publics: [specialite, complementaires]
+  ordre: 91
   titre: Diagnostic d'entrée, acquis de spécialité de 1re
 
 competences:

@@ -131,6 +131,22 @@ class Adaptation(str, Enum):
     REPRODUITE = "reproduite"  # texte d'une source repris, avec autorisation ou licence libre
 
 
+class NatureChapitre(str, Enum):
+    """Rôle d'un chapitre (issue #162). Un chapitre de diagnostic repère les acquis des années précédentes :
+    il n'est jamais ouvert comme un chapitre d'entraînement, et ses réponses ne comptent pas dans la maîtrise."""
+
+    APPRENTISSAGE = "apprentissage"
+    DIAGNOSTIC = "diagnostic"
+
+
+class StatutObservation(str, Enum):
+    """Résultat d'une réponse de diagnostic : corrigée par le moteur, ou en attente d'un professeur."""
+
+    JUSTE = "juste"
+    FAUX = "faux"
+    EN_ATTENTE = "en-attente-de-correction"
+
+
 class StatutValidation(str, Enum):
     A_VALIDER = "a-valider"
     VALIDEE = "validee"

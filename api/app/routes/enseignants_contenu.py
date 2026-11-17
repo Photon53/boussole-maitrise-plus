@@ -13,6 +13,7 @@ from app import ressources
 from app.auth import EnseignantCourant, SessionDB
 from app.config import settings
 from app.db import models
+from app.progression import filtre_apprentissage
 from app.referentiel import Parcours, PorteeRessource, TypeRessource
 from app.schemas import (
     ChapitreCoursEnseignant,
@@ -50,7 +51,8 @@ def sommaire(
     """Sommaire de la banque ; `q` cherche dans les titres, libellés et textes de cours (EA4.8)."""
     requete = (
         select(models.Chapitre)
-        .where(models.Chapitre.masque.is_(False))
+        # Les chapitres de diagnostic (#162) n'ont pas de cours : ils se relisent dans la validation des questions.
+        .where(models.Chapitre.masque.is_(False), *filtre_apprentissage())
         .options(selectinload(models.Chapitre.competences).selectinload(models.Competence.lecon))
         .order_by(models.Chapitre.niveau, models.Chapitre.parcours, models.Chapitre.ordre)
     )

@@ -1,4 +1,4 @@
-# Diagnostic d'entrée en 5e — acquis de 6e, programme du cycle 3 de 2025 (issue #162).
+# Diagnostic d'entrée en 5e — acquis de 6e, programme du cycle 3 de 2025 (issue #162). Rangé sous contenu/<niveau>/diagnostic/ : jamais servi à l'entraînement.
 # 5E-15 (parallélogramme, programme de 5e) déplacée à l'entrée en 4e ; 5E-18 vient de 6E-12.
 chapitre:
   code: 5E-DIAG-6E
@@ -6,6 +6,7 @@ chapitre:
   nature: diagnostic
   programme_prerequis: 6e-2025
   publics: [tronc-commun]
+  ordre: 90
   titre: Diagnostic d'entrée, acquis de 6e
 
 competences:

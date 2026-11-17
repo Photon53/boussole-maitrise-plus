@@ -1,4 +1,4 @@
-# Diagnostic d'entrée en 1re — acquis de 2nde générale et technologique (issue #162).
+# Diagnostic d'entrée en 1re — acquis de 2nde générale et technologique (issue #162). Rangé sous contenu/<niveau>/diagnostic/ : jamais servi à l'entraînement.
 # Élèves de 1re en 2026-2027 : 2nde suivie en 2025-2026, donc programme de 2019.
 # 1R-19 reformulée (trois valeurs ne prouvent pas un zéro unique) ; 1R-14 et 1R-20 : valeurs changées (doublons).
 chapitre:
@@ -7,6 +7,7 @@ chapitre:
   nature: diagnostic
   programme_prerequis: 2nde-2019
   publics: [specialite, scientifique, technologique]
+  ordre: 90
   titre: Diagnostic d'entrée, acquis de 2nde
 
 competences:

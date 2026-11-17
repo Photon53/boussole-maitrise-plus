@@ -15,6 +15,7 @@ from pkp_engine import (
     Verdict,
     calculer_maitrise,
     choisir_prochaine_question,
+    corrige_automatiquement,
     est_maitrisee,
     questions_au_repos,
     verifier,
@@ -26,9 +27,11 @@ from app import exemplaires, inscriptions, limitation, permissions
 from app.auth import CARTE_BLOQUEE, CLASSE_ARCHIVEE, ELEVE, EleveCourant, SessionDB, carte_bloquee
 from app.config import settings
 from app.db import models
-from app.db.conversions import historique_eleve
+from app.db.conversions import historique_eleve, question_vers_domaine
 from app.progression import (
+    filtre_apprentissage,
     filtre_validation,
+    est_apprentissage,
     avancement_competence,
     historique_reponses,
     ids_ouverts,
@@ -215,7 +218,7 @@ def ma_progression(eleve: EleveCourant, session: SessionDB) -> list[ProgressionC
 @router.get("/eleves/moi/chapitres", response_model=list[ChapitreOuvert])
 def mes_chapitres(eleve: EleveCourant, session: SessionDB) -> list[ChapitreOuvert]:
     """Chapitres ouverts par l'enseignant, avec le nombre de questions disponibles."""
-    chapitres = sorted((c for c in eleve.classe.chapitres_proposes if not c.masque), key=lambda c: c.ordre)
+    chapitres = sorted((c for c in eleve.classe.chapitres_proposes if not c.masque and est_apprentissage(c)), key=lambda c: c.ordre)
     nb = nb_questions_servables(session, [c.id for c in chapitres])
     return [ChapitreOuvert(id=c.id, code=c.code, titre=c.titre, nb_questions=nb.get(c.id, 0)) for c in chapitres]
 
@@ -243,7 +246,7 @@ def demarrer_seance(eleve: EleveCourant, session: SessionDB, corps: SeanceCreati
     refus = permissions.refus_domaine_ferme(session, eleve.classe.domaine_code)
     if refus:
         raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
-    ouverts = {c.id: c for c in eleve.classe.chapitres_proposes if not c.masque}
+    ouverts = {c.id: c for c in eleve.classe.chapitres_proposes if not c.masque and est_apprentissage(c)}
     if not ouverts:
         raise HTTPException(status.HTTP_409_CONFLICT, "Ton professeur n'a pas encore ouvert de chapitre.")
     competences = []
@@ -309,6 +312,7 @@ def _candidates(session: SessionDB, seance: models.Seance, eleve: models.Eleve) 
                 # Chapitres choisis pour la séance ; séances antérieures : tous les chapitres ouverts.
                 models.Chapitre.id.in_([c.id for c in seance.chapitres] or ids_ouverts(eleve.classe)),
                 models.Question.archivee.is_(False),
+                *filtre_apprentissage(),
                 *filtre_validation(),
                 *([models.Question.competence_id.in_([c.id for c in seance.competences])] if seance.competences else []),
                 *([models.Question.difficulte >= seance.difficulte_min] if seance.difficulte_min else []),
@@ -392,6 +396,9 @@ def repondre(seance_id: int, corps: SoumissionReponse, eleve: EleveCourant, sess
     if question is None or question.id != corps.question_id:
         raise HTTPException(status.HTTP_409_CONFLICT, "Cette question n'est pas la question en cours.")
 
+    if not corrige_automatiquement(question_vers_domaine(question)) or not est_apprentissage(question.competence.chapitre):
+        # Garde-fou (issue #162) : une réponse rédigée ou de diagnostic n'entre jamais dans `reponse` (la maîtrise).
+        raise HTTPException(status.HTTP_409_CONFLICT, "Cette question ne se corrige pas en séance d'entraînement.")
     maintenant = _maintenant()
     tirage = seance.tirage_courant
     verdict = verifier(exemplaires.domaine(question, tirage), corps.reponse_donnee)

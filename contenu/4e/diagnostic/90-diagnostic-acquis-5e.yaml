@@ -1,4 +1,4 @@
-# Diagnostic d'entrée en 4e — acquis de 5e (issue #162).
+# Diagnostic d'entrée en 4e — acquis de 5e (issue #162). Rangé sous contenu/<niveau>/diagnostic/ : jamais servi à l'entraînement.
 # Élèves de 4e en 2026-2027 : 5e suivie en 2025-2026, donc repères de 2020 (le programme de 5e de 2026 ne
 # s'applique qu'à partir de 2026-2027). Exclues car relevant de la 4e : 4E-13 (produit de relatifs),
 # 4E-14 (puissances de relatifs), 4E-16 (produit de fractions), 4E-R2 (dénominateurs non multiples),
@@ -9,6 +9,7 @@ chapitre:
   nature: diagnostic
   programme_prerequis: 5e-2020
   publics: [tronc-commun]
+  ordre: 90
   titre: Diagnostic d'entrée, acquis de 5e
 
 competences:

@@ -14,7 +14,7 @@ from app import exemplaires, inscriptions
 from app.db import models
 from app.config import settings
 from app.db.conversions import historique_eleve
-from app.referentiel import StatutValidation
+from app.referentiel import NatureChapitre, StatutValidation
 from app.schemas import AvancementCompetence, EleveResume, PageHistorique, ProgressionCompetence, ReponseHistorique
 
 TAILLE_PAGE_HISTORIQUE = 30
@@ -24,12 +24,24 @@ OBJECTIF_AVANCEES = 2
 
 
 def programme_de(classe: models.Classe):
-    """Conditions SQL : chapitres du domaine (maths ou français), du niveau ET du parcours (spécialité) de la classe."""
+    """Conditions SQL : chapitres du domaine (maths ou français), du niveau ET du parcours (spécialité) de la classe.
+    Jamais un chapitre de diagnostic (issue #162) : il ne s'ouvre pas comme un chapitre d'entraînement."""
     return (
         models.Chapitre.domaine_code == classe.domaine_code,
         models.Chapitre.niveau == classe.niveau,
         models.Chapitre.parcours == classe.parcours,
+        *filtre_apprentissage(),
     )
+
+
+def filtre_apprentissage() -> tuple:
+    """Condition SQL : chapitres d'apprentissage seulement. Un chapitre de diagnostic n'est jamais servi en séance,
+    ni ouvert à une classe, ni montré aux enfants et aux parents (issue #162)."""
+    return (models.Chapitre.nature == NatureChapitre.APPRENTISSAGE,)
+
+
+def est_apprentissage(chapitre: models.Chapitre) -> bool:
+    return chapitre.nature is NatureChapitre.APPRENTISSAGE
 
 
 def chapitres_du_programme(session: Session, classe: models.Classe) -> list[models.Chapitre]:
@@ -45,7 +57,7 @@ def chapitres_du_programme(session: Session, classe: models.Classe) -> list[mode
 
 def ids_ouverts(classe: models.Classe) -> list[int]:
     """Chapitres que l'enseignant a ouverts pour cette classe (hors chapitres masqués par un administrateur)."""
-    return [c.id for c in classe.chapitres_proposes if not c.masque]
+    return [c.id for c in classe.chapitres_proposes if not c.masque and est_apprentissage(c)]
 
 
 def filtre_validation() -> tuple:
@@ -171,6 +183,21 @@ def export_eleve(session: Session, eleve: models.Eleve) -> JSONResponse:
             for s in sorted(eleve.seances, key=lambda s: (s.debut, s.id))
         ],
         "progression": [p.model_dump() for p in progression_eleve(session, eleve)],
+        # Issue #162 : réponses au diagnostic, conservées à part de la progression (taux de maîtrise).
+        "observations_diagnostic": [
+            {
+                "question": o.question.enonce,
+                "reponse_donnee": o.reponse_donnee,
+                "statut": o.statut.value,
+                "observe_le": o.observe_le.isoformat(),
+                "corrige_le": o.corrige_le.isoformat() if o.corrige_le else None,
+            }
+            for o in session.scalars(
+                select(models.ObservationDiagnostic)
+                .where(models.ObservationDiagnostic.eleve_id == eleve.id)
+                .order_by(models.ObservationDiagnostic.observe_le, models.ObservationDiagnostic.id)
+            )
+        ],
     }
     nom = f"pkp-{eleve.classe.code}-{eleve.prenom}.json".replace(" ", "_")
     # filename* (RFC 5987) : les prénoms accentués restent lisibles.

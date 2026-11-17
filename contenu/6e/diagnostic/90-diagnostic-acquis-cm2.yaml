@@ -1,4 +1,6 @@
-# Diagnostic d'entrée en 6e — acquis de CM2 (issue #162). Identifiants de la banque en commentaire.
+# Diagnostic d'entrée en 6e — acquis de CM2 (issue #162). Rangé sous contenu/<niveau>/diagnostic/ : jamais servi à l'entraînement. Identifiants de la banque en commentaire.
+# Élèves de 6e en 2026-2027 : CM2 suivi en 2025-2026 sous l'ancien programme du cycle 3 (2015, consolidé en 2020) ;
+# le programme de 2025 ne s'applique au CM2 qu'à la rentrée 2026 (arrêté du 10 avril 2025, article 3).
 # 6E-12 reformulée : le produit de deux décimaux est un acquis de 6e (déplacé en 5E-18).
 chapitre:
   code: 6E-DIAG-CM2
@@ -6,6 +8,7 @@ chapitre:
   nature: diagnostic
   programme_prerequis: cm2-2020
   publics: [tronc-commun]
+  ordre: 90
   titre: Diagnostic d'entrée, acquis de CM2
 
 competences:
