@@ -12,14 +12,14 @@ Légende : ✅ assuré par le logiciel (et testé) · ☐ à faire par l'établi
 | | Point | Où |
 |---|-------|----|
 | ✅ | Élève : prénom + classe uniquement (ni nom, ni email, ni date de naissance) ; un code personnel de 6 caractères, généré par l'enseignant et stocké haché, protège son compte | `models.Eleve`, `ConnexionEleve` |
-| ⚠️ | Enfant (famille) : **aucun nom de famille** ; identifiant = prénom + numéro sans séparateur (`Lina1`), unique sur la plateforme, comparé sans casse ni accents, numéro jamais réattribué (décision RGPD-1). **Pas encore appliqué** : `Enfant.nom` (facultatif) existe encore et l'identifiant actuel est `lina-k7m4` ; retrait suivi dans #87 | `models.Enfant`, `app/enfants.py` |
+| ✅ | Enfant (famille) : **aucun nom de famille** ; identifiant = prénom + numéro sans séparateur (`Lina1`), unique sur la plateforme, comparé sans casse ni accents, numéro jamais réattribué (décision RGPD-1, appliquée par #87). Migration `0039` : colonne `enfant.nom` supprimée, noms effacés aussi des noms affichés en classe (« Lina D. » → identifiant) et du journal d'administration ; un nom saisi est refusé par l'API et par l'import. Compteur des numéros (`compteur_identifiant`) : base de prénom normalisée et dernier numéro, sans lien vers aucun compte. Les identifiants déjà émis (`lina-k7m4`) restent valables | `models.Enfant`, `app/enfants.py`, `app/import_familles.py`, migration `0039` |
 | ✅ | Prénom limité aux lettres, espaces, tirets, apostrophes (50 car.) | `schemas.py` |
 | ✅ | Enseignant : nom, email, empreinte du mot de passe | `models.Enseignant` |
 | ✅ | Parent : email, **nom et prénom** (facultatifs, vides pour les comptes antérieurs), empreinte du mot de passe, date de dernière connexion, enfants suivis (ni téléphone ni adresse) ; compte créé par le professeur ou l'administrateur, sans envoi de courriel | `models.Parent`, `app/parents.py` |
 | ✅ | Justification du nom et du prénom du parent (décision RGPD-1) : le parent est un adulte, responsable légal ; son nom permet à l'administrateur et au professeur d'identifier sans ambiguïté le titulaire du compte qui suit l'enfant, de rapprocher les lignes d'un import de familles et de traiter une demande d'exercice des droits. Ces données ne sont visibles que des adultes habilités et sont effacées avec le compte parent | `models.Parent`, `app/import_familles.py` |
 | ✅ | Aucun traceur, aucune police ni script tiers (CSP `default-src 'self'`) | `deploy/Caddyfile` |
 | ✅ | Session navigateur en `sessionStorage` : fermer l'onglet déconnecte (postes partagés) | `web/src/stockage.js` |
-| ☐ | Consigne aux élèves et aux familles : saisir **uniquement le prénom** de l'enfant (pas de nom de famille) | — |
+| ✅ | Consigne aux familles : **uniquement le prénom** de l'enfant. Le formulaire n'a plus de champ nom ; le modèle d'import n'a plus de colonne « Nom », et un ancien classeur qui la remplit est refusé sans rien enregistrer (#87) | `EnfantsFamille.jsx`, `app/import_familles.py` |
 
 ## 2. Durée de conservation
 
@@ -31,7 +31,7 @@ Légende : ✅ assuré par le logiciel (et testé) · ☐ à faire par l'établi
 | ✅ | Suppression d'une classe entière (fin d'année) | `DELETE /enseignants/classes/{id}` |
 | ✅ | Journaux serveur (contiennent des IP) bornés à 3 × 10 Mo par service | `docker-compose.yml` |
 | ☐ | Fixer la durée de conservation avec le DPO et l'inscrire au registre | `.env` |
-| ☐ | Durée de conservation des **sauvegardes** alignée (une sauvegarde contient des données purgées) | — |
+| ☐ | Durée de conservation des **sauvegardes** alignée (une sauvegarde contient des données purgées) : **60 jours** décidés par le propriétaire (15/11/2026, #8), à confirmer avec le DPO et à inscrire au registre | cycle de vie du bucket, `docs/exploitation/technique.md` T-04 |
 
 ## 3. Droits des personnes
 
@@ -58,7 +58,7 @@ Légende : ✅ assuré par le logiciel (et testé) · ☐ à faire par l'établi
 | ✅ | API et base non exposées sur Internet (réseau Docker interne) | `docker-compose.yml` |
 | ✅ | Documentation OpenAPI désactivée en production | `app/main.py` |
 | ☐ | Hébergement dans l'Union européenne, contrat de sous-traitance avec l'hébergeur | — |
-| ☐ | Sauvegardes chiffrées et testées (restauration) | `docs/DEPLOIEMENT.md` |
+| ☐ | Sauvegardes chiffrées et testées (restauration) : chiffrement `age` à clés publiques (la VM ne peut pas relire), copie hors VM, restauration isolée scriptée ; à cocher après la première restauration de contrôle en production (#8) | `deploy/sauvegarde-prod.sh`, `docs/exploitation/technique.md` T-04/T-05 |
 | ☐ | Mises à jour de sécurité du serveur et des images Docker | — |
 
 ## 5. Information et formalités

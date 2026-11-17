@@ -38,6 +38,9 @@ class Settings(BaseSettings):
     connexion_enseignant_max_echecs: int = 5  # par compte enseignant
     connexion_eleve_max_codes_inconnus: int = 30  # codes classe inconnus, par IP
     connexion_eleve_max_echecs_code: int = 5  # codes personnels faux, par compte élève
+    # Échecs de connexion élève, par adresse (SEC-D5, #87) : les identifiants « Lina1 » se devinent, le code reste
+    # le seul secret. 60 / 15 min laisse de la marge à une classe de 35 derrière la même adresse.
+    connexion_eleve_max_echecs_par_ip: int = 60
     connexion_max_par_ip: int = 300  # toutes tentatives confondues
 
     # Banque de questions : servir aussi les questions pas encore validées par un enseignant.

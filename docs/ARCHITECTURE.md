@@ -131,6 +131,21 @@ remplace ce mot de passe à sa première connexion sur `/parent`. Un même compt
 | `GET /parents/enfants/{id}/historique` | Historique des réponses avec corrections |
 | `PUT /parents/enfants/{id}/code` | Code personnel choisi par le parent (8 à 16 lettres et chiffres) ; vaut pour les inscriptions reliées, ferme les sessions de l'enfant |
 
+### Identifiants des enfants (décision RGPD-1, #87)
+
+Un enfant n'a **aucun nom de famille** : la colonne `enfant.nom` a été supprimée par la migration `0039`.
+
+- **Nouveaux comptes** : `enfants.identifiant_libre` attribue `<Prénom><n>`, par exemple `Lina1`, `JeanPierre1` ou `Aegir1`.
+  - La base est le prénom sans accents, sans espace, tiret ni apostrophe. Les lettres `æ ø ß ð þ œ` sont translittérées.
+  - Le numéro vient de la table `compteur_identifiant` : une ligne par base en minuscules, tronquée à 35 caractères. L'incrément est atomique et la ligne reste verrouillée jusqu'à la fin de la transaction. Le compteur ne recule jamais : un numéro n'est pas réattribué, même après purge.
+  - L'identifiant fait 40 caractères au plus : la base est tronquée à 40 − (nombre de chiffres du numéro).
+  - Un identifiant déjà pris dans `enfant`, `eleve` ou `eleve_anglais` est sauté. Le nombre d'essais est borné.
+- **Comparaison** sans casse ni accents (`security.cle_identifiant`). Des index uniques sur `lower(identifiant)` existent dans les trois tables.
+- **Anciens identifiants** (`lina-k7m4`) : conservés et toujours acceptés. Le nouveau format, sans tiret, ne peut pas les rencontrer.
+- **Homonymes** dans une classe ou un groupe : le second s'affiche avec son identifiant à la place du prénom (`Lina2`). La connexion prénom + code classe + code personnel (SEC-D1) accepte cette forme.
+- **Saisie** : un champ `nom` est refusé par l'API (`extra="forbid"`) ; un classeur d'import qui remplit la colonne « Nom » est refusé ; un prénom sans aucune lettre est refusé.
+- **Limitation des tentatives** : voir `docs/audit/rgpd-1-limitation-connexion.md`.
+
 ### Français (préparation, #98)
 Tables `dossier_francais` et `dossier_francais_version` (migration 0037) : parties élève et professeur séparées,
 empreinte du fichier source, circuit de validation des séances d'anglais. Contrat et accès :

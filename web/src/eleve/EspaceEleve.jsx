@@ -218,9 +218,10 @@ export default function EspaceEleve() {
 }
 
 /** Contenu du QR code de la carte élève : « /eleve#carte=identifiant.code ».
+ * Identifiant à l'ancien format (« lina-k7m4 ») ou au nouveau (« Lina1 », majuscule comprise, RGPD-1 #87).
  * Le fragment (#…) n'est jamais envoyé au serveur ni conservé dans ses journaux. */
 export function lireCarte(fragment = window.location.hash) {
-  const m = /^#carte=([a-z0-9-]+)\.([A-Za-z0-9]+)$/.exec(fragment || "");
+  const m = /^#carte=([A-Za-z0-9-]+)\.([A-Za-z0-9]+)$/.exec(fragment || "");
   return m ? { identifiant: m[1], code: m[2] } : null;
 }
 

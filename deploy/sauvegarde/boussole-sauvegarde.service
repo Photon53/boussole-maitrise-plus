@@ -1,0 +1,13 @@
+# Issue #8 — Sauvegardes automatisées et restauration testée (Claude)
+# Sauvegarde chiffrée de la production, copiée hors VM. Installation : docs/exploitation/technique.md, T-04.
+[Unit]
+Description=Boussole : sauvegarde chiffrée de la production (base, PDF, .env) copiée hors VM
+Wants=network-online.target docker.service
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/boussole-sauvegarde --sauvegarder
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=2h

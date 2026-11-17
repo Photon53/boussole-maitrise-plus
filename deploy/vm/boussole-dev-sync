@@ -86,6 +86,65 @@ trap nettoyer EXIT
 # Toute commande en échec non traitée est journalisée (le texte de la commande, jamais ses valeurs).
 trap 'journal ERREUR "Commande en échec (ligne $LINENO) : $BASH_COMMAND"' ERR
 
+# --- Sorties des commandes en échec (ticket #65) -----------------------------------------------------------
+# Les sorties capturées dans $TRAVAIL (alembic, import, démarrage) disparaissent avec lui à la fin du cycle. En cas
+# d'échec, une copie MASQUÉE est conservée dans $ETAT/intervention-<nom>.txt (root, 600, dossier 700) et ses
+# $LIGNES_SORTIE dernières lignes sont journalisées (journald et $JOURNAL). Jamais de copie non masquée : si le
+# masquage échoue, rien n'est conservé ni journalisé.
+LIGNES_SORTIE=40
+SORTIES_ECHEC=""   # fichiers conservés pendant ce cycle, séparés par « ; » (repris dans intervention-requise.json)
+masquer_secrets() {   # masquer_secrets <fichier> : contenu sur la sortie standard, secrets remplacés par ***
+  python3 - "$1" "$ENV_FILE" <<'PY'
+import re, sys, urllib.parse
+texte = open(sys.argv[1], encoding="utf-8", errors="replace").read()
+# Valeurs secrètes du .env (mot de passe de la base, clé de l'application…), brutes et encodées pour une URL.
+valeurs = set()
+try:
+    for ligne in open(sys.argv[2], encoding="utf-8", errors="replace"):
+        m = re.match(r"\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*?)\s*$", ligne)
+        if m and re.search(r"MOT_DE_PASSE|PASSWORD|PASSWD|SECRET|TOKEN|JETON|CLE|KEY", m.group(1).upper()):
+            v = m.group(2).strip("'\"")
+            if len(v) >= 4:
+                valeurs.update({v, urllib.parse.quote(v, safe=""), urllib.parse.quote_plus(v)})
+except OSError:
+    pass
+for v in sorted(valeurs, key=len, reverse=True):
+    texte = texte.replace(v, "***")
+# Identifiants dans une URL : postgresql+psycopg://pkp:<mot de passe>@db:5432/pkp
+texte = re.sub(r"([A-Za-z][A-Za-z0-9+.-]*://[^\s:/@]*:)[^\s@]+@", r"\1***@", texte)
+# Paramètres de connexion ou affectations : password=…, PGPASSWORD: …, mot_de_passe=…
+texte = re.sub(r"(?i)\b([A-Za-z_]*(?:password|passwd|mot_de_passe|secret|token)[A-Za-z_]*\s*[=:]\s*)(['\"]?)[^\s'\"&,;]+\2",
+               r"\1\2***\2", texte)
+# En-têtes d'autorisation
+texte = re.sub(r"(?i)(authorization:\s*(?:bearer|basic)\s+)\S+", r"\1***", texte)
+sys.stdout.write(texte)
+PY
+}
+conserver_sortie() {   # conserver_sortie <fichier capturé> <nom> [contexte] : ne fait jamais échouer l'appelant
+  local src="$1" nom="$2" dst="$ETAT/intervention-$2.txt" n l
+  [[ -f "$src" ]] || { attention "Sortie de « $nom » absente : rien à conserver"; return 0; }
+  if ! { printf '# %s — %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${3:-$nom}"; masquer_secrets "$src"; } > "$dst.tmp"; then
+    rm -f "$dst.tmp"; erreur "Sortie de « $nom » non conservée (masquage impossible) : aucune copie ni extrait"; return 0
+  fi
+  chmod 600 "$dst.tmp" && mv -f "$dst.tmp" "$dst" || { rm -f "$dst.tmp"; erreur "Sortie de « $nom » non conservée"; return 0; }
+  SORTIES_ECHEC="${SORTIES_ECHEC:+$SORTIES_ECHEC;}$dst"
+  n="$(($(wc -l < "$dst") - 1))"
+  erreur "Sortie de « $nom » ($n lignes, secrets masqués) conservée dans $dst ; $LIGNES_SORTIE dernières lignes :"
+  while IFS= read -r l || [[ -n "$l" ]]; do journal ERREUR "  | $l"; done < <(tail -n +2 "$dst" | tail -n "$LIGNES_SORTIE")
+  return 0
+}
+# Après une interruption brutale (SIGKILL, arrêt de la VM), le dossier de travail du cycle interrompu n'a pas été
+# supprimé : la sortie partielle de l'étape interrompue y est encore. Seule une sortie écrite après le dernier
+# changement d'étape de en-cours.json (donc par l'étape interrompue, jamais par un cycle plus ancien) est conservée.
+conserver_sortie_interrompue() {   # conserver_sortie_interrompue <étape>
+  local fichier="" f
+  case "$1" in migration) fichier=migration.txt ;; import) fichier=import.txt ;; controles|exposition) fichier=up.txt ;; *) return 0 ;; esac
+  f="$(find "$ETAT" -maxdepth 2 -path "$ETAT/travail.*/$fichier" ! -path "$TRAVAIL/*" -newer "$ETAT/en-cours.json" -printf '%T@ %p\n' 2>/dev/null \
+    | sort -rn | head -1 | cut -d' ' -f2-)" || true
+  [[ -n "$f" ]] || { attention "Aucune sortie de l'étape « $1 » retrouvée pour le cycle interrompu"; return 0; }
+  conserver_sortie "$f" "$1" "sortie partielle de l'étape « $1 » (cycle interrompu)"
+}
+
 # --- JSON (python3 est présent sur Ubuntu) -----------------------------------------------------------------
 jval() {   # jval <fichier> <clé.sous.clé> : valeur, vide si absente
   python3 - "$1" "$2" <<'PY'
@@ -336,9 +395,11 @@ relancer() {   # relancer <fichier d'état>
   local f="$1" e="$TRAVAIL/images-relance.env"
   images_version "$f" || return 1
   images_env "$e" "$IMG_API" "$IMG_WEB"
-  dc_dev "$e" up -d --no-deps api >/dev/null 2>&1 || { SANTE_RAISON="démarrage de l'API impossible"; return 1; }
+  dc_dev "$e" up -d --no-deps api >"$TRAVAIL/relance.txt" 2>&1 \
+    || { conserver_sortie "$TRAVAIL/relance.txt" relance "relance de l'API"; SANTE_RAISON="démarrage de l'API impossible"; return 1; }
   controle_interne "$ATT_API" "$IMG_WEB" "$(jval "$f" alembic)" || return 1
-  dc_dev "$e" up -d --no-deps web purge >/dev/null 2>&1 || { SANTE_RAISON="démarrage du web ou de la purge impossible"; return 1; }
+  dc_dev "$e" up -d --no-deps web purge >>"$TRAVAIL/relance.txt" 2>&1 \
+    || { conserver_sortie "$TRAVAIL/relance.txt" relance "relance du web et de la purge"; SANTE_RAISON="démarrage du web ou de la purge impossible"; return 1; }
   controle_publie "$ATT_API" "$ATT_WEB"
 }
 
@@ -363,12 +424,13 @@ reprise_apres_interruption() {   # 0 : rien à reprendre ; sinon code de sortie 
   M_TRANSFO="$(jval "$f" transformations)"; M_TRANSFO="${M_TRANSFO:-1}"; SAUVEGARDE_NOM="$(jval "$f" sauvegarde)"
   # Même règle qu'après un échec : la base et les données importées sont comparées à leur état AVANT le cycle.
   rev="$(jval "$f" revision_avant)"; emp="$(jval "$f" empreinte_avant)"
+  SORTIES_ECHEC=""; conserver_sortie_interrompue "$etape"
   local rc=0; echec_deploiement "$sha" "cycle interrompu à l'étape $etape" "$rev" "$emp" "$etape" || rc=$?
   return "$rc"
 }
 
 # --- Décision après un échec -------------------------------------------------------------------------------
-rejeter() { etat_ecrire "$ETAT/rejetee.json" sha="$1" raison="$2" le="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; }
+rejeter() { etat_ecrire "$ETAT/rejetee.json" sha="$1" raison="$2" sorties="${SORTIES_ECHEC:-aucune}" le="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; }
 echec_deploiement() {   # echec_deploiement <sha> <raison> <rév. avant> <empreinte avant> <étape>
   local sha="$1" raison="$2" rev_avant="$3" emp_avant="$4" etape="$5" rev_apres emp_apres rev_active motifs=()
   rev_apres="$(revision_reelle 2>/dev/null || echo inconnue)"; emp_apres="$(empreinte_donnees 2>/dev/null || echo inconnue)"
@@ -401,24 +463,25 @@ echec_deploiement() {   # echec_deploiement <sha> <raison> <rév. avant> <emprei
   arreter_applicatif || true
   etat_ecrire "$ETAT/intervention-requise.json" sha="$sha" raison="$raison" etape="$etape" revision_avant="$rev_avant" \
     revision_apres="$rev_apres" donnees_modifiees="$([[ "$emp_apres" == "$emp_avant" ]] && echo non || echo oui)" \
-    motifs="$(IFS=';'; echo "${motifs[*]}")" sauvegarde="${SAUVEGARDE_NOM:-aucune}" le="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    motifs="$(IFS=';'; echo "${motifs[*]}")" sauvegarde="${SAUVEGARDE_NOM:-aucune}" sorties="${SORTIES_ECHEC:-aucune}" le="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   cycle_fin
-  erreur "INTERVENTION REQUISE : services applicatifs et purge arrêtés. Voir docs/exploitation/pipeline-dev-pr3b-deploiement.md (sauvegarde : ${SAUVEGARDE_NOM:-aucune})"
+  erreur "INTERVENTION REQUISE : services applicatifs et purge arrêtés. Voir docs/exploitation/pipeline-dev-pr3b-deploiement.md (sauvegarde : ${SAUVEGARDE_NOM:-aucune} ; sorties conservées : ${SORTIES_ECHEC:-aucune})"
   return 2
 }
 
 # --- Déploiement ---------------------------------------------------------------------------------------------
 deployer() {   # deployer <sha> <normal|version>
   local sha="$1" mode="$2" cand="$TRAVAIL/images-candidat.env" rev_avant emp_avant rev_apres emp_apres
-  SAUVEGARDE_NOM=""
+  SAUVEGARDE_NOM=""; SORTIES_ECHEC=""
   manifeste_charger "$sha" || { rejeter "$sha" "manifeste invalide"; return 1; }
   disque_ok || return 3
   images_tirer || return 1   # rien n'est arrêté : nouvel essai au prochain passage
   images_env "$cand" "$M_API" "$M_WEB"
   rev_avant="$(revision_reelle)" || { erreur "Révision réelle de la base illisible"; return 3; }
   if ! compatibilite_schema "$cand"; then
+    conserver_sortie "$TRAVAIL/alembic-current.txt" compatibilite "alembic current, version ${sha:0:12}"
     rejeter "$sha" "révision $rev_avant de la base inconnue de cette version (pas de retour de schéma)"
-    erreur "Version ${sha:0:12} incompatible avec la base (révision $rev_avant) : aucun service interrompu — $(tail -2 "$TRAVAIL/alembic-current.txt" | tr '\n' ' ')"; return 1
+    erreur "Version ${sha:0:12} incompatible avec la base (révision $rev_avant) : aucun service interrompu"; return 1
   fi
   emp_avant="$(empreinte_donnees)" || { erreur "Empreinte des données illisible : aucun service interrompu"; return 3; }
   info "Déploiement de ${sha:0:12} ($mode) : révision réelle $rev_avant, attendue $M_HEAD"
@@ -434,28 +497,30 @@ deployer() {   # deployer <sha> <normal|version>
   fi
   cycle_etape migration sauvegarde="$SAUVEGARDE_NOM"
   if ! dc_dev "$cand" run --rm --no-deps -T api alembic upgrade head >"$TRAVAIL/migration.txt" 2>&1; then
+    conserver_sortie "$TRAVAIL/migration.txt" migration "alembic upgrade head, version ${sha:0:12}"
     echec_deploiement "$sha" "migration Alembic en échec" "$rev_avant" "$emp_avant" migration; return
   fi
   rev_apres="$(revision_reelle)"
-  [[ "$rev_apres" == "$M_HEAD" ]] || { echec_deploiement "$sha" "révision $rev_apres après migration, $M_HEAD attendue" "$rev_avant" "$emp_avant" migration; return; }
+  [[ "$rev_apres" == "$M_HEAD" ]] || { conserver_sortie "$TRAVAIL/migration.txt" migration "alembic upgrade head, version ${sha:0:12}"; echec_deploiement "$sha" "révision $rev_apres après migration, $M_HEAD attendue" "$rev_avant" "$emp_avant" migration; return; }
   cycle_etape import
   if [[ "$mode" == normal ]]; then
     if ! dc_dev "$cand" run --rm --no-deps -T api python -m app.contenu importer >"$TRAVAIL/import.txt" 2>&1; then
+      conserver_sortie "$TRAVAIL/import.txt" import "import pédagogique, version ${sha:0:12}"
       echec_deploiement "$sha" "import pédagogique en échec" "$rev_avant" "$emp_avant" import; return
     fi
-    info "Import pédagogique : $(tail -3 "$TRAVAIL/import.txt" | tr '\n' ' ')"
+    info "Import pédagogique : $(masquer_secrets "$TRAVAIL/import.txt" | tail -3 | tr '\n' ' ')"
   else
     info "Import pédagogique NON exécuté (version figée : la base garde son contenu)"
   fi
   emp_apres="$(empreinte_donnees)"
   cycle_etape controles
-  dc_dev "$cand" up -d --no-deps api >"$TRAVAIL/up.txt" 2>&1 || { echec_deploiement "$sha" "démarrage de l'API impossible" "$rev_avant" "$emp_avant" controles; return; }
+  dc_dev "$cand" up -d --no-deps api >"$TRAVAIL/up.txt" 2>&1 || { conserver_sortie "$TRAVAIL/up.txt" demarrage "démarrage de l'API, version ${sha:0:12}"; echec_deploiement "$sha" "démarrage de l'API impossible" "$rev_avant" "$emp_avant" controles; return; }
   if ! controle_interne "$M_API" "$M_WEB" "$M_HEAD"; then
     echec_deploiement "$sha" "contrôles avant ouverture en échec : $SANTE_RAISON" "$rev_avant" "$emp_avant" controles; return
   fi
   info "Contrôles avant ouverture réussis (API, front de contrôle, révision $M_HEAD) : ouverture du service"
   cycle_etape exposition
-  dc_dev "$cand" up -d --no-deps web purge >>"$TRAVAIL/up.txt" 2>&1 || { echec_deploiement "$sha" "démarrage du web ou de la purge impossible" "$rev_avant" "$emp_avant" exposition; return; }
+  dc_dev "$cand" up -d --no-deps web purge >>"$TRAVAIL/up.txt" 2>&1 || { conserver_sortie "$TRAVAIL/up.txt" demarrage "démarrage du web et de la purge, version ${sha:0:12}"; echec_deploiement "$sha" "démarrage du web ou de la purge impossible" "$rev_avant" "$emp_avant" exposition; return; }
   if ! controle_publie "$M_API" "$M_WEB"; then
     echec_deploiement "$sha" "contrôles après ouverture en échec : $SANTE_RAISON" "$rev_avant" "$emp_avant" exposition; return
   fi
@@ -565,11 +630,11 @@ cmd_simulation() {
   images_env "$cand" "$M_API" "$M_WEB"
   local rev; rev="$(revision_reelle)" || refus "Révision réelle de la base illisible"
   echo "Révision réelle de la base : $rev ; attendue par la version : $M_HEAD"
-  if compatibilite_schema "$cand"; then echo "Schéma : compatible ($(tail -1 "$TRAVAIL/alembic-current.txt"))"
+  if compatibilite_schema "$cand"; then echo "Schéma : compatible ($(masquer_secrets "$TRAVAIL/alembic-current.txt" | tail -1))"
   else echo "Schéma : INCOMPATIBLE (révision inconnue de cette version) — le déploiement serait refusé"; fi
   if dc_dev "$cand" run --rm --no-deps -T api python -m app.contenu importer --simulation >"$TRAVAIL/import.txt" 2>&1; then
-    echo "Import pédagogique (simulation) : $(tail -3 "$TRAVAIL/import.txt" | tr '\n' ' ')"
-  else echo "Import pédagogique (simulation) : ÉCHEC — $(tail -2 "$TRAVAIL/import.txt" | tr '\n' ' ')"; fi
+    echo "Import pédagogique (simulation) : $(masquer_secrets "$TRAVAIL/import.txt" | tail -3 | tr '\n' ' ')"
+  else echo "Import pédagogique (simulation) : ÉCHEC — $(masquer_secrets "$TRAVAIL/import.txt" | tail -"$LIGNES_SORTIE")"; fi
   echo "Transformations déclarées : $M_TRANSFO"
   echo "Étapes prévues : arrêt web/api/purge ; sauvegarde vérifiée vers gs://$BUCKET/backups/ ; migration ; import ;"
   echo "  API seule + front de contrôle sans port (aucune écriture possible) ; puis ouverture : web publié et purge."
@@ -624,7 +689,7 @@ cmd_retour_manuel() {
   if ! relancer "$m"; then
     arreter_applicatif || true
     etat_ecrire "$ETAT/intervention-requise.json" sha=manuel raison="retour manuel en échec : ${SANTE_RAISON:-redémarrage impossible}" \
-      etape=retour-manuel le="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+      etape=retour-manuel sorties="${SORTIES_ECHEC:-aucune}" le="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
     erreur "Retour manuel en échec : ${SANTE_RAISON:-redémarrage impossible}. INTERVENTION REQUISE, services arrêtés."
     return 2
   fi

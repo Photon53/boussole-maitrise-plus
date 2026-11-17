@@ -79,9 +79,8 @@ Classes, élèves et réponses sont conservés. L'espace élève passe de `/` à
 | Purge : voir ce qui serait supprimé | `docker compose exec api python -m app.purge --simulation` |
 | Nouveau compte enseignant | `docker compose exec api python -m app.admin creer --email … --nom …` |
 | Mot de passe oublié | `docker compose exec api python -m app.admin mot-de-passe --email …` |
-| Sauvegarde | `docker compose exec -T db pg_dump -U pkp pkp \| gzip > pkp-$(date +%F).sql.gz` |
-| Restauration | `gunzip -c sauvegarde.sql.gz \| docker compose exec -T db psql -U pkp pkp` |
-| Sauvegarde des PDF (ressources) | `docker compose exec -T api tar -C /data -cz fichiers > fichiers-$(date +%F).tar.gz`, en même temps que la base : la table `ressource` désigne ces fichiers |
+| Sauvegarde | `sudo boussole-sauvegarde --sauvegarder --motif manuelle` : base, PDF et `.env`, chiffrés et copiés hors VM ; automatique chaque nuit (installation : [technique.md, T-04](exploitation/technique.md#t-04--sauvegarder)) |
+| Restauration | contrôle sans risque : `--restaurer-isole` ; restauration réelle : [technique.md, T-05](exploitation/technique.md#t-05--restaurer-une-sauvegarde) |
 | Premier administrateur | `docker compose exec api python -m app.admin creer --email … --nom "Équipe PKP" --admin`, puis `docker compose exec api python -m app.admin totp --email …` (second facteur obligatoire en production) |
 | Contrôle des liens | Automatique chaque semaine (service `purge`) ; à la demande : `docker compose exec api python -m app.ressources verifier-liens` |
 
@@ -99,8 +98,8 @@ Le script garde les 3 sauvegardes de base les plus récentes (`--garder-sauvegar
 de `.env`. Il ne supprime jamais les volumes Docker (base, PDF, certificats). Si Docker ou PKP se sont arrêtés
 faute de place, il les relance. S'il reste moins de 3 Go libres, il indique comment agrandir le disque.
 
-Sauvegardes : les chiffrer, les stocker hors du serveur, les conserver au plus la durée de
-conservation RGPD, et **tester une restauration** au moins une fois par an.
+Sauvegardes : chiffrées, copiées hors du serveur, gardées 60 jours, restauration de contrôle chaque trimestre
+([technique.md, T-04 et T-05](exploitation/technique.md#t-04--sauvegarder), ticket #8).
 
 ## Limites connues
 
@@ -116,5 +115,7 @@ conservation RGPD, et **tester une restauration** au moins une fois par an.
   les compteurs à zéro.
 - **Blocage d'un compte enseignant** : 5 mots de passe faux en 15 min bloquent ce compte
   15 min, même pour son propriétaire. C'est voulu, mais un tiers peut le provoquer.
-- **Lycée derrière une seule IP** : les plafonds par IP (300 connexions, 30 codes classe faux
-  par 15 min) sont réglés pour une classe entière ; voir `PKP_CONNEXION_*` dans `app/config.py`.
+- **Lycée derrière une seule IP** : les plafonds par IP (300 connexions, 30 codes classe faux et
+  60 échecs de connexion élève par 15 min, SEC-D5) sont réglés pour une classe entière ; voir `PKP_CONNEXION_*`
+  dans `app/config.py`. Plusieurs classes qui se connectent en même temps derrière la même adresse peuvent
+  approcher le plafond de 60 échecs : l'augmenter avec `PKP_CONNEXION_ELEVE_MAX_ECHECS_PAR_IP` dans `.env` si besoin.

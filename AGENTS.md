@@ -52,7 +52,7 @@ Ces points ne se négocient pas et ne demandent pas d'arbitrage : ils sont déj�
 
 **Scripts d'exploitation — interdits** (ils supposent Cloud Shell, des identifiants GCP ou la VM) :
 
-- `deploy/*.sh` et `deploy/vm/boussole-dev-sync` ;
+- `deploy/*.sh` (dont `deploy/sauvegarde-prod.sh`, sauf son banc simulé) et `deploy/vm/boussole-dev-sync` ;
 - `scripts/audit-dev-compte-compute.sh`, `scripts/bootstrap-gcp-dev.sh`, `scripts/boussole-dev.sh`,
   `scripts/controle-acces-sauvegardes.sh`, `scripts/deployer-dev-iap.sh`, `scripts/dev-publier-version.sh`,
   `scripts/reprise-terraform-dev.sh`, `scripts/terraform-dev-cloudshell.sh`, `scripts/wif-dev-comptes-separes.sh` ;
@@ -67,6 +67,7 @@ Un nouveau script qui touche au cloud, à la VM ou aux secrets s'ajoute à cette
 - `scripts/test-dev-publier-version.sh` ;
 - `deploy/vm/tests/test-boussole-dev-sync.sh`, `deploy/vm/tests/test-refus-deploiement-manuel.sh` ;
 - `scripts/tests/test-controle-acces-sauvegardes.sh` ;
+- `deploy/sauvegarde/tests/test-sauvegarde-prod.sh` (faux `docker` et faux `gcloud`, vrai `age`) ;
 - `bash -n <script>` sur n'importe quel script (vérification de syntaxe, rien n'est exécuté).
 
 **Autres scripts** : lire et vérifier leurs effets ; demander une décision uniquement s'ils dépassent le périmètre autorisé ou restent ambigus. Le nom seul ne permet pas de décider : `installer-dev.sh` et `deployer-dev-iap.sh` ont des effets différents. Les interdictions explicites ci-dessus restent applicables.
@@ -234,6 +235,7 @@ bash -n deploy/vm/boussole-dev-sync
 bash deploy/vm/tests/test-boussole-dev-sync.sh
 bash deploy/vm/tests/test-refus-deploiement-manuel.sh
 bash scripts/tests/test-controle-acces-sauvegardes.sh
+bash deploy/sauvegarde/tests/test-sauvegarde-prod.sh
 ```
 
 Si la CI évolue, `ci.yml` fait foi et cette liste doit être mise à jour dans la même PR.
@@ -272,7 +274,7 @@ Ces règles sont vérifiées par les tests, la CI ou la relecture. Le document c
 | Question jamais supprimée | colonne `archivee`, garde ORM `SuppressionInterdite` (qui déclenche l'erreur vérifiée par les tests de suppression), clé étrangère `RESTRICT` depuis `reponse` (`ARCH-3`) |
 | Solution protégée | **aucune solution transmise à l'élève avant sa réponse** : `QuestionPublique` n'a pas de champ `solution`. Après réponse, `ResultatReponse` et `ReponseHistorique` la contiennent ; côté adultes, `QuestionEnseignant` la contient, et son accès est soumis aux habilitations (`exiger(permission, domaine)`) (`ARCH-4`) |
 | Correction sans `eval` | parseur `ast`, liste blanche de nœuds, saisie ≤ 200 caractères |
-| Données personnelles | **minimisation** (`docs/RGPD.md`) : élève identifié par prénom + code classe + code personnel haché, aucun e-mail élève. Décision **RGPD-1** : un enfant n'a **aucun nom de famille**, les nouveaux comptes reçoivent un identifiant prénom sans accents + numéro, sans séparateur (`Lina1`), unique sur la plateforme, comparé sans casse ni accents, limité à 40 caractères ; numéro jamais réattribué. Les identifiants déjà émis sont conservés. Le parent garde nom et prénom. **Pas encore appliquée** : `Enfant.nom` existe encore, son retrait est suivi dans #87. D'ici là, l'agent n'ajoute aucun usage de `Enfant.nom` et ne collecte aucune autre donnée nominative d'enfant |
+| Données personnelles | **minimisation** (`docs/RGPD.md`) : élève identifié par prénom + code classe + code personnel haché, aucun e-mail élève. Décision **RGPD-1** : un enfant n'a **aucun nom de famille**, les nouveaux comptes reçoivent un identifiant prénom sans accents + numéro, sans séparateur (`Lina1`), unique sur la plateforme, comparé sans casse ni accents, limité à 40 caractères ; numéro jamais réattribué. Les identifiants déjà émis sont conservés. Le parent garde nom et prénom. **Appliquée** (#87, migration `0039`) : `Enfant.nom` n'existe plus ; l'agent ne réintroduit aucun nom de famille d'enfant ni aucune autre donnée nominative d'enfant, et crée les identifiants avec `enfants.identifiant_libre` |
 | Droit d'auteur | ne jamais versionner `sources/` (photos, extraits de manuels) ; exception : `referentiels/sources/` (textes officiels BO). Tout contenu de `contenu/**/*.yaml` remplit le registre des sources : `source`, `source_url`, `licence_source`, `adaptation` (`docs/CONTENU.md`) |
 | Style | UTF-8, fins de ligne LF, indentation 4 espaces (Python), 2 (JS/JSX/JSON/CSS/HTML/YAML), CRLF pour `.ps1`/`.bat` (`.editorconfig`) |
 | Langue | code métier, documentation, commits et messages d'interface **en français** (`ARCH-6`) |
