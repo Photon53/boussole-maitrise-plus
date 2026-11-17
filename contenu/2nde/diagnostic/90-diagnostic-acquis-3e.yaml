@@ -14,6 +14,7 @@ competences:
 - code: 2NDE-DIAG-NOMBRES
   libelle: Fractions et racines carrées (acquis du collège)
   prerequis: [3E-CALCUL-NUMERIQUE, 4E-RACINES]
+  retour: [3E-DIAG-NOMBRES, 3E-DIAG-PUISSANCES]
   questions:
   # 2N-02
   - code: 2NDE-DIAG-NOMBRES-01
@@ -43,6 +44,7 @@ competences:
 - code: 2NDE-DIAG-LITTERAL
   libelle: Développer, factoriser, résoudre une équation produit (acquis de 3e)
   prerequis: [3E-DEVELOPPER, 3E-EQUATIONS]
+  retour: [3E-DIAG-LITTERAL]
   questions:
   # 2N-03
   - code: 2NDE-DIAG-LITTERAL-01
@@ -121,6 +123,7 @@ competences:
 - code: 2NDE-DIAG-FONCTIONS
   libelle: Image, antécédent, fonctions affines (acquis de 3e)
   prerequis: [3E-NOTION-FONCTION, 3E-FONCTIONS-AFFINES]
+  retour: [3E-DIAG-LITTERAL]
   questions:
   # 2N-06
   - code: 2NDE-DIAG-FONCTIONS-01
@@ -184,6 +187,7 @@ competences:
 - code: 2NDE-DIAG-GEOMETRIE
   libelle: Thalès et trigonométrie (acquis de 3e)
   prerequis: [3E-THALES-SEMBLABLES, 3E-TRIGONOMETRIE]
+  retour: [3E-DIAG-TRIANGLE]
   questions:
   # 2N-08 (nouvelles valeurs)
   - code: 2NDE-DIAG-GEOMETRIE-01
@@ -225,6 +229,7 @@ competences:
 - code: 2NDE-DIAG-DONNEES
   libelle: Statistiques, probabilités et pourcentages (acquis de 3e)
   prerequis: [3E-STATISTIQUES, 3E-PROBABILITES]
+  retour: [3E-DIAG-GRANDEURS]
   questions:
   # 2N-10
   - code: 2NDE-DIAG-DONNEES-01

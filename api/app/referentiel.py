@@ -144,6 +144,7 @@ class StatutObservation(str, Enum):
 
     JUSTE = "juste"
     FAUX = "faux"
+    NE_SAIT_PAS = "je-ne-sais-pas"  # distinct d'une réponse fausse (lot 3)
     EN_ATTENTE = "en-attente-de-correction"
 
 

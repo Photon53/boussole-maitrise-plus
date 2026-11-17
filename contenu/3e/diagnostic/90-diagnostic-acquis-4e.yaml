@@ -14,6 +14,7 @@ competences:
 - code: 3E-DIAG-NOMBRES
   libelle: Calculer avec les relatifs, les fractions et les priorités (acquis de 4e)
   prerequis: [4E-RELATIFS-PRODUITS, 4E-FRACTIONS-CALCUL, 5E-PRIORITES]
+  retour: [4E-DIAG-RELATIFS, 4E-DIAG-FRACTIONS]
   questions:
   # 3E-01
   - code: 3E-DIAG-NOMBRES-01
@@ -73,6 +74,7 @@ competences:
 - code: 3E-DIAG-PUISSANCES
   libelle: Utiliser les puissances de 10 et la notation scientifique (acquis de 4e)
   prerequis: [4E-PUISSANCES]
+  retour: [4E-DIAG-RELATIFS]
   questions:
   # 3E-04
   - code: 3E-DIAG-PUISSANCES-01
@@ -104,6 +106,7 @@ competences:
 - code: 3E-DIAG-LITTERAL
   libelle: Développer, résoudre une équation, mettre un problème en équation (acquis de 4e)
   prerequis: [4E-DISTRIBUTIVITE, 4E-EQUATIONS]
+  retour: [4E-DIAG-LITTERAL]
   questions:
   # 3E-05
   - code: 3E-DIAG-LITTERAL-01
@@ -175,6 +178,7 @@ competences:
 - code: 3E-DIAG-TRIANGLE
   libelle: Pythagore, Thalès et cosinus dans le triangle (acquis de 4e)
   prerequis: [4E-PYTHAGORE, 4E-THALES, 4E-COSINUS]
+  retour: [4E-DIAG-GEOMETRIE]
   questions:
   # 3E-07
   - code: 3E-DIAG-TRIANGLE-01
@@ -240,6 +244,7 @@ competences:
 - code: 3E-DIAG-GRANDEURS
   libelle: Volumes, vitesse et probabilités (acquis de 4e)
   prerequis: [4E-PYRAMIDE-CONE, 4E-GRANDEURS-COMPOSEES, 4E-PROBABILITES]
+  retour: [4E-DIAG-PROPORTIONNALITE, 4E-DIAG-DONNEES]
   questions:
   # 3E-16
   - code: 3E-DIAG-GRANDEURS-01

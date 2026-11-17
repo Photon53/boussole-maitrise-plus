@@ -284,7 +284,9 @@ Rangés sous `contenu/<niveau>/diagnostic/` : `nature: diagnostic`, `publics` (p
 concernées) et `programme_prerequis` (programme suivi l'année précédente) remplacent `parcours` ; `ordre` à partir
 de 90. Ils n'ont ni cours propre ni obligation des cinq difficultés : cette exemption ne vaut que pour eux. Ils ne
 sont jamais ouverts à une classe ni servis en séance d'entraînement, et un élève ne reçoit que leurs questions
-**validées**. Pas de `gabarit`. Détail : [diagnostic/README.md](diagnostic/README.md).
+**validées**. Pas de `gabarit`. Une compétence peut déclarer `retour: [CODE, …]` : compétences d'un diagnostic du
+niveau immédiatement inférieur, interrogées si elle est « à reprendre » (lot 3). Détail :
+[diagnostic/README.md](diagnostic/README.md).
 
 ### Types de questions et syntaxe des solutions
 

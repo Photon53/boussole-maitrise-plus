@@ -13,6 +13,7 @@ competences:
 - code: TLE-DIAG-SOCLE-CALCUL
   libelle: Fractions, développement et équations (bases du lycée)
   prerequis: [2NDE-FRAC, 2NDE-DEV, 2NDE-EQ1]
+  retour: [1RE-DIAG-ALGEBRE]
   questions:
   # TE-01
   - code: TLE-DIAG-SOCLE-CALCUL-01
@@ -69,6 +70,7 @@ competences:
 - code: TLE-DIAG-SOCLE-DONNEES
   libelle: Pourcentages et probabilités (bases du lycée)
   prerequis: [2NDE-EVO, 2NDE-PROBA]
+  retour: [1RE-DIAG-DONNEES]
   questions:
   # TE-05
   - code: TLE-DIAG-SOCLE-DONNEES-01

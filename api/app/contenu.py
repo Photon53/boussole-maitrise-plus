@@ -214,6 +214,8 @@ class CompetenceYaml(_Strict):
     cours_couvre: list[str] = []
     objectifs: list[Texte] = []
     prerequis: list[Code] = []  # codes d'autres compétences, à revoir en cas de difficulté
+    # Diagnostic (#162, lot 3) : compétences du diagnostic du niveau précédent, interrogées si celle-ci est à reprendre.
+    retour: list[Code] = []
     cours: str | None = None
     resume: str | None = None
     methodes: list[MethodeYaml] = []
@@ -433,6 +435,8 @@ def _verifier_gabarit(q: QuestionYaml) -> list[str]:
 def _verifier_liens(fichiers, dossier: Path, codes_attendus: set[str] | None, erreurs: list[str]) -> None:
     """Attendus officiels, prérequis et compétences secondaires : chaque code cité doit exister."""
     competences = {c.code for _, contenu in fichiers for c in contenu.competences}
+    # Retours du diagnostic : vers une compétence d'un diagnostic du niveau immédiatement inférieur.
+    chapitre_de = {c.code: contenu.chapitre for _, contenu in fichiers for c in contenu.competences}
     for chemin, contenu in fichiers:
         nom = chemin.relative_to(dossier).as_posix()
         for c in contenu.competences:
@@ -448,6 +452,12 @@ def _verifier_liens(fichiers, dossier: Path, codes_attendus: set[str] | None, er
             for p in c.prerequis:
                 if p == c.code or p not in competences:
                     erreurs.append(f"{nom} : {c.code} : prérequis « {p} » inconnu (code de compétence attendu)")
+            if c.retour and not contenu.chapitre.diagnostic:
+                erreurs.append(f"{nom} : {c.code} : `retour` ne concerne que les chapitres de diagnostic")
+            for r in c.retour if contenu.chapitre.diagnostic else []:
+                cible = chapitre_de.get(r)
+                if cible is None or not cible.diagnostic or ORDRE_NIVEAUX[cible.niveau] != ORDRE_NIVEAUX[contenu.chapitre.niveau] - 1:
+                    erreurs.append(f"{nom} : {c.code} : retour « {r} » : compétence d'un diagnostic du niveau précédent attendue")
             for q in c.questions:
                 for s in q.competences_secondaires:
                     if s == c.code or s not in competences:
@@ -664,6 +674,7 @@ def _pedagogie(c: CompetenceYaml) -> dict:
         "attendus": list(c.attendus),
         "objectifs": list(c.objectifs),
         "prerequis": list(c.prerequis),
+        "retour": list(c.retour),
         "methodes": [m.model_dump(exclude_none=True) for m in c.methodes],
         "erreurs_frequentes": [e.model_dump() for e in c.erreurs_frequentes],
     }

@@ -14,6 +14,7 @@ competences:
 - code: TLE-DIAG-SPE-ANALYSE
   libelle: Second degré, dérivation et variations (acquis de 1re spécialité)
   prerequis: [1RE-DISC, 1RE-DER-CALC, 1RE-VAR]
+  retour: [1RE-DIAG-ALGEBRE, 1RE-DIAG-FONCTIONS]
   questions:
   # TE-07
   - code: TLE-DIAG-SPE-ANALYSE-01
@@ -54,6 +55,7 @@ competences:
 - code: TLE-DIAG-SPE-SUITES-PROBAS
   libelle: Suites et probabilités conditionnelles (acquis de 1re spécialité)
   prerequis: [1RE-SUI-TERME, 1RE-SUI-MOD, 1RE-COND]
+  retour: [1RE-DIAG-DONNEES, 1RE-DIAG-RAISONNEMENT]
   questions:
   # TE-10
   - code: TLE-DIAG-SPE-SUITES-PROBAS-01
