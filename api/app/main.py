@@ -13,6 +13,10 @@ app = FastAPI(
     docs_url=None if settings.production else "/docs",
     redoc_url=None,
     openapi_url=None if settings.production else "/openapi.json",
+    # Issue #126 : télémétrie OpenTelemetry native de FastAPI (≥ 0.142) coupée, le projet ne l'utilise pas.
+    # Sinon, dès qu'un fournisseur de traces est configuré, chaque requête analyse `traceparent` et
+    # `tracestate` (GHSA-mf5v-w3w3-f6cg, GHSA-xcq7-p3pf-p88h). Les versions antérieures ignorent ce réglage.
+    telemetry={"tracing": False, "metrics": False, "logs": False},
 )
 
 if settings.production and settings.servir_questions_non_validees:
