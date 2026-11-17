@@ -123,7 +123,7 @@ function Chiffres() {
     chiffres?.questions > 0 && { valeur: nombre(chiffres.questions), texte: "questions corrigées en maths" },
     chiffres?.chapitres > 0 && { valeur: nombre(chiffres.chapitres), texte: "chapitres du programme" },
     chiffres?.seances_anglais > 0 && { valeur: nombre(chiffres.seances_anglais), texte: "séances d'anglais de 90 minutes" },
-    { valeur: "Par des profs", texte: "chaque cours et chaque exercice, écrits et relus par des professeurs" },
+    { valeur: "En autonomie", texte: "ou avec ses professeurs : des cours à travailler à son rythme" },
   ].filter(Boolean);
   return (
     <section aria-labelledby="titre-chiffres">

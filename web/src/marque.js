@@ -16,7 +16,7 @@ export const MARQUES = {
     badge: "Collège · Lycée",
     titre: "Comprendre, progresser, prendre confiance !",
     accroche:
-      "Des cours clairs, des exercices corrigés pas à pas et un entraînement à ton rythme, préparés et relus par des professeurs.",
+      "Des cours clairs, des exercices corrigés pas à pas et un entraînement à ton rythme, à travailler en autonomie ou avec tes professeurs.",
     publics: "Pour les élèves, leurs familles et les professionnels de l'éducation.",
     spirale: true,
     conclusion: [
@@ -34,7 +34,7 @@ export const MARQUES = {
     badge: "Projet associatif · Collège · Lycée",
     titre: "Apprendre à son rythme, accompagné par des professeurs",
     accroche:
-      "PKP Éducation met à la disposition des élèves des cours clairs, des exercices corrigés pas à pas et un entraînement à leur rythme, préparés et relus par des professeurs.",
+      "PKP Éducation met à la disposition des élèves des cours clairs, des exercices corrigés pas à pas et un entraînement à leur rythme, à travailler en autonomie ou avec leurs professeurs.",
     publics: "Pour les élèves, leurs familles et les équipes qui les accompagnent.",
     spirale: false,
     conclusion: ["Comprendre, s'entraîner, vérifier : chacun progresse à son rythme."],
