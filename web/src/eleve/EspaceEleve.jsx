@@ -5,6 +5,7 @@ import { libelleNiveauParcours } from "../parcours.js";
 import { ecrire, lire } from "../stockage.js";
 import { AutresEspaces, RepereEleve } from "../ui/Cadre.jsx";
 import Cours from "./Cours.jsx";
+import Diagnostic from "./Diagnostic.jsx";
 import Exercice, { CLE_BILAN, CLE_CIBLE, CLE_SEANCE } from "./Exercice.jsx";
 import Historique from "./Historique.jsx";
 import Progression from "./Progression.jsx";
@@ -60,6 +61,16 @@ export default function EspaceEleve() {
       setErreurParcours(err.message);
     }
   }
+
+  // Diagnostic des acquis (#162) : onglet visible seulement si le professeur l'a ouvert et qu'il a des questions.
+  const [diagnosticVisible, setDiagnosticVisible] = useState(false);
+  useEffect(() => {
+    if (!compte || compte.eleve.matiere === "francais") return setDiagnosticVisible(false);
+    api("/eleves/moi/diagnostic", { jeton: compte.jeton }).then(
+      (etat) => setDiagnosticVisible(["a-commencer", "en-cours", "termine"].includes(etat?.statut)),
+      () => setDiagnosticVisible(false),
+    );
+  }, [compte]);
 
   // Historique filtré sur une compétence (étape « Je vérifie » d'une leçon) ; null = tout.
   const [historiqueDe, setHistoriqueDe] = useState(null);
@@ -161,6 +172,7 @@ export default function EspaceEleve() {
         valeur={onglet}
         onChange={changerOnglet}
         options={[
+          ...(diagnosticVisible ? [["diagnostic", "Diagnostic"]] : []),
           ["exercice", "S'entraîner"],
           ["cours", "Cours"],
           ["pkp", "Fiches et PDF"],
@@ -211,6 +223,7 @@ export default function EspaceEleve() {
           intro="Les chapitres ouverts par ton professeur : résumé de cours, cours complet, fiche d'exercices et corrigé, à lire ici ou à exporter en PDF."
         />
       )}
+      {onglet === "diagnostic" && <Diagnostic key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
       {onglet === "progression" && <Progression key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
       {onglet === "remarques" && <Remarques jeton={compte.jeton} onExpire={deconnecter} tutoiement />}
     </>

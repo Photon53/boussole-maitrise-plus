@@ -1,9 +1,9 @@
 <!-- Issue #162 — Diagnostic des acquis antérieurs, note de cadrage (Claude) -->
 # Diagnostic des acquis antérieurs
 
-Suivi : issue #162. Statut : **banque importée (lots 1 et 2), à relire par un professeur**. Les fichiers sont rangés
-dans `contenu/<niveau>/diagnostic/`. Aucune question n'est montrée à un élève tant qu'elle n'est pas validée, et la
-passation elle-même arrive au lot 3 (§ 8).
+Suivi : issue #162. Statut : **banque importée et passation en place (lots 1 à 3), questions à relire par un
+professeur**. Les fichiers sont rangés dans `contenu/<niveau>/diagnostic/`. Aucune question n'est montrée à un élève
+tant qu'elle n'est pas validée et que le professeur n'a pas ouvert le diagnostic à sa classe (§ 8).
 
 ## 1. Objectif
 
@@ -142,16 +142,31 @@ servir aux élèves de 1re sans spécialité (à décider).
 
 Tests : `api/tests/test_diagnostic.py`, `engine/tests/test_types_diagnostic.py`.
 
-## 8. Lots suivants
+## 8. Passation (lot 3)
 
-- **Lot 3, passation** : routes élève sur `diagnostic.questions_diffusables` et `enregistrer_observation`, écran à une
-  question, « Je ne sais pas », relances.
+| Règle | Où |
+|---|---|
+| Le professeur ouvre ou ferme le diagnostic de sa classe (fermé par défaut) ; fermer interrompt les passations, qui reprennent à la réouverture | `Classe.diagnostic_ouvert`, `PUT /enseignants/classes/{id}/diagnostic` |
+| Une passation par inscription ; elle se reprend tant qu'elle n'est pas terminée | `PassationDiagnostic` (migration `0041`) |
+| Une question à la fois, choisie et mémorisée par le serveur ; ni solution, ni difficulté, ni verdict renvoyés à l'élève | `GET /eleves/moi/diagnostic/question`, `POST /eleves/moi/diagnostic/reponses` |
+| « Je ne sais pas » enregistré comme tel (statut `je-ne-sais-pas`, réponse vide) ; une réponse vide est refusée | `diagnostic.enregistrer_observation` |
+| Choix de la question : difficulté 2 d'abord ; après une réussite, égale ou plus difficile ; deux réussites closent la notion ; après un échec ou « Je ne sais pas », deux relances dont une plus simple ; 4 questions au plus par notion, 45 par passation | `pkp_engine/diagnostic.py` |
+| Une notion « à reprendre » (au moins deux échecs, aucune réussite) ouvre ses compétences de `retour` (diagnostic du niveau précédent) avant la notion suivante ; seules leurs questions validées sont servies | champ `retour` des fichiers, `diagnostic.plan` |
+| Durée de chaque réponse mesurée côté serveur, sans limite de temps imposée | `ObservationDiagnostic.duree_s` |
+
+**Choix par défaut à confirmer par le propriétaire** : ouverture par le professeur ; une seule passation par élève
+(pas de nouvelle passation après la fin) ; descente seulement pour une notion « à reprendre » (pas pour une notion aux
+résultats partagés) ; seuils ci-dessus. Les `retour` de la banque sont une proposition (même notion, niveau
+précédent) à relire avec la banque.
+
+## 9. Lots suivants
+
 - **Lot 4, rédaction** : dépôt d'image ou de PDF, correction dans l'interface (`corriger_observation`), export PDF.
 - **Lot 5, bilan** par compétence ; inclure les observations dans les archives de classe.
 - Modifier une question de diagnostic se fait dans les fichiers : l'interface d'administration refuse les deux types
   nouveaux.
 
-## 9. Limites connues
+## 10. Limites connues
 
 - Pas de figure : les questions « graphique » (5E-16, 2N-18…) donnent les données en texte. Les figures demandent
   une prise en charge des images dans l'énoncé.

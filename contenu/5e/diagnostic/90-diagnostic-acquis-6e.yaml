@@ -13,6 +13,7 @@ competences:
 - code: 5E-DIAG-DECIMAUX
   libelle: Calculer avec les nombres décimaux (acquis de 6e)
   prerequis: [6E-ADD-MULT, 6E-DIVISION]
+  retour: [6E-DIAG-NUMERATION, 6E-DIAG-CALCUL]
   questions:
   # 5E-01
   - code: 5E-DIAG-DECIMAUX-01
@@ -68,6 +69,7 @@ competences:
 - code: 5E-DIAG-FRACTIONS
   libelle: Comprendre et utiliser les fractions (acquis de 6e)
   prerequis: [6E-FRAC-SENS, 6E-FRAC-CALCUL]
+  retour: [6E-DIAG-FRACTIONS]
   questions:
   # 5E-04
   - code: 5E-DIAG-FRACTIONS-01
@@ -108,6 +110,7 @@ competences:
 - code: 5E-DIAG-PROPORTIONNALITE
   libelle: Proportionnalité, pourcentages et choix d'un modèle (acquis de 6e)
   prerequis: [6E-PROP, 6E-POURCENT]
+  retour: [6E-DIAG-PROPORTIONNALITE]
   questions:
   # 5E-06
   - code: 5E-DIAG-PROPORTIONNALITE-01
@@ -162,6 +165,7 @@ competences:
 - code: 5E-DIAG-GRANDEURS
   libelle: Durées, aires, volumes et raisonnement sur les grandeurs (acquis de 6e)
   prerequis: [6E-DUREES, 6E-PERIMETRES, 6E-AIRES-VOLUMES]
+  retour: [6E-DIAG-GRANDEURS-GEOMETRIE]
   questions:
   # 5E-08
   - code: 5E-DIAG-GRANDEURS-01
@@ -216,6 +220,7 @@ competences:
 - code: 5E-DIAG-GEOMETRIE
   libelle: Symétrie axiale et constructions (acquis de 6e)
   prerequis: [6E-SYMETRIE, 6E-ANGLES-TRIANGLES, 6E-CERCLE-MEDIATRICE]
+  retour: [6E-DIAG-GRANDEURS-GEOMETRIE]
   questions:
   # 5E-14
   - code: 5E-DIAG-GEOMETRIE-01

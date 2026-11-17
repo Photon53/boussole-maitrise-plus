@@ -14,6 +14,7 @@ competences:
 - code: 1RE-DIAG-ALGEBRE
   libelle: Calcul algébrique, équations et inéquations (acquis de 2nde)
   prerequis: [2NDE-DEV, 2NDE-EQ1, 2NDE-INEQ1, 2NDE-EQQUOT]
+  retour: [2NDE-DIAG-LITTERAL, 2NDE-DIAG-NOMBRES]
   questions:
   # 1R-01
   - code: 1RE-DIAG-ALGEBRE-01
@@ -108,6 +109,7 @@ competences:
 - code: 1RE-DIAG-FONCTIONS
   libelle: Droites, fonctions de référence et lecture graphique (acquis de 2nde)
   prerequis: [2NDE-AFF, 2NDE-DROITE, 2NDE-VARIA, 2NDE-COURBE]
+  retour: [2NDE-DIAG-FONCTIONS]
   questions:
   # 1R-16
   - code: 1RE-DIAG-FONCTIONS-01
@@ -160,6 +162,7 @@ competences:
 - code: 1RE-DIAG-GEOMETRIE
   libelle: Vecteurs et coordonnées (acquis de 2nde)
   prerequis: [2NDE-VEC-COORD]
+  retour: [2NDE-DIAG-GEOMETRIE]
   questions:
   # 1R-07
   - code: 1RE-DIAG-GEOMETRIE-01
@@ -176,6 +179,7 @@ competences:
 - code: 1RE-DIAG-DONNEES
   libelle: Évolutions, statistiques et probabilités (acquis de 2nde)
   prerequis: [2NDE-EVO, 2NDE-MOY, 2NDE-PROBA, 2NDE-ARBRE]
+  retour: [2NDE-DIAG-DONNEES]
   questions:
   # 1R-09
   - code: 1RE-DIAG-DONNEES-01

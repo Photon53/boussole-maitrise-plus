@@ -16,6 +16,7 @@ competences:
 - code: 4E-DIAG-RELATIFS
   libelle: Additionner et soustraire des relatifs, respecter les priorités (acquis de 5e)
   prerequis: [5E-RELATIFS-CALCUL, 5E-PRIORITES]
+  retour: [5E-DIAG-DECIMAUX]
   questions:
   # 4E-01
   - code: 4E-DIAG-RELATIFS-01
@@ -72,6 +73,7 @@ competences:
 - code: 4E-DIAG-FRACTIONS
   libelle: Comparer et additionner des fractions, fraction d'une quantité (acquis de 5e)
   prerequis: [5E-FRAC-COMPARER, 5E-FRAC-ADDITION]
+  retour: [5E-DIAG-FRACTIONS]
   questions:
   # 4E-05
   - code: 4E-DIAG-FRACTIONS-01
@@ -115,6 +117,7 @@ competences:
 - code: 4E-DIAG-LITTERAL
   libelle: Produire et utiliser une expression littérale (acquis de 5e)
   prerequis: [5E-EXPRESSIONS]
+  retour: [5E-DIAG-DECIMAUX]
   questions:
   # 4E-06
   - code: 4E-DIAG-LITTERAL-01
@@ -157,6 +160,7 @@ competences:
 - code: 4E-DIAG-PROPORTIONNALITE
   libelle: Pourcentages et échelles (acquis de 5e)
   prerequis: [5E-PROPORTIONNALITE]
+  retour: [5E-DIAG-PROPORTIONNALITE]
   questions:
   # 4E-08
   - code: 4E-DIAG-PROPORTIONNALITE-01
@@ -186,6 +190,7 @@ competences:
 - code: 4E-DIAG-GEOMETRIE
   libelle: Triangles, symétrie centrale et parallélogrammes (acquis de 5e)
   prerequis: [5E-TRIANGLES, 5E-SYM-CENTRALE, 5E-PARALLELOGRAMMES]
+  retour: [5E-DIAG-GEOMETRIE, 5E-DIAG-GRANDEURS]
   questions:
   # 4E-09
   - code: 4E-DIAG-GEOMETRIE-01
@@ -248,6 +253,7 @@ competences:
 - code: 4E-DIAG-DONNEES
   libelle: Moyenne et probabilités simples (acquis de 5e)
   prerequis: [5E-STATISTIQUES, 5E-PROBABILITES]
+  retour: [5E-DIAG-DECIMAUX]
   questions:
   # 4E-10
   - code: 4E-DIAG-DONNEES-01

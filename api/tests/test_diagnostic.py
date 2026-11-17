@@ -19,7 +19,7 @@ from tests.test_contenu import MINIMAL, ecrire, erreurs
 
 DIAG = """
 chapitre: {code: TEST-DIAG, niveau: 2nde, nature: diagnostic, publics: [tronc-commun], programme_prerequis: 3e-2020,
-           ordre: 90, titre: Diagnostic test}
+           ordre: 96, titre: Diagnostic test}
 competences:
   - code: TEST-DIAG-C
     libelle: Compétence de diagnostic
@@ -30,7 +30,7 @@ competences:
          correction: {etapes: [Premier argument., Second argument.]}}
       - {code: TEST-DIAG-C-04, difficulte: 1, type: numerique, enonce: "1 + 1 ?", solution: 2}
 """
-CHEMIN_DIAG = "2nde/diagnostic/90-test.yaml"
+CHEMIN_DIAG = "2nde/diagnostic/96-test.yaml"
 
 
 def ecrire_diag(dossier, texte: str = DIAG):
@@ -66,7 +66,7 @@ class TestFormat:
         assert message in erreurs(tmp_path)
 
     def test_rangement_sous_diagnostic(self, tmp_path):
-        ecrire(tmp_path, DIAG, "2nde/tronc-commun/90-test.yaml")
+        ecrire(tmp_path, DIAG, "2nde/tronc-commun/96-test.yaml")
         assert "à ranger dans contenu/2nde/diagnostic/" in erreurs(tmp_path)
 
     @pytest.mark.parametrize("type_, solution", [("choix_multiples", "AB"), ("redaction", "texte")])
@@ -241,7 +241,7 @@ def lina_et_diag(client, session, chapitre_diag):
 class TestObservations:
     @pytest.mark.parametrize("saisie, statut", [
         ("AC", StatutObservation.JUSTE), ("C, A", StatutObservation.JUSTE), ("A", StatutObservation.FAUX),
-        ("ACD", StatutObservation.FAUX), ("", StatutObservation.FAUX),
+        ("ACD", StatutObservation.FAUX), ("A, D", StatutObservation.FAUX),
     ])
     def test_choix_multiples_ensemble_exact(self, session, lina_et_diag, saisie, statut):
         lina, ch = lina_et_diag

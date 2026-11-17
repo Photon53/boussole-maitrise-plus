@@ -12,6 +12,7 @@ competences:
 - code: TLE-DIAG-TECH-FONCTIONS
   libelle: Calcul et fonctions (acquis de 1re technologique)
   prerequis: [1RE-TEC-CALC, 1RE-TEC-FONC]
+  retour: [1RE-DIAG-FONCTIONS]
   questions:
   # TECH-01
   - code: TLE-DIAG-TECH-FONCTIONS-01
@@ -41,6 +42,7 @@ competences:
 - code: TLE-DIAG-TECH-DONNEES
   libelle: Statistiques, probabilités, suites et algorithmique (acquis de 1re technologique)
   prerequis: [1RE-TEC-STAT, 1RE-TEC-SUITES, 1RE-TEC-ALGO]
+  retour: [1RE-DIAG-DONNEES]
   questions:
   # TECH-03
   - code: TLE-DIAG-TECH-DONNEES-01

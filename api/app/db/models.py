@@ -166,6 +166,8 @@ class Classe(Base):
     archivee_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     archivee_par: Mapped[str | None] = mapped_column(String(80))
     motif_archivage: Mapped[str | None] = mapped_column(String(200))
+    # Issue #162 (lot 3) : le professeur ouvre le diagnostic des acquis antérieurs à ses élèves ; fermé par défaut.
+    diagnostic_ouvert: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
     enseignant: Mapped[Enseignant] = relationship(back_populates="classes")
     chapitres_proposes: Mapped[list["Chapitre"]] = relationship(secondary=chapitres_de_classe)
@@ -587,6 +589,8 @@ class Competence(Base):
     prerequis: Mapped[list | None] = mapped_column(JSON)  # codes d'autres compétences
     methodes: Mapped[list | None] = mapped_column(JSON)  # [{titre, quand, etapes, exemple}]
     erreurs_frequentes: Mapped[list | None] = mapped_column(JSON)  # [{erreur, explication}]
+    # Diagnostic (#162) : compétences du diagnostic du niveau précédent, ouvertes si celle-ci est à reprendre.
+    retour: Mapped[list | None] = mapped_column(JSON)
 
     chapitre: Mapped[Chapitre] = relationship(back_populates="competences")
     questions: Mapped[list["Question"]] = relationship(back_populates="competence")
@@ -716,6 +720,26 @@ class Reponse(Base):
     question: Mapped[Question] = relationship()
 
 
+class PassationDiagnostic(Base):
+    """Une passation du diagnostic par un élève (issue #162, lot 3) : une question à la fois, servie par le serveur,
+    sans correction affichée. Une seule passation par inscription ; elle se reprend tant qu'elle n'est pas finie."""
+
+    __tablename__ = "passation_diagnostic"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True, unique=True)
+    debut: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
+    fin: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    question_courante_id: Mapped[int | None] = mapped_column(ForeignKey("question.id", ondelete="RESTRICT"))
+    question_servie_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    eleve: Mapped["Eleve"] = relationship()
+    question_courante: Mapped["Question | None"] = relationship()
+    observations: Mapped[list["ObservationDiagnostic"]] = relationship(
+        back_populates="passation", order_by="ObservationDiagnostic.id"
+    )
+
+
 class ObservationDiagnostic(Base):
     """Réponse d'un élève à une question de diagnostic (issue #162).
 
@@ -727,6 +751,8 @@ class ObservationDiagnostic(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True)
+    passation_id: Mapped[int | None] = mapped_column(ForeignKey("passation_diagnostic.id", ondelete="CASCADE"), index=True)
+    duree_s: Mapped[float | None] = mapped_column(Float)
     question_id: Mapped[int] = mapped_column(ForeignKey("question.id", ondelete="RESTRICT"), index=True)
     reponse_donnee: Mapped[str] = mapped_column(Text)
     statut: Mapped[StatutObservation] = mapped_column(_enum(StatutObservation, "statut_observation"), index=True)
@@ -737,6 +763,7 @@ class ObservationDiagnostic(Base):
     eleve: Mapped["Eleve"] = relationship()
     question: Mapped[Question] = relationship()
     corrige_par: Mapped["Enseignant | None"] = relationship()
+    passation: Mapped["PassationDiagnostic | None"] = relationship(back_populates="observations")
 
 
 class Remarque(Base):
