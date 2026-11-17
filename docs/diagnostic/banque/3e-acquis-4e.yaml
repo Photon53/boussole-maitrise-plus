@@ -1,11 +1,12 @@
-# Pilote de la banque de diagnostic : voir docs/DIAGNOSTIC-ACQUIS.md.
+# Diagnostic d'entrée en 3e — acquis de 4e (issue #162).
 # Seuls les acquis de 4e (repères 2020) sont interrogés : ni réciproque de Thalès, ni trigonométrie de 3e.
 # Les identifiants de la banque (3E-01…) figurent en commentaire au-dessus de chaque question.
 chapitre:
-  code: 3E-MAN-DIAG-4E
+  code: 3E-DIAG-4E
   niveau: 3e
-  parcours: mise-a-niveau
-  ordre: 1
+  nature: diagnostic
+  programme_prerequis: 4e-2020
+  publics: [tronc-commun]
   titre: Diagnostic d'entrée, acquis de 4e
 
 competences:
@@ -19,7 +20,7 @@ competences:
     type: numerique
     enonce: Calculer $(-6) \times (-4)$.
     solution: '24'
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       etapes:
       - 'Deux facteurs négatifs : le produit est positif.'
@@ -31,7 +32,7 @@ competences:
     type: numerique
     enonce: Calculer $3 + 2 \times (5 - (4 - 1))$.
     solution: '7'
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       methode: Parenthèses intérieures d'abord, puis la multiplication, enfin l'addition.
       etapes:
@@ -46,7 +47,7 @@ competences:
     type: numerique
     enonce: Calculer $\dfrac{3}{4} - \dfrac{2}{3}$ (fraction irréductible).
     solution: 1/12
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       etapes:
       - 'Dénominateur commun 12 : $\dfrac{9}{12} - \dfrac{8}{12}$.'
@@ -60,7 +61,7 @@ competences:
     type: numerique
     enonce: Calculer $\dfrac{2}{3} \div \dfrac{5}{6}$ (fraction irréductible).
     solution: 4/5
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       methode: Diviser par une fraction, c'est multiplier par son inverse.
       etapes:
@@ -78,7 +79,7 @@ competences:
     type: qcm
     enonce: 'Écrire $10^3 \times 10^{-5}$ sous la forme d''une puissance de 10. A) $10^{-2}$  B) $10^{-15}$  C) $10^{8}$  D) $10^{2}$'
     solution: A
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       methode: $10^m \times 10^n = 10^{m+n}$.
       etapes:
@@ -91,7 +92,7 @@ competences:
     type: qcm
     enonce: 'Notation scientifique de $0{,}000\,042$ : A) $42 \times 10^{-6}$  B) $4{,}2 \times 10^{-5}$  C) $4{,}2 \times 10^{-4}$  D) $0{,}42 \times 10^{-4}$'
     solution: B
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       etapes:
       - 'La partie décimale doit être comprise entre 1 et 10 : $4{,}2$.'
@@ -110,7 +111,7 @@ competences:
     forme: developpee
     enonce: Développer et réduire $3(2x - 5)$.
     solution: 6x - 15
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       etapes:
       - $3 \times 2x - 3 \times 5$.
@@ -122,7 +123,7 @@ competences:
     type: numerique
     enonce: Résoudre $3x + 5 = 20$. Donner la valeur de $x$.
     solution: '5'
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       etapes:
       - $3x = 20 - 5 = 15$.
@@ -134,7 +135,7 @@ competences:
     type: qcm
     enonce: 'Un élève écrit $2(x + 3) = 2x + 3$. Quelle est la bonne correction ? A) $2x + 3$ est juste  B) $2x + 6$  C) $2x + 5$  D) $x + 6$'
     solution: B
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       methode: Le facteur 2 multiplie chacun des deux termes de la parenthèse.
       etapes:
@@ -148,7 +149,7 @@ competences:
     type: numerique
     enonce: Un rectangle a pour largeur $x$ cm et pour longueur $x + 3$ cm. Son périmètre vaut 30 cm. Quelle est sa largeur, en cm ?
     solution: '6'
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       methode: Traduire le périmètre par une équation.
       etapes:
@@ -158,6 +159,17 @@ competences:
       resultat: '6'
       erreurs_frequentes:
       - Écrire $x + (x + 3) = 30$ (demi-périmètre seulement).
+  # 3E-12 (version rédigée)
+  - code: 3E-DIAG-LITTERAL-05
+    difficulte: 3
+    type: redaction
+    enonce: Un élève écrit $2(x + 3) = 2x + 3$. Explique son erreur et corrige.
+    solution: 'Le facteur 2 doit multiplier les deux termes de la parenthèse : 2(x + 3) = 2x + 6.'
+    auteur: Banque diagnostic, transcription Claude
+    correction:
+      etapes:
+      - L'élève n'a multiplié que $x$ par 2.
+      - $2(x + 3) = 2x + 6$ ; avec $x = 1$, $2 \times 4 = 8$ et non $5$.
 
 - code: 3E-DIAG-TRIANGLE
   libelle: Pythagore, Thalès et cosinus dans le triangle (acquis de 4e)
@@ -169,7 +181,7 @@ competences:
     type: numerique
     enonce: Un triangle est rectangle ; les côtés de l'angle droit mesurent 6 cm et 8 cm. Calculer l'hypoténuse, en cm.
     solution: '10'
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       etapes:
       - $6^2 + 8^2 = 36 + 64 = 100$.
@@ -181,7 +193,7 @@ competences:
     type: qcm
     enonce: 'Un triangle a pour côtés 5 cm, 6 cm et 8 cm. Est-il rectangle ? A) Oui, car $5 + 6 > 8$  B) Oui, car $8$ est le plus grand côté  C) Non, car $5^2 + 6^2 = 61$ et $8^2 = 64$  D) On ne peut pas savoir'
     solution: C
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       methode: On compare le carré du plus grand côté à la somme des carrés des deux autres.
       etapes:
@@ -193,7 +205,7 @@ competences:
     type: numerique
     enonce: Dans un triangle $ABC$, $M$ est sur $[AB]$, $N$ sur $[AC]$ et $(MN)$ est parallèle à $(BC)$. $AM = 3$, $AB = 5$ et $AC = 10$. Calculer $AN$.
     solution: '6'
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       methode: 'Théorème de Thalès : $\dfrac{AM}{AB} = \dfrac{AN}{AC}$.'
       etapes:
@@ -206,12 +218,23 @@ competences:
     type: numerique
     enonce: Dans un triangle rectangle, un angle aigu a un côté adjacent de 4 cm et une hypoténuse de 5 cm. Donner son cosinus.
     solution: 4/5
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       etapes:
       - $\cos = \dfrac{\text{adjacent}}{\text{hypoténuse}}$.
       - $\dfrac{4}{5} = 0{,}8$.
       resultat: 4/5
+  # 3E-08 (version rédigée)
+  - code: 3E-DIAG-TRIANGLE-05
+    difficulte: 3
+    type: redaction
+    enonce: Un triangle a pour côtés 5 cm, 6 cm et 8 cm. Est-il rectangle ? Justifie en citant la propriété utilisée.
+    solution: 'Non : 8² = 64 et 5² + 6² = 61 ; 64 ≠ 61, donc d''après la contraposée de Pythagore il n''est pas rectangle.'
+    auteur: Banque diagnostic, transcription Claude
+    correction:
+      etapes:
+      - On compare $8^2 = 64$ (plus grand côté) à $5^2 + 6^2 = 61$.
+      - L'égalité n'est pas vérifiée ; la contraposée de Pythagore permet de conclure.
 
 - code: 3E-DIAG-GRANDEURS
   libelle: Volumes, vitesse et probabilités (acquis de 4e)
@@ -223,7 +246,7 @@ competences:
     type: numerique
     enonce: Une pyramide a pour base un carré de 4 cm de côté et pour hauteur 6 cm. Calculer son volume, en cm³.
     solution: '32'
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       methode: $V = \dfrac{1}{3} \times \text{aire de la base} \times \text{hauteur}$.
       etapes:
@@ -238,7 +261,7 @@ competences:
     type: qcm
     enonce: 'Un cône a un rayon de 3 cm et une hauteur de 4 cm. Son volume vaut environ : A) $12$ cm³  B) $37{,}7$ cm³  C) $113{,}1$ cm³  D) $50{,}3$ cm³'
     solution: B
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       methode: $V = \dfrac{1}{3} \pi r^2 h$.
       etapes:
@@ -252,7 +275,7 @@ competences:
     type: numerique
     enonce: Un cycliste parcourt 18 km en 45 min. Quelle est sa vitesse moyenne, en km/h ?
     solution: '24'
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       etapes:
       - $45$ min $= 0{,}75$ h.
@@ -266,7 +289,7 @@ competences:
     type: numerique
     enonce: On lance un dé équilibré à six faces. Quelle est la probabilité d'obtenir un nombre strictement supérieur à 4 ?
     solution: 1/3
-    auteur: Banque diagnostic (propriétaire), transcription Claude
+    auteur: Banque diagnostic, transcription Claude
     correction:
       etapes:
       - 'Issues favorables : 5 et 6, soit 2 issues sur 6.'
