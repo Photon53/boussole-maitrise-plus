@@ -17,6 +17,7 @@ Légende : ✅ assuré par le logiciel (et testé) · ☐ à faire par l'établi
 | ✅ | Enseignant : nom, email, empreinte du mot de passe | `models.Enseignant` |
 | ✅ | Parent : email, **nom et prénom** (facultatifs, vides pour les comptes antérieurs), empreinte du mot de passe, date de dernière connexion, enfants suivis (ni téléphone ni adresse) ; compte créé par le professeur ou l'administrateur, sans envoi de courriel | `models.Parent`, `app/parents.py` |
 | ✅ | Justification du nom et du prénom du parent (décision RGPD-1) : le parent est un adulte, responsable légal ; son nom permet à l'administrateur et au professeur d'identifier sans ambiguïté le titulaire du compte qui suit l'enfant, de rapprocher les lignes d'un import de familles et de traiter une demande d'exercice des droits. Ces données ne sont visibles que des adultes habilités et sont effacées avec le compte parent | `models.Parent`, `app/import_familles.py` |
+| ✅ | Diagnostic des acquis (#162) : réponses de l'élève aux questions de diagnostic (texte saisi, statut juste / faux / en attente de correction, date, professeur correcteur), dans une table séparée de la progression ; supprimées avec l'élève, incluses dans son export. Le **dépôt de copies** (image, PDF) n'existe pas encore : durée de conservation et accès à décider avant le lot 4 | `models.ObservationDiagnostic`, `app/diagnostic.py`, migration `0040` |
 | ✅ | Aucun traceur, aucune police ni script tiers (CSP `default-src 'self'`) | `deploy/Caddyfile` |
 | ✅ | Session navigateur en `sessionStorage` : fermer l'onglet déconnecte (postes partagés) | `web/src/stockage.js` |
 | ✅ | Consigne aux familles : **uniquement le prénom** de l'enfant. Le formulaire n'a plus de champ nom ; le modèle d'import n'a plus de colonne « Nom », et un ancien classeur qui la remplit est refusé sans rien enregistrer (#87) | `EnfantsFamille.jsx`, `app/import_familles.py` |
@@ -37,7 +38,7 @@ Légende : ✅ assuré par le logiciel (et testé) · ☐ à faire par l'établi
 
 | | Droit | Mise en œuvre |
 |---|-------|---------------|
-| ✅ | Accès et portabilité | Bouton « Exporter » (JSON complet : séances, réponses, progression) |
+| ✅ | Accès et portabilité | Bouton « Exporter » (JSON complet : séances, réponses, progression, réponses au diagnostic) |
 | ✅ | Effacement | Bouton « Supprimer » : élève, séances et réponses ; son jeton cesse de fonctionner |
 | ⚠️ | Rectification | Pas d'édition du prénom : supprimer puis l'élève se reconnecte (l'historique est perdu) |
 | ☐ | Procédure de traitement des demandes (qui reçoit, délai d'un mois) | — |

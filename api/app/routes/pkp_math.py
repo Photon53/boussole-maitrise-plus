@@ -36,7 +36,7 @@ from app.auth import (
     parent_courant,
 )
 from app.db import models
-from app.progression import filtre_validation, ids_ouverts
+from app.progression import est_apprentissage, filtre_validation, ids_ouverts
 from app.referentiel import LIBELLES_PARCOURS, Niveau, Parcours, StatutValidation, domaine_maths
 from app.security import lire_jeton
 
@@ -160,6 +160,8 @@ def _permis(session: SessionDB, lecteur: Lecteur, chapitre: models.Chapitre) -> 
         return False
     if lecteur.complet:
         return True
+    if not est_apprentissage(chapitre):
+        return False  # issue #162 : un diagnostic n'est montré ni aux élèves, ni aux enfants, ni aux parents
     if permissions.refus_domaine_ferme(session, domaine_maths(chapitre.niveau)):
         return False
     if lecteur.chapitres is not None and chapitre.id in lecteur.chapitres:

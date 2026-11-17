@@ -278,6 +278,14 @@ le même exercice en boucle, et après une erreur il peut « refaire avec d'autr
 - **Toujours mettre `solution` et `resultat` entre apostrophes** (un texte qui commence par `[` serait lu comme une liste).
 - La vérification fait 50 tirages par gabarit : chacun doit donner une question et une correction valides.
 
+### Chapitres de diagnostic des acquis antérieurs (issue #162)
+
+Rangés sous `contenu/<niveau>/diagnostic/` : `nature: diagnostic`, `publics` (parcours principaux des classes
+concernées) et `programme_prerequis` (programme suivi l'année précédente) remplacent `parcours` ; `ordre` à partir
+de 90. Ils n'ont ni cours propre ni obligation des cinq difficultés : cette exemption ne vaut que pour eux. Ils ne
+sont jamais ouverts à une classe ni servis en séance d'entraînement, et un élève ne reçoit que leurs questions
+**validées**. Pas de `gabarit`. Détail : [diagnostic/README.md](diagnostic/README.md).
+
 ### Types de questions et syntaxe des solutions
 
 | Type | Correction | Solution (exemples) | L'élève peut écrire |
@@ -285,6 +293,8 @@ le même exercice en boucle, et après une erreur il peut « refaire avec d'autr
 | `qcm` | lettre exacte | `B` | clic sur un bouton |
 | `numerique` | égalité de valeur | `5/6`, `-4`, `e^2`, `2ln(2)`, `sqrt(2)/2` | `0,5`, `1/2`, `ln 4`, `exp(2)` |
 | `expression` | équivalence en 8 points, même domaine | `x^2 + 6x + 9`, `(1 - ln(x))/x^2` | `(x+3)²`, `1+lnx` |
+| `choix_multiples` | ensemble **exact** des lettres, ordre indifférent, sans crédit partiel — **diagnostic seulement** | `AC` (lettres dans l'ordre, sans doublon) | `AC`, `C, A` |
+| `redaction` | **professeur**, jamais le moteur — **diagnostic seulement** ; `correction` obligatoire (guide du professeur) | réponse attendue (200 caractères) | texte libre |
 
 Pour un QCM, les choix sont dans l'énoncé, séparés par **deux espaces** :
 `'… ? A) $0$  B) $1$  C) $+\infty$'`. La vérification exige que la lettre solution y figure.
