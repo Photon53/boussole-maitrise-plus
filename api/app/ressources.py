@@ -11,8 +11,6 @@ Usage du contrôle hebdomadaire des liens, depuis `api/` : `python -m app.ressou
 
 import argparse
 import secrets
-import urllib.error
-import urllib.request
 from datetime import UTC, date, datetime
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -21,6 +19,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app import liens_sortants
 from app.config import settings
 from app.db import models
 from app.progression import ids_ouverts
@@ -63,7 +62,7 @@ def appliquer(session: Session, r: models.Ressource, corps: RessourceCreation, a
         raise HTTPException(422, "Confirmez détenir les droits de diffusion de ce PDF à vos élèves.")
     if corps.type == TypeRessource.LIEN:
         domaine = valider_url(session, corps.url)
-        if settings.verifier_liens and corps.url != r.url and not lien_repond(corps.url):
+        if settings.verifier_liens and corps.url != r.url and not lien_repond(corps.url, session):
             raise HTTPException(422, "Ce lien ne répond pas. Vérifiez l'adresse.")
         r.domaine, r.echecs_lien = domaine, 0
         if r.fichier:
@@ -137,38 +136,38 @@ def domaine_de(url: str) -> str:
     return (urlsplit(url).hostname or "").lower().removeprefix("www.")
 
 
-def valider_url(session: Session, url: str) -> str:
-    """URL https uniquement, hors domaines interdits. Renvoie le domaine affiché à côté du titre."""
-    morceaux = urlsplit(url)
-    if morceaux.scheme != "https" or not morceaux.hostname or morceaux.username or morceaux.password:
-        raise HTTPException(422, "Le lien doit commencer par https:// et ne pas contenir d'identifiants.")
+def domaine_autorise(session: Session, url: str) -> bool:
+    """Le domaine de l'URL est-il hors de la liste des domaines interdits ?"""
     domaine = domaine_de(url)
     interdits = set(session.scalars(select(models.DomaineInterdit.domaine)))
-    if any(domaine == d or domaine.endswith("." + d) for d in interdits):
+    return not any(domaine == d or domaine.endswith("." + d) for d in interdits)
+
+
+def valider_url(session: Session, url: str) -> str:
+    """URL https sur le port standard, hors domaines interdits. Renvoie le domaine affiché à côté du titre."""
+    try:
+        liens_sortants.controler_url(url)
+    except liens_sortants.DestinationInterdite:
+        raise HTTPException(
+            422, "Le lien doit commencer par https://, sans identifiants ni numéro de port."
+        ) from None
+    domaine = domaine_de(url)
+    if not domaine_autorise(session, url):
         raise HTTPException(422, f"Le domaine {domaine} n'est pas autorisé.")
     return domaine
 
 
-def lien_repond(url: str, delai_s: float = 8) -> bool:
-    """Le lien répond-il (2xx ou 3xx) ? HEAD d'abord, GET si le site refuse HEAD."""
-    for methode in ("HEAD", "GET"):
-        requete = urllib.request.Request(url, method=methode, headers={"User-Agent": "PKP-Math-Lycee-verification-liens"})
-        try:
-            with urllib.request.urlopen(requete, timeout=delai_s) as reponse:  # noqa: S310 (https contrôlé)
-                return reponse.status < 400
-        except urllib.error.HTTPError as erreur:
-            if erreur.code not in (403, 405, 501):
-                return False
-        except (urllib.error.URLError, TimeoutError, ValueError):
-            return False
-    return False
+def lien_repond(url: str, session: Session | None = None) -> bool:
+    """Le lien répond-il ? Requête protégée contre la SSRF (#3) ; redirections revalidées une à une."""
+    controle = (lambda u: domaine_autorise(session, u)) if session is not None else None
+    return liens_sortants.lien_repond(url, url_autorisee=controle)
 
 
 def verifier_liens(session: Session) -> list[models.Ressource]:
     """Contrôle tous les liens ; renvoie ceux qui viennent de passer en échec répété."""
     nouvellement_caches = []
     for r in session.scalars(select(models.Ressource).where(models.Ressource.type == TypeRessource.LIEN)):
-        if lien_repond(r.url):
+        if lien_repond(r.url, session):
             r.echecs_lien = 0
         else:
             r.echecs_lien += 1
