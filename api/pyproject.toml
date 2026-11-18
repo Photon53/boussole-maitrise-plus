@@ -17,6 +17,8 @@ dependencies = [
     "pyyaml>=6.0",
     "reportlab>=4.2",
     "openpyxl>=3.1",
+    # Sécurité (#126) : tirée par FastAPI ≥ 0.142 ; 1.45.2 borne la taille de `traceparent` (GHSA-mf5v-w3w3-f6cg).
+    "opentelemetry-api>=1.45.2",
 ]
 
 [project.optional-dependencies]
