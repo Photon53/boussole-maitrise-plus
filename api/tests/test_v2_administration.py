@@ -7,9 +7,10 @@ from app import security
 from app.config import settings
 from app.db import models
 from app.main import app
+from tests import pdf_exemples
 from tests.conftest import connecter_admin, connecter_eleve, connecter_enseignant, entete
 
-PDF_MINIMAL = b"%PDF-1.4\n1 0 obj << /Type /Catalog >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF\n"
+PDF_MINIMAL = pdf_exemples.ordinaire()
 
 
 def _routes_admin() -> list[tuple[str, str]]:
@@ -318,7 +319,7 @@ class TestRessources:
         rid = self._pdf(client, h, competence)
         faux = client.put(f"/enseignants/ressources/{rid}/fichier", headers={**h, "Content-Type": "application/pdf"}, content=b"MZ\x90 pas un pdf")
         assert faux.status_code == 422
-        js = client.put(f"/enseignants/ressources/{rid}/fichier", headers=h, content=PDF_MINIMAL + b"/JavaScript")
+        js = client.put(f"/enseignants/ressources/{rid}/fichier", headers=h, content=pdf_exemples.javascript_dans_un_flux_d_objets())
         assert js.status_code == 422
         ok = client.put(f"/enseignants/ressources/{rid}/fichier", headers=h, content=PDF_MINIMAL)
         assert ok.status_code == 200 and ok.json()["a_un_fichier"]
