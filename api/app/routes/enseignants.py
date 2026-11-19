@@ -225,7 +225,7 @@ def _programme_de_la_classe(session: SessionDB, classe: models.Classe) -> list[C
     return [
         ChapitreProgramme(
             id=c.id, code=c.code, titre=c.titre, ordre=c.ordre, propose=c.id in ouverts,
-            nb_competences=len(c.competences), nb_questions=nb.get(c.id, 0),
+            nb_competences=len(c.competences), nb_questions=nb.get(c.id, 0), rubrique=(c.rubrique.value if c.rubrique else None),
         )
         for c in chapitres
     ]

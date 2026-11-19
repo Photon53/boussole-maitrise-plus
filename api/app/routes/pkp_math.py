@@ -41,7 +41,7 @@ from app.auth import (
 )
 from app.db import models
 from app.progression import est_apprentissage, filtre_validation, ids_ouverts_eleve
-from app.referentiel import LIBELLES_PARCOURS, Niveau, Parcours, StatutValidation
+from app.referentiel import LIBELLES_PARCOURS, Niveau, Parcours, RubriqueFrancais, StatutValidation
 from app.security import lire_jeton
 
 router = APIRouter(prefix="/pkp-math", tags=["pkp-math"])
@@ -67,6 +67,7 @@ class ChapitreCatalogue(BaseModel):
     nb_competences: int
     nb_questions: int
     valide: bool
+    rubrique: str | None = None  # français (#177)
 
 
 class QuestionDocument(BaseModel):
@@ -105,6 +106,7 @@ class DocumentChapitre(BaseModel):
     libelle_parcours: str
     valide: bool
     competences: list[CompetenceDocument]
+    rubrique: str | None = None  # français (#177)
 
 
 @dataclass
@@ -220,11 +222,16 @@ def _competences(chapitre: models.Chapitre) -> list[models.Competence]:
 
 
 @router.get("/catalogue", response_model=list[ChapitreCatalogue])
-def catalogue(identifiants: Identifiants, session: SessionDB, niveau: Niveau | None = None) -> list[ChapitreCatalogue]:
+def catalogue(
+    identifiants: Identifiants, session: SessionDB, niveau: Niveau | None = None, rubrique: RubriqueFrancais | None = None,
+) -> list[ChapitreCatalogue]:
+    """Chapitres que le lecteur peut lire ; `rubrique` (français, #177) filtre sur tous les niveaux à la fois."""
     lecteur = _lecteur(identifiants, session)
     requete = select(models.Chapitre).where(models.Chapitre.masque.is_(False))
     if niveau is not None:
         requete = requete.where(models.Chapitre.niveau == niveau)
+    if rubrique is not None:
+        requete = requete.where(models.Chapitre.rubrique == rubrique)
     resultat = []
     for ch in session.scalars(requete.order_by(models.Chapitre.niveau, models.Chapitre.parcours, models.Chapitre.ordre)):
         if not _permis(session, lecteur, ch):
@@ -235,6 +242,7 @@ def catalogue(identifiants: Identifiants, session: SessionDB, niveau: Niveau | N
             libelle_parcours=LIBELLES_PARCOURS.get(ch.parcours, ch.parcours.value), ordre=ch.ordre,
             nb_competences=len(_competences(ch)), nb_questions=len(questions),
             valide=bool(questions) and all(q.statut_validation == StatutValidation.VALIDEE for q in questions),
+            rubrique=ch.rubrique.value if ch.rubrique else None,
         ))
     return resultat
 
@@ -266,4 +274,5 @@ def document(
         niveau=chapitre.niveau, parcours=chapitre.parcours,
         libelle_parcours=LIBELLES_PARCOURS.get(chapitre.parcours, chapitre.parcours.value),
         valide=bool(toutes) and all(q.validee for q in toutes), competences=competences,
+        rubrique=chapitre.rubrique.value if chapitre.rubrique else None,
     )

@@ -34,6 +34,13 @@ export const VERSIONS = [
 export function sansCorrige(doc) {
   return doc.version === "eleve" && doc.competences.every((c) => c.questions.every((q) => !q.solution && !q.correction));
 }
+// Rubriques des chapitres de français (#177) : indépendantes des niveaux.
+export const RUBRIQUES = [
+  ["conjugaison", "Conjugaison"],
+  ["grammaire", "Grammaire"],
+  ["redaction", "Rédaction"],
+  ["mon_cours", "Mon cours"],
+];
 
 function rang(ch) {
   const niveaux = NIVEAUX.map(([v]) => v);
@@ -53,6 +60,7 @@ export default function PkpMath({ jeton, onExpire, niveauParDefaut = null, intro
   const [erreur, setErreur] = useState(null);
   const [niveau, setNiveau] = useState(niveauParDefaut ?? "");
   const [parcours, setParcours] = useState("");
+  const [rubrique, setRubrique] = useState("");
   const [ouvert, setOuvert] = useState(null);
 
   useEffect(() => {
@@ -74,7 +82,10 @@ export default function PkpMath({ jeton, onExpire, niveauParDefaut = null, intro
   if (!chapitres) return <p className="doux">Chargement des chapitres…</p>;
 
   const niveaux = [...new Set(chapitres.map((c) => c.niveau))];
-  const visibles = chapitres.filter((c) => (!niveau || c.niveau === niveau) && (!parcours || c.parcours === parcours));
+  const visibles = chapitres.filter(
+    (c) => (!niveau || c.niveau === niveau) && (!parcours || c.parcours === parcours) && (!rubrique || c.rubrique === rubrique),
+  );
+  const rubriquesDispo = RUBRIQUES.filter(([v]) => chapitres.some((c) => c.rubrique === v));
   const parcoursDispo = [...new Map(chapitres.filter((c) => !niveau || c.niveau === niveau).map((c) => [c.parcours, c.libelle_parcours]))];
   const groupes = [];
   for (const ch of visibles) {
@@ -96,6 +107,15 @@ export default function PkpMath({ jeton, onExpire, niveauParDefaut = null, intro
       ) : (
         <>
           <div className="filtres-pkp">
+            {rubriquesDispo.length > 0 && (
+              <label>
+                Rubrique
+                <select value={rubrique} onChange={(e) => setRubrique(e.target.value)}>
+                  <option value="">Toutes les rubriques</option>
+                  {rubriquesDispo.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                </select>
+              </label>
+            )}
             {niveaux.length > 1 && (
               <label>
                 Niveau
