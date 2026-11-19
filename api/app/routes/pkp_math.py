@@ -51,8 +51,8 @@ VersionDocument = Literal["complete", "eleve"]
 
 
 def matiere_du_chapitre(chapitre: models.Chapitre) -> str:
-    """« maths » ou « francais », d'après le domaine du chapitre (« maths-lycee » → « maths »)."""
-    return chapitre.domaine_code.split("-", 1)[0]
+    """Matière du domaine du chapitre (« maths-lycee » → « maths »), d'après la table des domaines."""
+    return permissions.MATIERES[chapitre.domaine_code]
 
 
 class ChapitreCatalogue(BaseModel):

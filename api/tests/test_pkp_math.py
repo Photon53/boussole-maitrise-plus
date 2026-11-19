@@ -126,3 +126,22 @@ def test_version_eleve_ne_donne_pas_plus_a_un_eleve(client, session):
     assert all(q["correction"] is None for c in eleve["competences"] for q in c["questions"])
     ferme = session.scalar(select(models.Chapitre).where(models.Chapitre.niveau == "Tle"))
     assert client.get(f"/pkp-math/chapitres/{ferme.id}?version=eleve", headers=h).status_code == 404
+
+
+def test_version_eleve_retire_aussi_les_corriges_deja_debloques(client, session):
+    """Un élève qui a répondu voit le corrigé de cette question par défaut (ARCH-4), jamais en version élève."""
+    h = connecter_eleve(client)
+    seance = client.post("/seances", headers=h).json()["id"]
+    question = client.get(f"/seances/{seance}/question", headers=h).json()
+    reponse = client.post(f"/seances/{seance}/reponses", headers=h,
+                          json={"question_id": question["id"], "reponse_donnee": "zzz"})
+    assert reponse.status_code == 200, reponse.text
+    chapitre_id = session.get(models.Question, question["id"]).competence.chapitre_id
+
+    def la_question(version: str) -> dict:
+        doc = client.get(f"/pkp-math/chapitres/{chapitre_id}?version={version}", headers=h).json()
+        return next(q for c in doc["competences"] for q in c["questions"] if q["id"] == question["id"])
+
+    assert la_question("complete")["corrige_visible"] is True
+    eleve = la_question("eleve")
+    assert eleve["corrige_visible"] is False and eleve["solution"] == "" and eleve["correction"] is None

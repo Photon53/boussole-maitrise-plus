@@ -8,7 +8,7 @@
 // Issue #178 : un adulte choisit le PDF élève ou le PDF professeur. Le PDF élève est imprimé à partir du
 // document demandé à l'API en version élève (`?version=eleve`) : aucune solution ni aucun corrigé n'arrive
 // dans le navigateur pour ce PDF, et l'impression est refusée si l'API en renvoyait quand même.
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { api } from "../api.js";
 import { Difficulte, Erreur, Onglets, solutionLisible } from "../composants.jsx";
@@ -146,6 +146,8 @@ function DocumentChapitre({ id, jeton, onExpire, onRetour, adulte }) {
   const [exporter, setExporter] = useState(false);
   const [impression, setImpression] = useState(null); // réglages de l'export en cours
   const [erreurExport, setErreurExport] = useState(null);
+  const [preparation, setPreparation] = useState(false); // PDF élève en cours de préparation
+  const dernierExport = useRef(0); // seule la réponse du dernier export lancé est imprimée
 
   useEffect(() => {
     api(`/pkp-math/chapitres/${id}`, { jeton }).then(setDoc, (err) =>
@@ -157,7 +159,9 @@ function DocumentChapitre({ id, jeton, onExpire, onRetour, adulte }) {
   useEffect(() => {
     if (!impression) return undefined;
     const titre = document.title;
-    document.title = `${marque(doc)} - ${doc.titre}`;
+    // Nom de fichier proposé par le navigateur : la version y figure, pour ne pas confondre élève et corrigé.
+    const suffixe = { eleve: " - élève", professeur: " - professeur (corrigé)" }[impression.version] ?? "";
+    document.title = `${marque(impression.doc)} - ${impression.doc.titre}${suffixe}`;
     document.body.classList.add("pkp-imprime");
     const fin = () => setImpression(null);
     window.addEventListener("afterprint", fin);
@@ -168,7 +172,7 @@ function DocumentChapitre({ id, jeton, onExpire, onRetour, adulte }) {
       document.body.classList.remove("pkp-imprime");
       document.title = titre;
     };
-  }, [impression, doc]);
+  }, [impression]);
 
   if (erreur) return <><button className="lien" onClick={onRetour}>← Tous les chapitres</button><Erreur message={erreur} /></>;
   if (!doc) return <p className="doux">Chargement du chapitre…</p>;
@@ -185,7 +189,9 @@ function DocumentChapitre({ id, jeton, onExpire, onRetour, adulte }) {
           </p>
         )}
         <div className="actions">
-          <button onClick={() => setExporter(true)}>Exporter en PDF</button>
+          <button onClick={() => setExporter(true)} disabled={preparation}>
+            {preparation ? "Préparation du PDF…" : "Exporter en PDF"}
+          </button>
         </div>
       </div>
       {erreurExport && <Erreur message={erreurExport} />}
@@ -200,15 +206,26 @@ function DocumentChapitre({ id, jeton, onExpire, onRetour, adulte }) {
           onExporter={(reglages) => {
             setExporter(false);
             setErreurExport(null);
+            const numero = ++dernierExport.current;
             if (reglages.version !== "eleve") return setImpression({ ...reglages, doc });
             // PDF élève : document redemandé sans corrigé ; rien n'est imprimé s'il en contient encore.
-            return api(`/pkp-math/chapitres/${id}?version=eleve`, { jeton }).then(
-              (d) =>
-                sansCorrige(d)
-                  ? setImpression({ ...reglages, doc: d })
-                  : setErreurExport("Le PDF élève n'a pas pu être préparé sans corrigé : export annulé."),
-              (err) => (err.status === 401 && onExpire ? onExpire() : setErreurExport(err.message)),
-            );
+            const documents = reglages.documents.filter((d) => d !== "corrige");
+            if (!documents.length) return setErreurExport("Choisissez au moins un document pour le PDF élève.");
+            setPreparation(true);
+            return api(`/pkp-math/chapitres/${id}?version=eleve`, { jeton })
+              .then(
+                (d) => {
+                  if (numero !== dernierExport.current) return; // un autre export a été lancé entre-temps
+                  if (sansCorrige(d)) setImpression({ ...reglages, documents, doc: d });
+                  else setErreurExport("Le PDF élève n'a pas pu être préparé sans corrigé : export annulé.");
+                },
+                (err) => {
+                  if (numero !== dernierExport.current) return;
+                  if (err.status === 401 && onExpire) onExpire();
+                  else setErreurExport(err.message);
+                },
+              )
+              .finally(() => numero === dernierExport.current && setPreparation(false));
           }}
         />
       )}

@@ -84,7 +84,11 @@ const DOC_COMPLET = {
 };
 const DOC_ELEVE = {
   ...DOC_COMPLET, version: "eleve",
-  competences: [{ ...DOC_COMPLET.competences[0], questions: [{ ...QUESTION(1, 1), solution: "", correction: null, corrige_visible: false }] }],
+  competences: [{
+    ...DOC_COMPLET.competences[0],
+    // Énoncé propre à la version élève : prouve que l'impression part du document redemandé à l'API.
+    questions: [{ ...QUESTION(1, 1), enonce: "Énoncé servi en version élève.", solution: "", correction: null, corrige_visible: false }],
+  }],
 };
 
 async function ouvrirExport(routes, props = {}) {
@@ -108,7 +112,8 @@ describe("export PDF élève et professeur (#178)", () => {
     expect(appels.map((a) => a.cle)).toContain("GET /pkp-math/chapitres/1?version=eleve");
     const impression = document.getElementById("pkp-impression");
     expect(impression).toHaveTextContent("Version élève");
-    expect(impression).toHaveTextContent("Exercice 1");
+    expect(impression).toHaveTextContent("Énoncé servi en version élève.");
+    expect(document.title).toBe("Boussole Maths - Fractions - élève");
     for (const texte of ["Étape détaillée du corrigé.", "Oublier la retenue.", "Passer par un schéma.", "Rappel de la règle.", "Réponse :"])
       expect(impression).not.toHaveTextContent(texte);
     window.dispatchEvent(new Event("afterprint"));
@@ -123,9 +128,23 @@ describe("export PDF élève et professeur (#178)", () => {
     expect(appels.map((a) => a.cle)).not.toContain("GET /pkp-math/chapitres/1?version=eleve");
     const impression = document.getElementById("pkp-impression");
     expect(impression).toHaveTextContent("Version professeur");
+    expect(document.title).toBe("Boussole Maths - Fractions - professeur (corrigé)");
     for (const texte of ["Rappel de la règle.", "Étape détaillée du corrigé.", "Passer par un schéma.", "Oublier la retenue."])
       expect(impression).toHaveTextContent(texte);
     window.dispatchEvent(new Event("afterprint"));
+  });
+
+  it("passer de la version professeur à la version élève retire le corrigé ; erreur réseau affichée", async () => {
+    const { imprimer, fenetre } = await ouvrirExport({ "GET /pkp-math/chapitres/1?version=eleve": { status: 500, json: { detail: "Panne." } } });
+    await userEvent.click(within(fenetre).getByLabelText(/PDF professeur/));
+    await userEvent.click(within(fenetre).getByLabelText("Corrigé"));
+    expect(within(fenetre).getByLabelText("Corrigé")).toBeChecked();
+    await userEvent.click(within(fenetre).getByLabelText(/PDF élève/));
+    expect(within(fenetre).queryByLabelText("Corrigé")).not.toBeInTheDocument();
+    await userEvent.click(within(fenetre).getByRole("button", { name: "Exporter" }));
+    expect(await screen.findByRole("button", { name: "Exporter en PDF" })).toBeEnabled();
+    expect(imprimer).not.toHaveBeenCalled();
+    expect(document.getElementById("pkp-impression")).toBeNull();
   });
 
   it("PDF élève refusé si l'API renvoie encore un corrigé", async () => {
