@@ -16,8 +16,8 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy import func, or_, select
+from sqlalchemy.orm import Session, selectinload
 
 from app import liens_sortants
 from app.config import settings
@@ -52,8 +52,40 @@ def detail(session: Session, r: models.Ressource) -> RessourceDetail:
     )
 
 
+PDF_FRANCAIS_FERME = (
+    "En français, le pilote n'accepte que des liens : le dépôt de PDF ouvrira après le renforcement du contrôle des "
+    "fichiers. Ajoutez plutôt un lien."
+)
+
+
+def refus_pdf_francais(
+    session: Session, chapitre_id: int | None, competence_id: int | None, classe_ids: list[int] | None
+) -> str | None:
+    """Issue #180 : un PDF rattaché à un chapitre de français ou destiné à une classe de français est refusé tant
+    que `pdf_francais_ouvert` est faux, ou que le contrôle renforcé des PDF (#4) n'est pas livré
+    (`config.CONTROLE_PDF_RENFORCE`). Les maths ne changent pas."""
+    from app import config
+
+    if settings.pdf_francais_ouvert and config.CONTROLE_PDF_RENFORCE:
+        return None
+    from app.permissions import MATIERES
+
+    chapitre = session.get(models.Chapitre, chapitre_id) if chapitre_id is not None else None
+    if chapitre is None and competence_id is not None:
+        competence = session.get(models.Competence, competence_id)
+        chapitre = competence.chapitre if competence else None
+    domaines = {chapitre.domaine_code} if chapitre else set()
+    for classe_id in classe_ids or []:
+        classe = session.get(models.Classe, classe_id)
+        if classe is not None:
+            domaines.add(classe.domaine_code)
+    return PDF_FRANCAIS_FERME if any(MATIERES.get(d) == "francais" for d in domaines) else None
+
+
 def appliquer(session: Session, r: models.Ressource, corps: RessourceCreation, auteur: models.Enseignant) -> None:
     """Remplit une ressource depuis le formulaire (création ou modification), après contrôles."""
+    if corps.type == TypeRessource.PDF and (refus := refus_pdf_francais(session, corps.chapitre_id, corps.competence_id, corps.classe_ids)):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
     if corps.chapitre_id is not None and session.get(models.Chapitre, corps.chapitre_id) is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Chapitre introuvable.")
     if corps.competence_id is not None and session.get(models.Competence, corps.competence_id) is None:
@@ -94,6 +126,41 @@ def _rattachees(session: Session, chapitre_id: int | None, competence_id: int | 
     return list(session.scalars(requete))
 
 
+def _id_chapitre(r: models.Ressource) -> int:
+    return r.chapitre_id if r.chapitre_id is not None else r.competence.chapitre_id
+
+
+def _visible(r: models.Ressource, eleve: models.Eleve, ouverts: set[int]) -> bool:
+    """Règle de visibilité d'une ressource pour un élève, les chapitres ouverts de sa classe étant déjà calculés."""
+    if r.masquee or r.public == PublicRessource.ENSEIGNANTS or r.echecs_lien >= ECHECS_AVANT_MASQUAGE:
+        return False
+    if _id_chapitre(r) not in ouverts:
+        return False
+    return r.portee == PorteeRessource.COMMUNE or any(c.id == eleve.classe_id for c in r.classes)
+
+
+def par_chapitre_pour_eleve(session: Session, eleve: models.Eleve, ouverts: set[int]) -> dict[int, list[RessourceVue]]:
+    """Ressources visibles de l'élève, regroupées par chapitre ouvert (« Mon cours », #180).
+
+    Nombre de requêtes fixe, quel que soit le nombre de ressources : une requête pour les ressources des chapitres
+    (rattachées au chapitre ou à l'une de ses compétences), deux pour leurs compétences et leurs classes.
+    """
+    resultat: dict[int, list[RessourceVue]] = {i: [] for i in ouverts}
+    if not ouverts:
+        return resultat
+    competences = select(models.Competence.id).where(models.Competence.chapitre_id.in_(ouverts))
+    lignes = session.scalars(
+        select(models.Ressource)
+        .where(or_(models.Ressource.chapitre_id.in_(ouverts), models.Ressource.competence_id.in_(competences)))
+        .options(selectinload(models.Ressource.competence), selectinload(models.Ressource.classes))
+        .order_by(models.Ressource.ordre, models.Ressource.id)
+    )
+    for r in lignes:
+        if _visible(r, eleve, ouverts):
+            resultat[_id_chapitre(r)].append(vue(r))
+    return resultat
+
+
 def visible_par_eleve(session: Session, r: models.Ressource, eleve: models.Eleve) -> bool:
     if r.masquee or r.public == PublicRessource.ENSEIGNANTS or r.echecs_lien >= ECHECS_AVANT_MASQUAGE:
         return False
@@ -106,6 +173,11 @@ def visible_par_enseignant(r: models.Ressource, enseignant: models.Enseignant) -
     if r.auteur_id == enseignant.id:
         return True
     return r.portee == PorteeRessource.COMMUNE and not r.masquee and r.public != PublicRessource.ELEVES
+
+
+def refus_envoi_pdf(session: Session, r: models.Ressource) -> str | None:
+    """Envoi du fichier d'un PDF déjà créé : même règle (#180), d'après son rattachement actuel."""
+    return refus_pdf_francais(session, r.chapitre_id, r.competence_id, [c.id for c in r.classes])
 
 
 def pour_eleve(session: Session, eleve: models.Eleve, chapitre_id: int | None, competence_id: int | None) -> list[RessourceVue]:

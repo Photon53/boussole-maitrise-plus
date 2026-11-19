@@ -562,6 +562,8 @@ async def envoyer_pdf(ressource_id: int, request: Request, admin: AdminCourant, 
     r = _ressource(session, ressource_id)
     if r.type != TypeRessource.PDF or r.portee != PorteeRessource.COMMUNE:
         raise HTTPException(422, "Seul le PDF d'une ressource commune s'envoie ici.")
+    if refus := ressources.refus_envoi_pdf(session, r):  # #180 : liens seulement en français pendant le pilote
+        raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
     ressources.enregistrer_pdf(r, await _lire_corps(request))
     journal.noter(session, admin, "envoyer-pdf", "ressource", r.id)
     session.commit()

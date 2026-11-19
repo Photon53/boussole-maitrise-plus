@@ -184,6 +184,8 @@ async def envoyer_pdf(ressource_id: int, request: Request, enseignant: Enseignan
     r = _ma_ressource(session, ressource_id, enseignant)
     if r.type != TypeRessource.PDF:
         raise HTTPException(422, "Cette ressource est un lien, pas un PDF.")
+    if refus := ressources.refus_envoi_pdf(session, r):  # #180 : liens seulement en français pendant le pilote
+        raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
     ressources.enregistrer_pdf(r, await _lire_corps(request))
     session.commit()
     return ressources.detail(session, r)
