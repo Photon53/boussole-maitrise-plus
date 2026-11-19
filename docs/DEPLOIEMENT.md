@@ -119,3 +119,4 @@ Sauvegardes : chiffrées, copiées hors du serveur, gardées 60 jours, restaurat
   60 échecs de connexion élève par 15 min, SEC-D5) sont réglés pour une classe entière ; voir `PKP_CONNEXION_*`
   dans `app/config.py`. Plusieurs classes qui se connectent en même temps derrière la même adresse peuvent
   approcher le plafond de 60 échecs : l'augmenter avec `PKP_CONNEXION_ELEVE_MAX_ECHECS_PAR_IP` dans `.env` si besoin.
+- **PDF des ressources de français** (#180) : fermés pendant le pilote (liens seulement). Ils s'ouvriront après le renforcement du contrôle des PDF (#4), par `PKP_PDF_FRANCAIS_OUVERT=true` dans `.env` ; ne pas l'activer avant.

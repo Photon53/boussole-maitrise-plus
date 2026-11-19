@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     dossier_fichiers: str = "./fichiers"
     pdf_taille_max_mo: int = 10
     pdf_max_par_enseignant: int = 50
+    # Issue #180 (décision du 19/11/2026) : en français, liens seulement pendant le pilote ; les PDF s'ouvriront
+    # après le renforcement du contrôle des PDF (#4), par PKP_PDF_FRANCAIS_OUVERT=true, sans changer le code.
+    pdf_francais_ouvert: bool = False
     # Vérifier qu'un lien répond au moment où il est enregistré (désactivé en test).
     verifier_liens: bool = True
 

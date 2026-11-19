@@ -8,7 +8,7 @@ from app import ressources
 from app.auth import EleveCourant, SessionDB
 from app.db import models
 from app.progression import ids_ouverts_eleve
-from app.schemas import ChapitreCours, CompetenceCours, LeconInfo
+from app.schemas import ChapitreCours, ChapitreMonCours, CompetenceCours, LeconInfo
 
 router = APIRouter(prefix="/cours", tags=["cours"])
 
@@ -34,6 +34,20 @@ def sommaire(eleve: EleveCourant, session: SessionDB) -> list[ChapitreCours]:
         )
         for ch in chapitres
     ]
+
+
+@router.get("/mon-cours", response_model=list[ChapitreMonCours])
+def mon_cours(eleve: EleveCourant, session: SessionDB) -> list[ChapitreMonCours]:
+    """Issue #180 : « Mon cours » suit l'avancée du cours. Chapitres ouverts par le professeur, dans l'ordre, et les
+    fiches et liens qu'il y a rattachés pour la classe ; mêmes règles d'accès que le reste des cours (#176)."""
+    ouverts = set(ids_ouverts_eleve(session, eleve.classe))
+    chapitres = sorted((c for c in eleve.classe.chapitres_proposes if c.id in ouverts), key=lambda c: c.ordre)
+    toutes = ressources.pour_eleve(session, eleve, None, None)
+    par_chapitre: dict[int, list] = {c.id: [] for c in chapitres}
+    for r in toutes:
+        source = session.get(models.Ressource, r.id)
+        par_chapitre.setdefault(ressources.chapitre_de(source).id, []).append(r)
+    return [ChapitreMonCours(id=c.id, titre=c.titre, ressources=par_chapitre[c.id]) for c in chapitres]
 
 
 @router.get("/{competence_id}", response_model=LeconInfo)
