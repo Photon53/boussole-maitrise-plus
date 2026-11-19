@@ -20,3 +20,8 @@ updates:
           - "vitest"
           - "@vitejs/*"
           - "@vitest/*"
+      # React et React DOM doivent rester sur la même version.
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
