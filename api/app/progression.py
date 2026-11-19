@@ -6,7 +6,7 @@ from urllib.parse import quote
 
 from fastapi.responses import JSONResponse
 
-from pkp_engine import calculer_maitrise, est_maitrisee
+from pkp_engine import TypeQuestion, calculer_maitrise, est_maitrisee
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, contains_eager
 
@@ -106,7 +106,11 @@ def nb_questions_servables(session: Session, chapitre_ids: list[int]) -> dict[in
             func.count(models.Question.id),
         )
         .join(models.Question, models.Question.competence_id == models.Competence.id)
-        .where(models.Competence.chapitre_id.in_(chapitre_ids), models.Question.archivee.is_(False), *filtre_validation())
+        .where(
+            models.Competence.chapitre_id.in_(chapitre_ids), models.Question.archivee.is_(False),
+            models.Question.type != TypeQuestion.REDACTION,  # #179 : jamais servie en séance
+            *filtre_validation(),
+        )
         .group_by(models.Competence.chapitre_id, models.Competence.id, models.Question.statut_validation)
     )
     par_competence: dict[tuple[int, int], Counter] = {}
@@ -209,6 +213,23 @@ def export_eleve(session: Session, eleve: models.Eleve) -> JSONResponse:
         ],
         "progression": [p.model_dump() for p in progression_eleve(session, eleve)],
         # Issue #162 : réponses au diagnostic, conservées à part de la progression (taux de maîtrise).
+        # Issue #179 (RGPD-2) : rédactions de l'élève, toutes versions, avec le commentaire du professeur.
+        "redactions": [
+            {
+                "sujet": r.question.enonce,
+                "version": r.version,
+                "texte": r.texte,
+                "statut": r.statut,
+                "commentaire": r.commentaire,
+                "remise_le": r.remise_le.isoformat() if r.remise_le else None,
+                "corrigee_le": r.corrigee_le.isoformat() if r.corrigee_le else None,
+                "conserver_jusqu_au": r.conserver_jusqu_au.isoformat(),
+            }
+            for r in session.scalars(
+                select(models.Redaction).where(models.Redaction.eleve_id == eleve.id)
+                .order_by(models.Redaction.question_id, models.Redaction.version)
+            )
+        ],
         "observations_diagnostic": [
             {
                 "question": o.question.enonce,

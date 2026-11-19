@@ -8,6 +8,7 @@ import Cours from "./Cours.jsx";
 import Diagnostic from "./Diagnostic.jsx";
 import Exercice, { CLE_BILAN, CLE_CIBLE, CLE_SEANCE } from "./Exercice.jsx";
 import Historique from "./Historique.jsx";
+import Redaction from "./Redaction.jsx";
 import Progression from "./Progression.jsx";
 import EspaceEnfant, { CLE_ENFANT } from "./EspaceEnfant.jsx";
 import PkpMath from "../pkpmath/PkpMath.jsx";
@@ -175,6 +176,8 @@ export default function EspaceEleve() {
           ...(diagnosticVisible ? [["diagnostic", "Diagnostic"]] : []),
           ["exercice", "S'entraîner"],
           ["cours", "Cours"],
+          // Issue #179 : rédaction en ligne, classes de français.
+          ...(compte.eleve.matiere === "francais" ? [["redaction", "Rédaction"]] : []),
           ["pkp", "Fiches et PDF"],
           ["historique", "Mon historique"],
           ["progression", "Ma progression"],
@@ -185,6 +188,7 @@ export default function EspaceEleve() {
       <div hidden={onglet !== "exercice"}>
         <Exercice key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} onVoirCours={voirCours} cible={cible} />
       </div>
+      {onglet === "redaction" && <Redaction key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
       {onglet === "cours" && (
         <Cours
           key={compte.eleve.id}

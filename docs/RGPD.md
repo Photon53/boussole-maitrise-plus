@@ -108,3 +108,27 @@ comptes parents en production :
 - Conservation : même durée que les données des élèves (`PKP_RETENTION_JOURS`), comptée depuis le dernier
   traitement ; supprimées par `python -m app.purge`.
 - Pas encore de pièce jointe (V1) : à ajouter avec contrôle du type, de la taille et suppression des métadonnées.
+
+## 8. Rédactions des élèves (#179, décision RGPD-2) — cadre du propriétaire, à confirmer
+
+Cadre retenu par le propriétaire le 19/11/2026 pour le pilote. Les durées sont des **choix de Boussole**, justifiés
+par le besoin pédagogique, et non des durées imposées par la CNIL.
+
+| État | Règle | Où |
+|---|---|---|
+| ✅ | **Usage** : corriger les rédactions et suivre les progrès ; aucune publication, aucun usage marketing, aucune alimentation d'une IA | — |
+| ✅ | **Données** : texte, sujet, commentaire du professeur, dates, élève (identifiant pédagogique) ; rappel à l'élève de ne pas écrire d'adresse, de coordonnées ni d'informations intimes, et de préférer des sujets fictifs | `models.Redaction`, écran « Rédaction » |
+| ✅ | **Accès** : l'élève à ses textes ; le professeur de sa classe aux versions **remises** (jamais aux brouillons) ; aucun autre élève ni professeur ; aucune route d'administration vers les textes ; les parents ne voient pas les textes | `app/routes/redactions.py`, `tests/test_redactions.py` |
+| ✅ | **Conservation** : jusqu'au 31 août de l'année scolaire, puis suppression automatique (texte et commentaire) | `conserver_jusqu_au`, `purge.purger_redactions` |
+| ✅ | **Départ** : suppression 30 jours après l'archivage de la classe ; suppression immédiate avec l'élève | idem, clé étrangère en cascade |
+| ✅ | **Export** : inclus dans l'export RGPD de l'élève | `progression.export_eleve` |
+| ✅ | **Journaux** : aucun texte de rédaction ni commentaire | — |
+| ✅ | **Fermé par défaut** : `PKP_REDACTION_ACTIVE=false` ; toutes les routes répondent 403 | `app/config.py` |
+| ☐ | **Responsable de traitement** et **base légale** à documenter (entreprise, association partenaire ou répartition des rôles) ; une case « j'accepte » ne suffit pas | propriétaire, avis spécialisé |
+| ☐ | **Information** des élèves et des parents avant l'ouverture (charte d'utilisation, #183) | #183 |
+| ☐ | **Parents** : bilan pédagogique dans l'espace parent (non fait) ; demandes d'accès aux textes traitées après vérification du lien parental | à faire |
+| ☐ | **Demandes d'effacement** : réponse sous un mois ; aujourd'hui par l'administration (suppression de l'élève), sans formulaire dédié | à faire |
+| ☐ | **Intervention d'un administrateur** sur un texte, justifiée et tracée : non prévue (aucun accès) ; à créer si le besoin est confirmé | — |
+| ☐ | **Sauvegardes** : rotation de 30 jours au plus si possible (aujourd'hui 60 jours, SEC-D4) ; réappliquer les suppressions après une restauration | `docs/exploitation/technique.md` T-04/T-05 |
+| ☐ | **Vérification effective** des accès, de l'export, de l'effacement et de la purge en DEV avant l'ouverture | recette |
+

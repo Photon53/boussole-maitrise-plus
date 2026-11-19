@@ -10,6 +10,7 @@ import CoursEnseignant from "./CoursEnseignant.jsx";
 import EnDirect from "./EnDirect.jsx";
 import PkpMath from "../pkpmath/PkpMath.jsx";
 import Questions from "./Questions.jsx";
+import Redactions from "./Redactions.jsx";
 import RessourcesEnseignant from "./RessourcesEnseignant.jsx";
 import Remarques from "../ui/Remarques.jsx";
 import Validation from "./Validation.jsx";
@@ -28,6 +29,8 @@ const PAGES = [
 ];
 // Validateurs en maths (ticket #29) : consulter, modifier et valider les cours et exercices de leur périmètre.
 const VALIDATION = { vers: "/enseignant/validation", libelle: "Validation", icone: "bouclier" };
+// Issue #179 : rédactions remises par les élèves des classes de français.
+const REDACTIONS = { vers: "/enseignant/redactions", libelle: "Rédactions", icone: "crayon" };
 
 export default function EspaceEnseignant({ chemin = "/enseignant" }) {
   const [compte, setCompte] = useState(() => lire(CLE_COMPTE));
@@ -76,7 +79,8 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
   }
 
   // Un validateur qui n'enseigne pas les maths n'a que la page Validation (l'API refuse le reste).
-  const pages = !enseigne ? [VALIDATION] : compte.validateur_maths ? [...PAGES, VALIDATION] : PAGES;
+  const base = compte.enseigne_francais ? [...PAGES, REDACTIONS] : PAGES;
+  const pages = !enseigne ? [VALIDATION] : compte.validateur_maths ? [...base, VALIDATION] : base;
   const page = pages.filter((p) => chemin === p.vers || chemin.startsWith(`${p.vers}/`)).sort(
     (a, b) => b.vers.length - a.vers.length,
   )[0] ?? pages[0];
@@ -116,6 +120,7 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
       {page.vers === "/enseignant/ressources" && <RessourcesEnseignant {...props} />}
       {page.vers === "/enseignant/banque" && <Questions {...props} />}
       {page.vers === "/enseignant/remarques" && <Remarques {...props} />}
+      {page.vers === "/enseignant/redactions" && <Redactions {...props} />}
       {page.vers === "/enseignant/validation" && <Validation {...props} chemin={chemin} />}
       {page.vers === "/enseignant/pkp-math" && <section className="carte"><PkpMath {...props} /></section>}
     </CadreApplication>
