@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import model_validator
+from pydantic import PositiveInt, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 CLE_DEV = "dev-uniquement-a-changer"
@@ -43,6 +43,15 @@ class Settings(BaseSettings):
     # l'information des élèves et des parents ne sont pas validés ; PKP_REDACTION_ACTIVE=true pour l'ouvrir.
     redaction_active: bool = False
     redaction_longueur_max: int = 10_000
+    # Issue #171 : candidatures de professeurs et demandes de partenariat (« Enseigner ou collaborer avec nous »).
+    # Fermé par défaut : aucune collecte réelle avant la décision du propriétaire sur la durée de conservation
+    # (RGPD-3, en attente). Aucune durée n'est fixée par défaut : sans elle, la purge ne supprime rien et l'API
+    # refuse de démarrer en production avec PKP_COLLABORATION_ACTIVE=true.
+    collaboration_active: bool = False
+    collaboration_conservation_jours: PositiveInt | None = None
+    # CV : PDF seulement, contrôlé comme les ressources (#4), dans un dossier privé distinct de `dossier_fichiers`.
+    dossier_candidatures: str = "./candidatures"
+    cv_taille_max_mo: int = 5
     # Vérifier qu'un lien répond au moment où il est enregistré (désactivé en test).
     verifier_liens: bool = True
 
@@ -105,6 +114,11 @@ class Settings(BaseSettings):
         if self.pdf_francais_ouvert and not CONTROLE_PDF_RENFORCE:
             problemes.append(
                 "PKP_PDF_FRANCAIS_OUVERT ne peut pas être activée : le contrôle renforcé des PDF (#4) n'est pas livré."
+            )
+        if self.collaboration_active and not self.collaboration_conservation_jours:
+            problemes.append(
+                "PKP_COLLABORATION_ACTIVE exige PKP_COLLABORATION_CONSERVATION_JOURS (durée décidée par le "
+                "propriétaire, RGPD-3) : aucune candidature n'est collectée sans durée de conservation."
             )
         if "servir_questions_non_validees" not in self.model_fields_set:
             problemes.append(

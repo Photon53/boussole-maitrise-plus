@@ -286,6 +286,23 @@ function QuestionsFrequentes({ marque }) {
  * la méthode en bref, une entrée par profil, le fonctionnement, un essai, les parcours réellement ouverts, la FAQ.
  * `marque` : textes et identité de la variante (voir marque.js) ; seule la présentation change.
  */
+/** Issue #171 : entrée « Enseigner ou collaborer avec nous », affichée seulement quand la collecte est ouverte. */
+function Collaborer() {
+  const etat = useDonneePublique("/collaboration/etat", null, (e) => e && typeof e.ouvert === "boolean");
+  if (!etat?.ouvert) return null;
+  return (
+    <section aria-labelledby="titre-collaborer" className="carte">
+      <h2 id="titre-collaborer">Enseigner ou collaborer avec nous</h2>
+      <p>Vous êtes professeur, ou vous représentez une école, un institut ou une association ? Présentez-vous.</p>
+      <p>
+        <a className="bouton secondaire" href="/collaborer">
+          Enseigner ou collaborer avec nous
+        </a>
+      </p>
+    </section>
+  );
+}
+
 export default function Accueil({ marque = MARQUE }) {
   return (
     <div className="accueil">
@@ -332,6 +349,7 @@ export default function Accueil({ marque = MARQUE }) {
 
       <Parcours marque={marque} />
       <QuestionsFrequentes marque={marque} />
+      <Collaborer />
 
       <p className="accroche">
         {marque.conclusion.map((ligne, i) => (

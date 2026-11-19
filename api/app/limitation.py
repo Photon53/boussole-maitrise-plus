@@ -68,13 +68,18 @@ remarques_par_compte = Limiteur(10, 3600)
 remarques_par_ip = Limiteur(30, 3600)
 suivi_remarques_par_ip = Limiteur(30, 15 * 60)
 
+# Candidatures et partenariats (issue #171), formulaire public sans compte : par adresse, et plafond global qui borne
+# l'espace disque pris par les CV si les envois viennent de nombreuses adresses.
+collaboration_par_ip = Limiteur(5, 3600)
+collaboration_globale = Limiteur(60, 3600)
+
 # Compte de service IA (ticket #48) : débit par compte, et jetons faux, expirés ou révoqués par adresse.
 service_ia_par_compte = Limiteur(settings.service_ia_requetes_par_minute, 60)
 service_ia_refus_par_ip = Limiteur(20, 15 * 60)
 
 TOUS = (
     par_ip, echecs_enseignant, codes_inconnus, echecs_code_eleve, echecs_eleve_par_ip, remarques_par_compte, remarques_par_ip,
-    suivi_remarques_par_ip, service_ia_par_compte, service_ia_refus_par_ip,
+    suivi_remarques_par_ip, collaboration_par_ip, collaboration_globale, service_ia_par_compte, service_ia_refus_par_ip,
 )
 
 

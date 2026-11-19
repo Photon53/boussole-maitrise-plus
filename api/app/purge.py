@@ -4,6 +4,9 @@ Les comptes parents qui ne suivent plus aucun enfant sont supprimés en même te
 
 Les archives d'inscriptions et les remarques plus anciennes que la durée de conservation sont supprimées aussi.
 
+Candidatures et partenariats (issue #171) : supprimés, CV compris, après `PKP_COLLABORATION_CONSERVATION_JOURS`
+sans traitement ; sans durée décidée (RGPD-3 en attente), rien n'est supprimé automatiquement.
+
 Rédactions (issue #179, RGPD-2) : supprimées après le 31 août de leur année scolaire, et 30 jours après
 l'archivage de la classe de l'élève (fin de l'accompagnement), quelle que soit `PKP_RETENTION_JOURS`.
 Activité = début de la dernière séance, ou date de création si l'élève n'a
@@ -21,7 +24,7 @@ from datetime import UTC, datetime, timedelta
 from sqlalchemy import DateTime, delete, func, select
 from sqlalchemy.orm import Session
 
-from app import inscriptions, parents
+from app import collaboration, inscriptions, parents
 from app.config import settings
 from app.db import models
 
@@ -75,6 +78,8 @@ def purger(
         # Les comptes parents qui ne suivent plus aucun enfant partent avec le dernier.
         parents.supprimer_orphelins(session)
         session.commit()
+        # Après la validation : les CV ne sont effacés du disque qu'avec leur demande.
+        collaboration.purger(session, maintenant)
     return inactifs
 
 

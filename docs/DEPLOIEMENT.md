@@ -136,6 +136,14 @@ Sauvegardes : chiffrées, copiées hors du serveur, gardées 60 jours, restaurat
   3. activation d'abord en DEV, essai par la professeure (dépôt, consultation par une classe pilote, refus d'un PDF
      piégé) ;
   4. sauvegarde, puis `PKP_PDF_FRANCAIS_OUVERT=true` dans le `.env` de production et redémarrage.
+- **Candidatures et partenariats** (#171, « Enseigner ou collaborer avec nous ») : **fermés par défaut**
+  (`PKP_COLLABORATION_ACTIVE=false` : le formulaire l'annonce, l'API répond 403, l'accueil n'affiche pas l'entrée).
+  En production, l'API refuse de démarrer avec `PKP_COLLABORATION_ACTIVE=true` sans `PKP_COLLABORATION_CONSERVATION_JOURS`
+  (durée décidée par le propriétaire, RGPD-3). Les CV (PDF, `PKP_CV_TAILLE_MAX_MO`, 5 Mo par défaut, contrôlés comme
+  ci-dessous) sont écrits dans `PKP_DOSSIER_CANDIDATURES`, distinct de `PKP_DOSSIER_FICHIERS`. **Avant activation**, à
+  faire dans une PR d'exploitation dédiée : volume persistant pour ce dossier dans `docker-compose.yml` (sinon les CV
+  disparaissent au redéploiement), décision sur son inclusion dans les sauvegardes (SEC-D4) et réapplication des
+  suppressions après une restauration ; puis essai en DEV avec des données fictives.
 - **Contrôle des PDF déposés** (#4, `api/app/controle_pdf.py`) : chaque PDF envoyé par un professeur ou un
   administrateur est analysé par `pypdf` dans un **processus séparé** (démarrage `spawn`), limité à **512 Mo** de
   mémoire et **15 s** (temps processeur et durée totale), **2 analyses simultanées** au plus, **500 pages** et

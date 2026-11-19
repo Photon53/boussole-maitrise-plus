@@ -132,3 +132,23 @@ par le besoin pédagogique, et non des durées imposées par la CNIL.
 | ☐ | **Sauvegardes** : rotation de 30 jours au plus si possible (aujourd'hui 60 jours, SEC-D4) ; réappliquer les suppressions après une restauration | `docs/exploitation/technique.md` T-04/T-05 |
 | ☐ | **Vérification effective** des accès, de l'export, de l'effacement et de la purge en DEV avant l'ouverture | recette |
 
+
+## 9. Candidatures de professeurs et demandes de partenariat (#171) — à valider avant toute collecte réelle
+
+Formulaire public « Enseigner ou collaborer avec nous » (`/collaborer`), traité dans « Accueil et demandes » côté
+administration. Personnes concernées : **adultes seulement** (professeur candidat, contact d'une école, d'un institut
+ou d'une association). **Fermé par défaut** (`PKP_COLLABORATION_ACTIVE=false`).
+
+| État | Règle | Où |
+|---|---|---|
+| ✅ | **Données** : prénom, nom, e-mail, téléphone facultatif ; candidat : matières, niveaux, disponibilités et message facultatifs, CV facultatif ; structure : nom, type, fonction facultative du contact, partenariat envisagé. Aucune donnée d'enfant | `models.DemandeCollaboration`, `app/routes/collaboration.py` |
+| ✅ | **Usage** : étudier la demande et y répondre ; aucun envoi automatique, aucune prospection, aucun export vers un outil externe ; une demande ne crée ni compte, ni habilitation, ni contrat (suite : #21) | — |
+| ✅ | **Information** avant l'envoi (usage, accès, conservation, droits) ; case « J'ai lu » exigée par l'API | `web/src/Collaborer.jsx` |
+| ✅ | **CV** : PDF seulement, 5 Mo au plus (`PKP_CV_TAILLE_MAX_MO`), type réel vérifié (en-tête puis analyse complète du contrôle renforcé #4), refusé s'il est chiffré ou porte un contenu actif ; nom de fichier aléatoire, droits `0600`, dossier privé `PKP_DOSSIER_CANDIDATURES` distinct des ressources pédagogiques ; aucune URL publique, téléchargement par un administrateur seulement, journalisé | `app/collaboration.py` |
+| ✅ | **Accès** : administrateurs seulement (jeton admin, rôle revérifié en base) ; professeurs et validateurs n'y ont pas accès. Journal : traitement seulement (statut, issue, responsable, présence de notes, téléchargement), jamais les coordonnées, le message, les notes ni le CV | `tests/test_collaboration.py` |
+| ✅ | **Droits** : export JSON de la demande (accès) ; suppression de la demande **et du CV** par un administrateur (effacement) | `/admin/accueil/demandes/{id}/export`, `DELETE` |
+| ✅ | **Anti-abus** : 5 envois par heure et par adresse (refusés compris), 60 par heure au total, piège à robots, corps borné | `limitation.collaboration_*` |
+| ✅ | **Purge** : demande et CV supprimés `PKP_COLLABORATION_CONSERVATION_JOURS` après le dernier traitement ; sans durée fixée, rien n'est purgé et la collecte reste fermée (démarrage refusé en production) | `collaboration.purger`, `app/purge.py` |
+| ☐ | **Durée de conservation**, responsable de traitement et base légale : décision **RGPD-3**, en attente | propriétaire, avis spécialisé |
+| ☐ | **Exploitation** : volume persistant et sauvegarde du dossier des CV, réapplication des suppressions après restauration (`docs/DEPLOIEMENT.md`) | PR d'exploitation |
+| ☐ | **Procédure** des demandes d'accès et d'effacement (qui reçoit, délai d'un mois) ; recette en DEV avec des données fictives | — |

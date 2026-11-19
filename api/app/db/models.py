@@ -860,6 +860,61 @@ class Remarque(Base):
     assignee: Mapped["Enseignant | None"] = relationship()
 
 
+class DemandeCollaboration(Base):
+    """Candidature d'un professeur ou demande de partenariat d'une structure (issue #171).
+
+    Formulaire public « Enseigner ou collaborer avec nous », traité dans « Accueil et demandes » par les seuls
+    administrateurs. Une demande ne crée **ni compte, ni habilitation, ni contrat** : la sélection et la préparation
+    des intervenants relèvent de #21. Données d'adultes seulement. Le CV (PDF contrôlé) est stocké sous un nom
+    aléatoire dans un dossier privé distinct des ressources pédagogiques (`PKP_DOSSIER_CANDIDATURES`) ; il est
+    supprimé avec la demande, à la main ou par la purge.
+
+    Pensée pour le socle de #172 : mêmes statuts (nouveau, à traiter, traité) et issue explicite du traitement.
+    """
+
+    __tablename__ = "demande_collaboration"
+    __table_args__ = (
+        CheckConstraint("type IN ('candidature', 'partenariat')", name="type"),
+        CheckConstraint("statut IN ('nouveau', 'a-traiter', 'traite')", name="statut"),
+        CheckConstraint("issue IS NULL OR issue IN ('suite-demandee', 'refus', 'cloture')", name="issue"),
+        CheckConstraint("statut <> 'traite' OR issue IS NOT NULL", name="issue_si_traite"),
+        CheckConstraint(
+            "structure_type IS NULL OR structure_type IN ('ecole', 'institut', 'association', 'autre')",
+            name="structure_type",
+        ),
+        CheckConstraint("type = 'candidature' OR cv_fichier IS NULL", name="cv_candidature"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    reference: Mapped[str] = mapped_column(String(20), unique=True)
+    type: Mapped[str] = mapped_column(String(12), index=True)
+    # Contact adulte (professeur candidat, ou personne qui représente la structure).
+    prenom: Mapped[str] = mapped_column(String(60))
+    nom: Mapped[str] = mapped_column(String(80))
+    email: Mapped[str] = mapped_column(String(254))
+    telephone: Mapped[str | None] = mapped_column(String(30))
+    # Candidature : listes de codes séparés par des virgules (matières, niveaux) et texte libre.
+    matieres: Mapped[str | None] = mapped_column(String(100))
+    niveaux: Mapped[str | None] = mapped_column(String(100))
+    disponibilites: Mapped[str | None] = mapped_column(String(500))
+    # Partenariat.
+    structure_nom: Mapped[str | None] = mapped_column(String(150))
+    structure_type: Mapped[str | None] = mapped_column(String(12))
+    fonction: Mapped[str | None] = mapped_column(String(100))  # fonction du contact dans la structure
+    message: Mapped[str | None] = mapped_column(String(3000))  # message du candidat ou partenariat envisagé
+    cv_fichier: Mapped[str | None] = mapped_column(String(64))  # nom aléatoire sur disque, jamais exposé
+    cv_taille_octets: Mapped[int | None] = mapped_column(Integer)
+    # Traitement.
+    statut: Mapped[str] = mapped_column(String(10), default="nouveau", index=True)
+    issue: Mapped[str | None] = mapped_column(String(16))
+    notes_internes: Mapped[str | None] = mapped_column(String(3000))
+    responsable_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, index=True)
+    maj_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, index=True)
+
+    responsable: Mapped["Enseignant | None"] = relationship()
+
+
 class DemandeAide(Base):
     """« Je n'ai pas compris » d'un élève (ticket #28), sur un cours, un exercice ou sa correction.
 

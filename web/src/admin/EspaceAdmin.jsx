@@ -4,6 +4,7 @@ import { Erreur } from "../composants.jsx";
 import { ecrire, lire } from "../stockage.js";
 import { CadreApplication, EntetePage } from "../ui/Cadre.jsx";
 import Icone, { Logo } from "../ui/Icone.jsx";
+import AccueilDemandes from "./AccueilDemandes.jsx";
 import AnglaisAdmin from "./AnglaisAdmin.jsx";
 import BandeauAdmin, { libelleDomaine } from "./BandeauAdmin.jsx";
 import Configuration from "./Configuration.jsx";
@@ -35,6 +36,8 @@ const PAGES = [
   { groupe: "Pilotage", vers: "/admin", libelle: "Tableau de bord", icone: "tableau", Page: TableauDeBord, permission: "pilotage.global" },
   { groupe: "Pilotage", vers: "/admin/journal", libelle: "Journal", icone: "journal", Page: Journal, permission: "pilotage.global" },
   { groupe: "Pilotage", vers: "/admin/remarques", libelle: "Remarques", icone: "crayon", Page: RemarquesAdmin, permission: "pilotage.global" },
+  // Issue #171 : candidatures de professeurs et partenariats ; administrateurs seulement (comptes.gerer).
+  { groupe: "Pilotage", vers: "/admin/accueil", libelle: "Accueil et demandes", icone: "accueil", Page: AccueilDemandes, permission: "comptes.gerer" },
   { groupe: "Comptes", vers: "/admin/professeurs", libelle: "Équipe", icone: "professeurs", Page: Professeurs, permission: "comptes.gerer" },
   { groupe: "Comptes", vers: "/admin/familles", libelle: "Familles", icone: "eleve", Page: Familles, permission: "parents.gerer" },
   { groupe: "Comptes", vers: "/admin/eleves", libelle: "Élèves et classes", icone: "classes", Page: Eleves, permission: "comptes.gerer" },
