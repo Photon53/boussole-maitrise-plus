@@ -214,6 +214,7 @@ function SuiviFamille({ suivi, appeler, compte, onExpire, onChange }) {
             jeton={compte.jeton}
             onExpire={onExpire}
             niveauParDefaut={enfant.niveau}
+            adulte
             intro={`Les cours de ${niveau} pour accompagner ${enfant.prenom} : résumé, cours complet, fiche d'exercices et corrigé, à lire ici ou à exporter en PDF.`}
           />
         </section>
