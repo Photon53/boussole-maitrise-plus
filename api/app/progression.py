@@ -56,8 +56,18 @@ def chapitres_du_programme(session: Session, classe: models.Classe) -> list[mode
 
 
 def ids_ouverts(classe: models.Classe) -> list[int]:
-    """Chapitres que l'enseignant a ouverts pour cette classe (hors chapitres masqués par un administrateur)."""
+    """Chapitres que l'enseignant a ouverts pour cette classe (hors chapitres masqués par un administrateur).
+
+    Vue du professeur. Côté élève, utiliser `ids_ouverts_eleve`, qui applique l'ouverture du domaine (#176).
+    """
     return [c.id for c in classe.chapitres_proposes if not c.masque and est_apprentissage(c)]
+
+
+def ids_ouverts_eleve(session: Session, classe: models.Classe) -> list[int]:
+    """Chapitres ouverts que les élèves de la classe peuvent lire : aucun si l'accès à la classe est refusé (#176)."""
+    from app.permissions import refus_acces_classe
+
+    return [] if refus_acces_classe(session, classe) else ids_ouverts(classe)
 
 
 def filtre_validation() -> tuple:

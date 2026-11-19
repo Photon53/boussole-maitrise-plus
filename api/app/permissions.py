@@ -198,6 +198,21 @@ def refus_domaine_ferme(session: Session, domaine: str) -> str | None:
     return f"{LIBELLES.get(domaine, domaine)} est fermé pour le moment : aucune nouvelle séance n'est possible."
 
 
+def refus_acces_classe(session: Session, classe: models.Classe) -> str | None:
+    """Accès des élèves d'une classe à son contenu (issue #176, décision SEC-D6) : cours, leçons, ressources,
+    documents, séances et réponses.
+
+    Permis si le domaine de la classe est public, ou s'il est actif et que la classe est une classe pilote non
+    archivée. Sinon refusé, y compris pour une classe existante dont le domaine a été fermé depuis.
+    """
+    d = session.get(models.DomainePedagogique, classe.domaine_code)
+    if d is not None and d.public:
+        return None
+    if d is not None and d.actif and classe.archivee_le is None and session.get(models.ClassePilote, classe.id):
+        return None
+    return f"{LIBELLES.get(classe.domaine_code, classe.domaine_code)} est fermé pour le moment : il n'est pas ouvert à ta classe."
+
+
 # --- Permissions (CDC V2, EX.7) ------------------------------------------------------------------
 # Table de correspondance dans le code, pas un moteur configurable en base. L'admin a toutes les permissions
 # sauf `contenu.valider`, qui vient d'une habilitation de validateur, domaine par domaine (EX.9-bis).
