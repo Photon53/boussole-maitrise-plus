@@ -1,29 +1,60 @@
 # Image de l'API (moteur + FastAPI). Contexte de build : racine du projet.
-FROM python:3.12-slim
+#
+# Deux étapes (#116) : « preparation » installe les dépendances et trie les fichiers ; l'image finale ne reçoit
+# que le nécessaire à l'exécution : ni tests, ni PDF officiels (référentiels lus sans eux), ni résidus de
+# construction, ni outil de rechargement à chaud.
+
+FROM python:3.12-slim AS preparation
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
-RUN useradd --create-home --uid 10001 pkp
-WORKDIR /app
+WORKDIR /src
 COPY engine ./engine
 COPY api ./api
 COPY contenu ./contenu
 COPY referentiels ./referentiels
-RUN pip install ./engine "./api[postgres]" \
- && python -m app.contenu verifier --dossier ./contenu
+
+# Environnement Python isolé, copié tel quel dans l'image finale. L'API s'exécute depuis /app/api/app (les
+# chemins de contenu/ et referentiels/ en dépendent) : sa copie installée dans site-packages est retirée.
+# watchfiles et websockets (tirés par uvicorn[standard]) ne servent qu'au rechargement à chaud et aux WebSockets,
+# inutilisés en production.
+RUN python -m venv /venv \
+ && /venv/bin/pip install ./engine "./api[postgres]" \
+ && /venv/bin/pip uninstall -y pkp-api watchfiles websockets
+
+# Arborescence d'exécution : code de l'API, migrations, contenus ; référentiels sans les PDF officiels.
+RUN mkdir -p /app/api /app/referentiels/sources \
+ && cp -r api/app api/migrations api/alembic.ini /app/api/ \
+ && cp -r contenu /app/contenu \
+ && find referentiels -mindepth 1 -maxdepth 1 -type d ! -name sources -exec cp -r {} /app/referentiels/ \; \
+ && cp referentiels/sources/sources.yaml /app/referentiels/sources/ \
+ && find /app -name '__pycache__' -prune -exec rm -rf {} +
+
+
+FROM python:3.12-slim
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/venv/bin:$PATH" \
+    PYTHONPATH=/app/api
+
+RUN useradd --create-home --uid 10001 pkp
+COPY --from=preparation /venv /venv
+COPY --from=preparation /app /app
+WORKDIR /app/api
+RUN python -m app.contenu verifier --dossier ../contenu
 
 # Dossier des PDF : créé ici au nom de pkp, pour que le volume nommé hérite de ce propriétaire.
 RUN mkdir -p /data/fichiers && chown pkp:pkp /data/fichiers
 
-WORKDIR /app/api
 USER pkp
 EXPOSE 8000
 
+# Uvicorn seul (#116) : migrations, import du contenu et contrôle de la base forment une étape séparée, lancée
+# avec la même image (service « preparation » de docker-compose.yml ; boussole-dev-sync en DEV).
 # 1 seul worker : la limitation des connexions est en mémoire (voir app/limitation.py).
 # --proxy-headers : l'IP du client vient de Caddy. Sûr car l'API n'est joignable
 # que depuis le réseau Docker interne (aucun port publié).
-# Au démarrage : migrations, puis import du contenu pédagogique (idempotent).
-CMD ["sh", "-c", "alembic upgrade head && python -m app.contenu importer && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --proxy-headers --forwarded-allow-ips='*'"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--proxy-headers", "--forwarded-allow-ips=*"]

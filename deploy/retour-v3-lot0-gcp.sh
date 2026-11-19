@@ -90,7 +90,7 @@ local revision
 if dc ps --services --status running | grep -qx api; then
   revision=$(dc exec -T api alembic current 2>/dev/null | tail -1 || true)
 else
-  revision=$(dc run --rm -T api alembic current 2>/dev/null | tail -1 || true)
+  revision=$(dc run --rm --no-deps -T api alembic current 2>/dev/null | tail -1 || true)
 fi
 echo "Code actuel      : $(git -C "$DOSSIER" log --oneline -1 "$actuel")"
 echo "Code visé        : $(git -C "$DOSSIER" log --oneline -1 "$VERSION")"
@@ -132,7 +132,7 @@ if [[ "$revision" == "$REVISION_CIBLE"* ]]; then
 elif dc ps --services --status running | grep -qx api; then
   dc exec -T api alembic downgrade "$REVISION_CIBLE"
 else
-  dc run --rm -T api alembic downgrade "$REVISION_CIBLE"
+  dc run --rm --no-deps -T api alembic downgrade "$REVISION_CIBLE"
 fi
 
 etape "Code d'avant le Lot 0 (${VERSION:0:7})"
