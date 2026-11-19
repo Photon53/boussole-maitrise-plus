@@ -43,12 +43,14 @@ class Settings(BaseSettings):
     # l'information des élèves et des parents ne sont pas validés ; PKP_REDACTION_ACTIVE=true pour l'ouvrir.
     redaction_active: bool = False
     redaction_longueur_max: int = 10_000
-    # Issue #171 : candidatures de professeurs et demandes de partenariat (« Enseigner ou collaborer avec nous »).
-    # Fermé par défaut : aucune collecte réelle avant la décision du propriétaire sur la durée de conservation
-    # (RGPD-3, en attente). Aucune durée n'est fixée par défaut : sans elle, la purge ne supprime rien et l'API
-    # refuse de démarrer en production avec PKP_COLLABORATION_ACTIVE=true.
+    # Issue #172 : « Accueil et demandes ». Durée de conservation par file, en jours depuis le dernier traitement, par
+    # exemple PKP_ACCUEIL_CONSERVATION_JOURS='{"candidature": 180, "partenariat": 365}'. Aucune durée par défaut :
+    # elles sont décidées par le propriétaire (RGPD-3, en attente). Sans durée, une file ne collecte rien (formulaire
+    # fermé, saisie refusée) et la purge n'y supprime rien.
+    accueil_conservation_jours: dict[Literal["famille", "information", "candidature", "partenariat"], PositiveInt] = {}
+    # Issue #171 : formulaire public « Enseigner ou collaborer avec nous ». Fermé par défaut ; ne s'ouvre qu'avec les
+    # durées des files candidature et partenariat (démarrage refusé en production sinon).
     collaboration_active: bool = False
-    collaboration_conservation_jours: PositiveInt | None = None
     # CV : PDF seulement, contrôlé comme les ressources (#4), dans un dossier privé distinct de `dossier_fichiers`.
     dossier_candidatures: str = "./candidatures"
     cv_taille_max_mo: int = 5
@@ -115,10 +117,10 @@ class Settings(BaseSettings):
             problemes.append(
                 "PKP_PDF_FRANCAIS_OUVERT ne peut pas être activée : le contrôle renforcé des PDF (#4) n'est pas livré."
             )
-        if self.collaboration_active and not self.collaboration_conservation_jours:
+        if self.collaboration_active and not {"candidature", "partenariat"} <= set(self.accueil_conservation_jours):
             problemes.append(
-                "PKP_COLLABORATION_ACTIVE exige PKP_COLLABORATION_CONSERVATION_JOURS (durée décidée par le "
-                "propriétaire, RGPD-3) : aucune candidature n'est collectée sans durée de conservation."
+                "PKP_COLLABORATION_ACTIVE exige les durées « candidature » et « partenariat » dans "
+                "PKP_ACCUEIL_CONSERVATION_JOURS (décision du propriétaire, RGPD-3) : rien n'est collecté sans durée."
             )
         if "servir_questions_non_validees" not in self.model_fields_set:
             problemes.append(

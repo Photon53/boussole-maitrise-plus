@@ -7,7 +7,7 @@ import AccueilDemandes from "../admin/AccueilDemandes.jsx";
 import Collaborer from "../Collaborer.jsx";
 import { fausseApi } from "./setup.js";
 
-const OUVERT = { ouvert: true, formats_cv: ["pdf"], cv_taille_max_mo: 5, conservation_jours: 180 };
+const OUVERT = { ouvert: true, formats_cv: ["pdf"], cv_taille_max_mo: 5, conservation_jours: { candidature: 180, partenariat: 365 } };
 
 async function coordonnees() {
   await userEvent.type(screen.getByLabelText("Prénom (obligatoire)"), "Camille");
@@ -103,29 +103,78 @@ describe("Enseigner ou collaborer avec nous", () => {
 });
 
 describe("Accueil et demandes", () => {
-  const resume = { id: 1, reference: "C-ABCD2345", type: "candidature", contact: "Camille Fictif", structure_nom: null, statut: "nouveau", issue: null, a_un_cv: true, responsable: null, cree_le: "2026-11-19T08:00:00Z" };
-  const detail = { ...resume, prenom: "Camille", nom: "Fictif", email: "camille@exemple.test", telephone: null, matieres: ["maths"], niveaux: ["2nde"], disponibilites: null, structure_type: null, fonction: null, message: "Bonjour", cv_taille_octets: 1000, notes_internes: null, responsable_id: null, maj_le: "2026-11-19T08:00:00Z" };
+  const FILES_API = [
+    { categorie: "famille", nouvelles: 1, conservation_jours: 30 },
+    { categorie: "information", nouvelles: 0, conservation_jours: null },
+    { categorie: "candidature", nouvelles: 2, conservation_jours: 180 },
+    { categorie: "partenariat", nouvelles: 0, conservation_jours: 365 },
+  ];
+  const vide = { demandes: [], total: 0, page: 1, taille_page: 50 };
+  const resume = { id: 1, reference: "F-ABCD2345", categorie: "famille", origine: "saisie-admin", contact_id: 7, contact: "Sacha Fictif", organisation: null, statut: "nouveau", issue: null, a_un_cv: false, responsable: null, cree_le: "2026-11-19T08:00:00Z" };
+  const autre = { ...resume, id: 2, reference: "I-WXYZ2345", categorie: "information" };
+  const detail = {
+    ...resume, prenom: "Sacha", nom: "Fictif", email: "sacha@exemple.test", telephone: null, message: "Bilan en 4e", details: {},
+    cv_taille_octets: null, notes_internes: null, responsable_id: null, maj_le: "2026-11-19T08:00:00Z",
+    contact_fiche: { id: 7, prenom: "Sacha", nom: "Fictif", email: "sacha@exemple.test", telephone: null, cree_le: "2026-11-19T08:00:00Z" },
+    autres_demandes: [autre],
+  };
 
-  it("deux files distinctes ; l'issue est exigée pour marquer une demande traitée", async () => {
-    const appels = fausseApi({
-      "GET /admin/accueil/demandes?type=candidature&page=1": { json: { demandes: [resume], total: 1, page: 1, taille_page: 50 } },
-      "GET /admin/accueil/demandes?type=partenariat&page=1": { json: { demandes: [], total: 0, page: 1, taille_page: 50 } },
+  function routes(supplement = {}) {
+    return fausseApi({
+      "GET /admin/accueil/files": { json: FILES_API },
+      "GET /admin/accueil/demandes?categorie=famille&page=1": { json: { demandes: [resume], total: 1, page: 1, taille_page: 50 } },
+      "GET /admin/accueil/demandes?categorie=information&page=1": { json: vide },
+      "GET /admin/accueil/demandes?categorie=candidature&page=1": { json: vide },
       "GET /admin/accueil/demandes/1": { json: detail },
       "GET /admin/moi": { json: { id: 2, nom: "Admin" } },
       "POST /admin/accueil/demandes/1": (corps) => ({ json: { ...detail, ...corps } }),
+      ...supplement,
     });
+  }
+
+  it("quatre files avec leurs nouvelles demandes ; une file sans durée ne collecte rien", async () => {
+    routes();
     render(<AccueilDemandes jeton="j" onExpire={vi.fn()} />);
-    await userEvent.click(await screen.findByRole("button", { name: "C-ABCD2345" }));
-    const fiche = await screen.findByRole("article", { name: "Demande C-ABCD2345" });
-    expect(within(fiche).getByText("camille@exemple.test")).toBeInTheDocument();
-    expect(within(fiche).getByRole("button", { name: "Télécharger le CV" })).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Familles et préinscriptions (1)" })).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Candidatures de professeurs (2)" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Saisir une demande" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: "Informations et questions" }));
+    expect(await screen.findByText(/Durée de conservation non fixée/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Saisir une demande" })).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: "Candidatures de professeurs (2)" }));
+    expect(screen.queryByRole("button", { name: "Saisir une demande" })).not.toBeInTheDocument(); // formulaire public seulement
+    expect(screen.getByRole("link", { name: "Remarques" })).toHaveAttribute("href", "/admin/remarques");
+  });
+
+  it("fiche : historique du contact, issues propres à la file, traitement", async () => {
+    const appels = routes();
+    render(<AccueilDemandes jeton="j" onExpire={vi.fn()} />);
+    await userEvent.click(await screen.findByRole("button", { name: "F-ABCD2345" }));
+    const fiche = await screen.findByRole("article", { name: "Demande F-ABCD2345" });
+    expect(within(fiche).getByRole("button", { name: "I-WXYZ2345" })).toBeInTheDocument();
+    expect(within(fiche).getByRole("button", { name: /détacher cette demande/ })).toBeInTheDocument();
+    const issue = within(fiche).getByLabelText("Issue");
+    expect(within(issue).getByRole("option", { name: "Inscription effective" })).toBeInTheDocument();
     const marquer = within(fiche).getByRole("button", { name: "Marquer traitée" });
     expect(marquer).toBeDisabled();
-    await userEvent.selectOptions(within(fiche).getByLabelText("Issue"), "suite-demandee");
+    await userEvent.selectOptions(issue, "inscription-effective");
     await userEvent.click(marquer);
-    expect(appels.find((a) => a.cle === "POST /admin/accueil/demandes/1").corps).toEqual({ statut: "traite", issue: "suite-demandee" });
+    expect(appels.find((a) => a.cle === "POST /admin/accueil/demandes/1").corps).toEqual({ statut: "traite", issue: "inscription-effective" });
+  });
 
-    await userEvent.click(screen.getByRole("tab", { name: "Partenariats de structures" }));
-    expect(await screen.findByText("Aucune demande dans cette file.")).toBeInTheDocument();
+  it("saisie d'une demande de famille par l'équipe", async () => {
+    const appels = routes({ "POST /admin/accueil/demandes": { status: 201, json: { ...detail, id: 1 } } });
+    render(<AccueilDemandes jeton="j" onExpire={vi.fn()} />);
+    await userEvent.click(await screen.findByRole("button", { name: "Saisir une demande" }));
+    const form = screen.getByRole("form", { name: "Saisir une demande" });
+    await userEvent.type(within(form).getByLabelText("Prénom"), "Sacha");
+    await userEvent.type(within(form).getByLabelText("Nom"), "Fictif");
+    await userEvent.type(within(form).getByLabelText("E-mail"), "sacha@exemple.test");
+    await userEvent.type(within(form).getByLabelText("Besoin ou question"), "Bilan en 4e");
+    await userEvent.click(within(form).getByRole("button", { name: "Enregistrer la demande" }));
+    expect(appels.find((a) => a.cle === "POST /admin/accueil/demandes").corps).toEqual({
+      prenom: "Sacha", nom: "Fictif", email: "sacha@exemple.test", telephone: null, message: "Bilan en 4e", categorie: "famille",
+    });
+    expect(await screen.findByRole("article", { name: "Demande F-ABCD2345" })).toBeInTheDocument();
   });
 });

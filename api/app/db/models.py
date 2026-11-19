@@ -872,58 +872,74 @@ class Remarque(Base):
     assignee: Mapped["Enseignant | None"] = relationship()
 
 
-class DemandeCollaboration(Base):
-    """Candidature d'un professeur ou demande de partenariat d'une structure (issue #171).
+class ContactAdulte(Base):
+    """Adulte qui a pris contact avec Boussole hors de tout compte (issue #172, « Accueil et demandes »).
 
-    Formulaire public « Enseigner ou collaborer avec nous », traité dans « Accueil et demandes » par les seuls
-    administrateurs. Une demande ne crée **ni compte, ni habilitation, ni contrat** : la sélection et la préparation
-    des intervenants relèvent de #21. Données d'adultes seulement. Le CV (PDF contrôlé) est stocké sous un nom
-    aléatoire dans un dossier privé distinct des ressources pédagogiques (`PKP_DOSSIER_CANDIDATURES`) ; il est
-    supprimé avec la demande, à la main ou par la purge.
-
-    Pensée pour le socle de #172 : mêmes statuts (nouveau, à traiter, traité) et issue explicite du traitement.
+    Un contact porte une ou plusieurs demandes, chacune avec sa catégorie, son statut et son historique. **Ce n'est
+    ni un compte, ni un parent, ni un inscrit** : aucun enfant, aucun accès, aucune donnée pédagogique n'y est relié.
+    Une nouvelle demande n'est rattachée à un contact existant que si l'e-mail normalisé (minuscules, sans espaces)
+    est identique ; les coordonnées saisies restent sur la demande et n'écrasent jamais celles du contact.
     """
 
-    __tablename__ = "demande_collaboration"
+    __tablename__ = "contact_adulte"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    prenom: Mapped[str] = mapped_column(String(60))
+    nom: Mapped[str] = mapped_column(String(80))
+    email: Mapped[str] = mapped_column(String(254), index=True)  # normalisé : minuscules, sans espaces
+    telephone: Mapped[str | None] = mapped_column(String(30))
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
+
+    demandes: Mapped[list["DemandeAccueil"]] = relationship(
+        back_populates="contact", cascade="all, delete-orphan", order_by="DemandeAccueil.cree_le"
+    )
+
+
+class DemandeAccueil(Base):
+    """Demande d'un contact adulte, rangée dans une file d'« Accueil et demandes » (issues #172, #171).
+
+    Files : familles et préinscriptions, informations et questions, candidatures de professeurs, partenariats de
+    structures. Une demande ne vaut ni inscription, ni compte, ni habilitation, ni contrat ; son issue est explicite.
+    Les champs propres à la catégorie (matières d'un candidat, type de structure…) sont dans `details`, validés à
+    l'entrée par l'API. Le CV d'une candidature est un fichier hors base (`app.collaboration`), supprimé avec elle.
+    """
+
+    __tablename__ = "demande_accueil"
     __table_args__ = (
-        CheckConstraint("type IN ('candidature', 'partenariat')", name="type"),
+        CheckConstraint("categorie IN ('famille', 'information', 'candidature', 'partenariat')", name="categorie"),
+        CheckConstraint("origine IN ('formulaire-collaboration', 'saisie-admin')", name="origine"),
         CheckConstraint("statut IN ('nouveau', 'a-traiter', 'traite')", name="statut"),
-        CheckConstraint("issue IS NULL OR issue IN ('suite-demandee', 'refus', 'cloture')", name="issue"),
-        CheckConstraint("statut <> 'traite' OR issue IS NOT NULL", name="issue_si_traite"),
         CheckConstraint(
-            "structure_type IS NULL OR structure_type IN ('ecole', 'institut', 'association', 'autre')",
-            name="structure_type",
+            "issue IS NULL OR issue IN ('suite-demandee', 'inscription-effective', 'refus', 'cloture')", name="issue"
         ),
-        CheckConstraint("type = 'candidature' OR cv_fichier IS NULL", name="cv_candidature"),
+        CheckConstraint("statut <> 'traite' OR issue IS NOT NULL", name="issue_si_traite"),
+        CheckConstraint("issue IS NULL OR issue <> 'inscription-effective' OR categorie = 'famille'", name="inscription_famille"),
+        CheckConstraint("categorie = 'candidature' OR cv_fichier IS NULL", name="cv_candidature"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     reference: Mapped[str] = mapped_column(String(20), unique=True)
-    type: Mapped[str] = mapped_column(String(12), index=True)
-    # Contact adulte (professeur candidat, ou personne qui représente la structure).
+    contact_id: Mapped[int] = mapped_column(ForeignKey("contact_adulte.id", ondelete="CASCADE"), index=True)
+    categorie: Mapped[str] = mapped_column(String(12), index=True)
+    origine: Mapped[str] = mapped_column(String(30))  # d'où vient la demande, dans Boussole
+    # Coordonnées telles que saisies avec cette demande (le contact garde les siennes).
     prenom: Mapped[str] = mapped_column(String(60))
     nom: Mapped[str] = mapped_column(String(80))
     email: Mapped[str] = mapped_column(String(254))
     telephone: Mapped[str | None] = mapped_column(String(30))
-    # Candidature : listes de codes séparés par des virgules (matières, niveaux) et texte libre.
-    matieres: Mapped[str | None] = mapped_column(String(100))
-    niveaux: Mapped[str | None] = mapped_column(String(100))
-    disponibilites: Mapped[str | None] = mapped_column(String(500))
-    # Partenariat.
-    structure_nom: Mapped[str | None] = mapped_column(String(150))
-    structure_type: Mapped[str | None] = mapped_column(String(12))
-    fonction: Mapped[str | None] = mapped_column(String(100))  # fonction du contact dans la structure
-    message: Mapped[str | None] = mapped_column(String(3000))  # message du candidat ou partenariat envisagé
+    organisation: Mapped[str | None] = mapped_column(String(150))  # nom de la structure, pour un partenariat
+    message: Mapped[str | None] = mapped_column(String(3000))  # besoin, message ou partenariat envisagé
+    details: Mapped[dict] = mapped_column(JSON, default=dict)
     cv_fichier: Mapped[str | None] = mapped_column(String(64))  # nom aléatoire sur disque, jamais exposé
     cv_taille_octets: Mapped[int | None] = mapped_column(Integer)
-    # Traitement.
     statut: Mapped[str] = mapped_column(String(10), default="nouveau", index=True)
-    issue: Mapped[str | None] = mapped_column(String(16))
+    issue: Mapped[str | None] = mapped_column(String(24))
     notes_internes: Mapped[str | None] = mapped_column(String(3000))
     responsable_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
     cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, index=True)
     maj_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, index=True)
 
+    contact: Mapped["ContactAdulte"] = relationship(back_populates="demandes")
     responsable: Mapped["Enseignant | None"] = relationship()
 
 

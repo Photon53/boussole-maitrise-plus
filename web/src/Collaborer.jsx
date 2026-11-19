@@ -69,7 +69,8 @@ export default function Collaborer() {
 }
 
 function Information({ etat, profil }) {
-  const duree = etat.conservation_jours ? `${etat.conservation_jours} jours` : "la durée indiquée par l'équipe";
+  const jours = etat.conservation_jours?.[profil];
+  const duree = jours ? `${jours} jours` : "la durée indiquée par l'équipe";
   return (
     <details className="carte" open>
       <summary>Comment nous utilisons ces informations</summary>
