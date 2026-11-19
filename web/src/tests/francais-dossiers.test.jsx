@@ -47,7 +47,8 @@ describe("Français : préparation réservée aux adultes", () => {
     });
     render(<EspaceFrancais />);
     expect(await screen.findByText(/non publiés aux élèves/)).toBeInTheDocument();
-    expect(screen.getByText(/Non visible des élèves/)).toBeInTheDocument();
+    // La note est affichée avant le chargement de la liste : attendre la liste elle-même (sinon dépend du minutage).
+    expect(await screen.findByText(/Non visible des élèves/)).toBeInTheDocument();
     expect(screen.getByText(/Rédaction : Codex/)).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Ouvrir" }));

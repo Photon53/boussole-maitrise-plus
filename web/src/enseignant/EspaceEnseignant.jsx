@@ -122,7 +122,7 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
       {page.vers === "/enseignant/remarques" && <Remarques {...props} />}
       {page.vers === "/enseignant/redactions" && <Redactions {...props} />}
       {page.vers === "/enseignant/validation" && <Validation {...props} chemin={chemin} />}
-      {page.vers === "/enseignant/pkp-math" && <section className="carte"><PkpMath {...props} /></section>}
+      {page.vers === "/enseignant/pkp-math" && <section className="carte"><PkpMath {...props} adulte /></section>}
     </CadreApplication>
   );
 }

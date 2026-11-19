@@ -93,3 +93,53 @@ def pilote_rubrique(client, session, tmp_path):
     ctx = _preparer(client, session, tmp_path)
     classe, h = _classe_pilote(client, ctx, "Lina")
     return h, classe
+
+
+def test_migration_0043_sur_une_base_avec_des_chapitres_de_francais(tmp_path):
+    """Relecture de la PR #185 : une base déjà peuplée de chapitres de français (0042) migre en 0043 sans perte ;
+    leurs rubriques restent vides jusqu'au réimport, qui exige désormais le champ puis le renseigne sans doublon."""
+    from alembic import command
+    from sqlalchemy.orm import sessionmaker
+
+    from app.contenu import ContenuInvalide
+    from app.db.session import creer_moteur
+    from tests.conftest import config_alembic
+
+    url = f"sqlite:///{tmp_path / 'avant-0043.db'}"
+    config = config_alembic(url)
+    command.upgrade(config, "0042")
+    moteur = creer_moteur(url)
+    with moteur.begin() as c:
+        c.exec_driver_sql(
+            "insert into chapitre (code, niveau, parcours, titre, ordre, masque, domaine_code, nature)"
+            " values ('FR5-ANCIEN', '5e', 'tronc-commun', 'Ancien chapitre', 1, 0, 'francais-college', 'apprentissage')"
+        )
+        chapitre = c.exec_driver_sql("select id from chapitre where code = 'FR5-ANCIEN'").scalar()
+        c.exec_driver_sql(
+            "insert into competence (chapitre_id, code, libelle, ordre, masque) values (?, 'FR5-ANCIEN-C', 'Ancienne', 1, 0)",
+            (chapitre,),
+        )
+    command.upgrade(config, "0043")
+    with moteur.connect() as c:
+        assert c.exec_driver_sql("select id, rubrique from chapitre where code = 'FR5-ANCIEN'").one() == (chapitre, None)
+        assert c.exec_driver_sql("select count(*) from competence where chapitre_id = ?", (chapitre,)).scalar() == 1
+
+    # Réimport de l'ancien fichier, sans rubrique : refusé, rien ne change.
+    ancien = _chapitre_fr("FR5-ANCIEN", "5e", None, ordre=1).replace("Chapitre FR5-ANCIEN", "Ancien chapitre")
+    ecrire(tmp_path / "v1", ancien, "francais/5e/tronc-commun/01-ancien.yaml")
+    with pytest.raises(ContenuInvalide, match="`rubrique` obligatoire"):
+        charger(tmp_path / "v1")
+    # Avec la rubrique : même chapitre (pas de doublon), rubrique renseignée.
+    ecrire(tmp_path / "v2", ancien.replace("matiere: francais, ", "matiere: francais, rubrique: grammaire, "),
+           "francais/5e/tronc-commun/01-ancien.yaml")
+    with sessionmaker(bind=moteur)() as session:
+        importer(session, charger(tmp_path / "v2"), archiver_absentes=False)
+        session.commit()
+        lignes = session.execute(select(models.Chapitre.id, models.Chapitre.rubrique).where(models.Chapitre.code == "FR5-ANCIEN")).all()
+    assert lignes == [(chapitre, RubriqueFrancais.GRAMMAIRE)]
+    # Retour en 0042 : la colonne disparaît, le chapitre et sa compétence restent.
+    command.downgrade(config, "0042")
+    with moteur.connect() as c:
+        assert c.exec_driver_sql("select count(*) from chapitre where code = 'FR5-ANCIEN'").scalar() == 1
+        assert c.exec_driver_sql("select count(*) from competence where chapitre_id = ?", (chapitre,)).scalar() >= 1
+    moteur.dispose()

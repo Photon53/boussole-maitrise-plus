@@ -47,6 +47,7 @@ comptées ici comme prises (V2-D3, V2-D11 et arbitrages de présentation de V2-D
 | Id | Date | Décision confirmée | Conséquence | Source |
 |---|---|---|---|---|
 | V2-D12 — présentation | 2026-11-14 | Parcours guidé par défaut ; le professeur choisit aussi Bibliothèque ou Objectif brevet, pour un groupe ou une séance. Priorité : séance explicite → groupe → guidé ; option « Hériter du groupe » | À implémenter. Préparation réservée aux adultes, sans ouverture aux élèves. Le reste de V2-D12 demeure en attente | #111 ; [cadrage proposé](francais/CADRAGE-PARCOURS-GUIDE.md) |
+| V2-D12 — Mon cours | 2026-11-19 | Rubrique « Mon cours » du français : fiches et liens de la professeure, rattachés aux chapitres et visibles de ses seules classes, au fil de l'ouverture des chapitres. **Pendant le pilote, liens seulement** ; les PDF ne sont pas abandonnés et s'ouvriront après #4 | `GET /cours/mon-cours`, onglet « Mon cours » des classes de français ; PDF refusés côté API pour un chapitre ou une classe de français tant que `PKP_PDF_FRANCAIS_OUVERT` est faux | #180 (décision du propriétaire) |
 
 ### Sécurité et données personnelles
 

@@ -8,6 +8,7 @@ import Cours from "./Cours.jsx";
 import Diagnostic from "./Diagnostic.jsx";
 import Exercice, { CLE_BILAN, CLE_CIBLE, CLE_SEANCE } from "./Exercice.jsx";
 import Historique from "./Historique.jsx";
+import MonCours from "./MonCours.jsx";
 import Redaction from "./Redaction.jsx";
 import Progression from "./Progression.jsx";
 import EspaceEnfant, { CLE_ENFANT } from "./EspaceEnfant.jsx";
@@ -176,6 +177,8 @@ export default function EspaceEleve() {
           ...(diagnosticVisible ? [["diagnostic", "Diagnostic"]] : []),
           ["exercice", "S'entraîner"],
           ["cours", "Cours"],
+          // Issue #180 : en français, les fiches et liens de la professeure au fil du cours.
+          ...(compte.eleve.matiere === "francais" ? [["mon-cours", "Mon cours"]] : []),
           // Issue #179 : rédaction en ligne, classes de français.
           ...(compte.eleve.matiere === "francais" ? [["redaction", "Rédaction"]] : []),
           ["pkp", "Fiches et PDF"],
@@ -188,6 +191,7 @@ export default function EspaceEleve() {
       <div hidden={onglet !== "exercice"}>
         <Exercice key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} onVoirCours={voirCours} cible={cible} />
       </div>
+      {onglet === "mon-cours" && <MonCours key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
       {onglet === "redaction" && <Redaction key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
       {onglet === "cours" && (
         <Cours

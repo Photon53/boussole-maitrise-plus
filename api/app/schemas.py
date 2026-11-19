@@ -231,6 +231,14 @@ class RessourceVue(BaseModel):
     portee: str
 
 
+class ChapitreMonCours(BaseModel):
+    """Issue #180 : un chapitre ouvert de la classe, dans l'ordre du cours, avec les fiches de la professeure."""
+
+    id: int
+    titre: str
+    ressources: list[RessourceVue]
+
+
 class RessourceCreation(BaseModel):
     """Lien (avec `url`) ou PDF (le fichier est envoyé ensuite, à part)."""
 
