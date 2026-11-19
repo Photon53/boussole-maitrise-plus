@@ -133,7 +133,14 @@ export default function ClassesPilotes({ jeton, onExpire, domaines }) {
           </label>
           <label>
             Motif
-            <input value={motif} onChange={(e) => setMotif(e.target.value)} required minLength={3} maxLength={200} />
+            <input
+              value={motif}
+              onChange={(e) => setMotif(e.target.value)}
+              required
+              minLength={3}
+              maxLength={200}
+              placeholder="Ex. : pilote de janvier, sans nom d'élève"
+            />
           </label>
           <button type="submit" disabled={!choisi || !niveau || !professeur || motif.trim().length < 3}>Créer la classe pilote</button>
         </form>

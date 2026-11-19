@@ -92,7 +92,10 @@ def test_la_revocation_coupe_la_seance_en_cours_et_conserve_les_donnees(client, 
     assert client.delete(f"/admin/classes-pilotes/{pilote['classe']}", headers=pilote["admin"]).status_code == 204
     assert client.get(f"/seances/{seance}/question", headers=h).status_code == 403
     assert client.post(f"/seances/{seance}/reponses", headers=h, json={"question_id": question, "reponse_donnee": "x"}).status_code == 403
-    assert client.post(f"/seances/{seance}/fin", headers=h).status_code == 403
+    assert client.post(f"/seances/{seance}/aide", headers=h, json={"question_id": question, "objet": "exercice"}).status_code == 403
+    assert client.get(f"/eleves/moi/comprehension/{pilote['competence']}", headers=h).status_code == 404
+    # Clore la séance reste permis : elle ne reste pas ouverte indéfiniment, et rien n'est servi.
+    assert client.post(f"/seances/{seance}/fin", headers=h).status_code == 200
     assert client.get("/cours", headers=h).json() == []
     # Rien n'est supprimé : la classe, l'élève, la séance et sa réponse restent ; le professeur voit toujours sa classe.
     session.expire_all()
@@ -170,3 +173,54 @@ def test_regle_d_acces(session, client, tmp_path):
     maths = session.scalar(select(models.Classe).where(models.Classe.code == "2NDE-A-DEMO"))
     assert permissions.refus_acces_classe(session, maths) is None  # Maths lycée public
     session.rollback()
+
+
+def test_ressources_et_avis_de_comprehension(client, pilote):
+    """Une ressource de la classe et l'avis « j'ai compris » suivent la même règle, par URL directe aussi."""
+    prof = connecter_enseignant(client)
+    r = client.post("/enseignants/ressources", headers=prof, json={
+        "type": "lien", "titre": "Tableau de conjugaison", "url": "https://fr.wikipedia.org/wiki/Conjugaison",
+        "chapitre_id": pilote["chapitre"], "classe_ids": [pilote["classe"], pilote["autre"]],
+    })
+    assert r.status_code == 201, r.text
+    ressource = r.json()["id"]
+    lecon = client.get(f"/cours/{pilote['competence']}", headers=pilote["lina"]).json()
+    assert ressource in {x["id"] for x in lecon["ressources"]}
+    assert client.post(f"/ressources/{ressource}/ouverture", headers=pilote["lina"]).status_code == 204
+    assert client.post(f"/ressources/{ressource}/ouverture", headers=pilote["noe"]).status_code == 404
+    assert client.get(f"/eleves/moi/comprehension/{pilote['competence']}", headers=pilote["lina"]).status_code == 200
+    assert client.get(f"/eleves/moi/comprehension/{pilote['competence']}", headers=pilote["noe"]).status_code == 404
+    avis = {"competence_id": pilote["competence"], "compris": False}
+    assert client.post("/eleves/moi/comprehension", headers=pilote["noe"], json=avis).status_code == 404
+
+
+def test_regle_uniforme_pour_une_classe_de_maths(client, session):
+    """Option a : une classe de maths existante dont le domaine est refermé perd l'accès, puis le retrouve en pilote."""
+    admin, prof = connecter_admin(client), connecter_enseignant(client)
+    assert client.post("/admin/domaines/maths-college", headers=admin, json={"actif": True, "public": True}).status_code == 200
+    classe = client.post("/enseignants/classes", headers=prof, json={"niveau": "5e"}).json()
+    codes = inscrire_eleves(client, classe["code"], ["Sam"])
+    h = connecter_eleve(client, "Sam", classe["code"], codes["Sam"])
+    assert client.get("/cours", headers=h).json() != []
+    assert client.post("/admin/domaines/maths-college", headers=admin, json={"actif": True, "public": False}).status_code == 200
+    assert client.get("/cours", headers=h).json() == []
+    assert client.get("/eleves/moi/chapitres", headers=h).json() == []
+    assert client.post("/seances", headers=h).status_code == 403
+    assert client.post("/eleves/moi/diagnostic", headers=h).status_code == 403
+    # L'administrateur l'autorise comme classe pilote : l'accès revient.
+    r = client.post(f"/admin/classes-pilotes/{classe['id']}", headers=admin, json={"motif": "Classe en cours d'année"})
+    assert r.status_code == 201, r.text
+    assert client.get("/cours", headers=h).json() != []
+    assert client.post("/seances", headers=h).status_code == 201
+
+
+def test_autorisation_refusee_si_le_professeur_n_est_plus_habilite(client, session, tmp_path):
+    ctx = _preparer(client, session, tmp_path)
+    classe_id, _ = _classe_pilote(client, ctx, "Lina")
+    assert client.delete(f"/admin/classes-pilotes/{classe_id}", headers=ctx["admin"]).status_code == 204
+    session.expire_all()
+    prof = session.get(models.Enseignant, ctx["prof_id"])
+    permissions.appliquer(session, prof, [p for p in permissions.portees(prof) if p.domaine != "francais-college"], None)
+    session.commit()
+    r = client.post(f"/admin/classes-pilotes/{classe_id}", headers=ctx["admin"], json={"motif": "Reprise"})
+    assert r.status_code == 409 and "plus habilité" in r.json()["detail"]
