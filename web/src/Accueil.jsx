@@ -30,8 +30,7 @@ function useDonneePublique(chemin, initial, valide) {
 /** Lien d'espace : le profil, invisible à l'écran, reste dans le nom lu par un lecteur d'écran. */
 function LienEspace({ href, profil, children, secondaire = false }) {
   return (
-    <a className={`bouton${secondaire ? " secondaire" : ""}`} href={href}>
-      <span className="visuellement-cache">{profil} — </span>
+    <a className={`bouton${secondaire ? " secondaire" : ""}`} href={href} aria-label={`${profil} — ${children}`}>
       {children}
     </a>
   );

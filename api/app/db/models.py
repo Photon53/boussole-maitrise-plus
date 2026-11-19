@@ -234,6 +234,13 @@ class Eleve(Base):
         UniqueConstraint("prenom", "classe_id", name="uq_eleve_prenom_classe"),
         # Identifiant comparé sans casse (« Lina1 » = « lina1 », RGPD-1, #87).
         Index("uq_eleve_identifiant_minuscules", text("lower(identifiant)"), unique=True),
+        # Un élève fictif par acteur, rôle d'origine et classe (issue #184).
+        UniqueConstraint("simulation_par_id", "simulation_role", "classe_id", name="uq_eleve_simulation"),
+        CheckConstraint(
+            "(simulation_par_id IS NULL AND simulation_role IS NULL) OR "
+            "(simulation_par_id IS NOT NULL AND simulation_role IN ('enseignant', 'admin'))",
+            name="simulation",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -253,6 +260,11 @@ class Eleve(Base):
     # Enfant d'une famille (créé par l'administrateur) : il se connecte avec la carte de l'enfant, et cette
     # inscription partage son code. Vide pour les élèves créés directement dans une classe (ancien mode).
     enfant_id: Mapped[int | None] = mapped_column(ForeignKey("enfant.id", ondelete="CASCADE"), index=True)
+    # Élève fictif de simulation (issue #184) : propre à un professeur ou un administrateur (`simulation_par_id`,
+    # `simulation_role`) et à une classe. Sans identifiant ni code personnel communicable ; masqué de toutes les
+    # requêtes ordinaires (listes, statistiques, bilans) par `app.db.simulation`. Vide pour un vrai élève.
+    simulation_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="CASCADE"), index=True)
+    simulation_role: Mapped[str | None] = mapped_column(String(12))
 
     classe: Mapped[Classe] = relationship(back_populates="eleves")
     enfant: Mapped["Enfant | None"] = relationship(back_populates="inscriptions")
@@ -1212,3 +1224,7 @@ def _interdire_suppression_question(session: Session, _contexte, _instances) -> 
     # toute question ayant reçu au moins une réponse.
     if any(isinstance(objet, Question) for objet in session.deleted):
         raise SuppressionInterdite("Une question ne se supprime pas : archivez-la (archivee = True).")
+
+
+# Masque les élèves fictifs (issue #184) de toutes les requêtes : importé ici pour être toujours actif.
+from app.db import simulation as _simulation  # noqa: E402, F401

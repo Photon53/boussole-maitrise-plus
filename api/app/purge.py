@@ -25,6 +25,7 @@ from sqlalchemy import DateTime, delete, func, select
 from sqlalchemy.orm import Session
 
 from app import collaboration, inscriptions, parents
+from app import simulation as eleves_fictifs
 from app.config import settings
 from app.db import models
 
@@ -75,6 +76,8 @@ def purger(
         # Remarques et suggestions (ticket #30) : même durée, comptée depuis leur dernier traitement.
         session.execute(delete(models.Remarque).where(models.Remarque.maj_le < limite))
         purger_redactions(session, maintenant or datetime.now(UTC))
+        # Élèves fictifs de simulation (issue #184) : invisibles de `eleves_inactifs`, purgés à part.
+        eleves_fictifs.purger(session, maintenant)
         # Les comptes parents qui ne suivent plus aucun enfant partent avec le dernier.
         parents.supprimer_orphelins(session)
         session.commit()
