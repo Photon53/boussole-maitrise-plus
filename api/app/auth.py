@@ -45,8 +45,12 @@ def _non_authentifie() -> HTTPException:
 
 
 def eleve_courant(identifiants: Identifiants, session: SessionDB) -> models.Eleve:
+    from app import simulation
+    from app.db.simulation import INCLURE, autoriser_eleve_fictif
+
     lu = identifiants and lire_jeton(identifiants.credentials, ELEVE)
-    eleve = lu and session.get(models.Eleve, lu[0])
+    # Élève fictif (issue #184) : chargé malgré le filtre global, puis revérifié ci-dessous.
+    eleve = lu and session.get(models.Eleve, lu[0], execution_options={INCLURE: True})
     # Refusé si : jeton invalide, élève supprimé (purge RGPD), code personnel
     # régénéré par l'enseignant depuis l'émission du jeton, ou enseignant désactivé.
     if (
@@ -58,6 +62,11 @@ def eleve_courant(identifiants: Identifiants, session: SessionDB) -> models.Elev
         or carte_bloquee(eleve)
     ):
         raise _non_authentifie()
+    if simulation.est_fictif(eleve):
+        # Acteur toujours actif, même mot de passe, toujours habilité sur cette classe ; sinon, simulation fermée.
+        if simulation.refus_acteur(session, eleve):
+            raise _non_authentifie()
+        autoriser_eleve_fictif(session, eleve.id)
     return eleve
 
 

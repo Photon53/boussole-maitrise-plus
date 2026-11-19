@@ -19,12 +19,16 @@ import RessourcesAdmin from "./RessourcesAdmin.jsx";
 import { DOMAINES_PAR_DEFAUT } from "./Qualifications.jsx";
 import TableauDeBord from "./TableauDeBord.jsx";
 import PkpMath from "../pkpmath/PkpMath.jsx";
+import VueEleve from "../ui/VueEleve.jsx";
 
 const PkpMathAdmin = ({ jeton, onExpire }) => (
   <section className="carte">
     <PkpMath jeton={jeton} onExpire={onExpire} adulte />
   </section>
 );
+
+// Issue #184 : l'administrateur parcourt l'espace élève d'une classe avec son propre élève fictif.
+const VueEleveAdmin = ({ jeton, onExpire }) => <VueEleve jeton={jeton} onExpire={onExpire} role="admin" />;
 
 const CLE_COMPTE = "pkp.admin";
 const CLE_DOMAINE = "pkp.admin.domaine";
@@ -35,6 +39,7 @@ const PAGES = [
   { groupe: "Pilotage", vers: "/admin", libelle: "Tableau de bord", icone: "tableau", Page: TableauDeBord, permission: "pilotage.global" },
   { groupe: "Pilotage", vers: "/admin/journal", libelle: "Journal", icone: "journal", Page: Journal, permission: "pilotage.global" },
   { groupe: "Pilotage", vers: "/admin/remarques", libelle: "Remarques", icone: "crayon", Page: RemarquesAdmin, permission: "pilotage.global" },
+  { groupe: "Pilotage", vers: "/admin/vue-eleve", libelle: "Voir comme un élève", icone: "oeil", Page: VueEleveAdmin, permission: "pilotage.global" },
   { groupe: "Comptes", vers: "/admin/professeurs", libelle: "Équipe", icone: "professeurs", Page: Professeurs, permission: "comptes.gerer" },
   { groupe: "Comptes", vers: "/admin/familles", libelle: "Familles", icone: "eleve", Page: Familles, permission: "parents.gerer" },
   { groupe: "Comptes", vers: "/admin/eleves", libelle: "Élèves et classes", icone: "classes", Page: Eleves, permission: "comptes.gerer" },
