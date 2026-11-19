@@ -42,6 +42,7 @@ from app.referentiel import (
     PorteeRessource,
     PublicRessource,
     Role,
+    RubriqueFrancais,
     StatutObservation,
     StatutValidation,
     TypeRessource,
@@ -588,6 +589,8 @@ class Chapitre(Base):
     # Diagnostic : parcours des classes concernées, programme de l'année précédente interrogé.
     publics: Mapped[list | None] = mapped_column(JSON)
     programme_prerequis: Mapped[str | None] = mapped_column(String(40))
+    # Issue #177 : rubrique d'un chapitre de français ; vide pour les maths.
+    rubrique: Mapped[RubriqueFrancais | None] = mapped_column(_enum(RubriqueFrancais, "rubrique_francais"))
 
     competences: Mapped[list["Competence"]] = relationship(back_populates="chapitre")
 

@@ -44,6 +44,7 @@ from app.referentiel import (
     SOURCE_PKP,
     Adaptation,
     Parcours,
+    RubriqueFrancais,
     StatutValidation,
     domaine_de,
     est_principal,
@@ -251,6 +252,8 @@ class ChapitreYaml(_Strict):
     parcours: Parcours | None = None
     publics: list[Parcours] = []
     programme_prerequis: Annotated[str, Field(pattern=r"^[a-z0-9][a-z0-9-]{1,39}$")] | None = None
+    # Français seulement (issue #177) : conjugaison, grammaire, redaction ou mon_cours ; obligatoire en français.
+    rubrique: RubriqueFrancais | None = None
     ordre: Annotated[int, Field(ge=1, le=99)]
     titre: Annotated[str, Field(min_length=1, max_length=200)]
 
@@ -278,6 +281,15 @@ class ChapitreYaml(_Strict):
         if self.programme_prerequis is None:
             raise ValueError("`programme_prerequis` obligatoire : programme suivi l'année précédente (ex. 4e-2020)")
         self.parcours = self.publics[0]
+        return self
+
+    @model_validator(mode="after")
+    def _rubrique(self):
+        if self.matiere == "francais" and self.rubrique is None:
+            raise ValueError("`rubrique` obligatoire pour un chapitre de français : "
+                             + ", ".join(r.value for r in RubriqueFrancais))
+        if self.matiere != "francais" and self.rubrique is not None:
+            raise ValueError("`rubrique` ne concerne que les chapitres de français")
         return self
 
     @model_validator(mode="after")
@@ -621,7 +633,7 @@ def importer(
             rapport.crees["chapitres"] += 1
         else:
             avant = (chapitre.code, chapitre.niveau, chapitre.parcours, chapitre.titre, chapitre.nature, chapitre.publics,
-                     chapitre.programme_prerequis)
+                     chapitre.programme_prerequis, chapitre.rubrique)
             _appliquer(
                 chapitre, {"code": ch.code, "niveau": ch.niveau, "parcours": ch.parcours, "titre": ch.titre, "ordre": ch.ordre,
                  "domaine_code": domaine_de(ch.matiere, ch.niveau), **_nature(ch)}
@@ -660,11 +672,13 @@ def importer(
 
 
 def _nature(ch: ChapitreYaml) -> dict:
-    """Nature du chapitre ; pour un diagnostic, ses publics et le programme interrogé (issue #162)."""
+    """Nature du chapitre ; pour un diagnostic, ses publics et le programme interrogé (issue #162) ; rubrique d'un
+    chapitre de français (issue #177)."""
     return {
         "nature": ch.nature,
         "publics": [p.value for p in ch.publics] if ch.diagnostic else None,
         "programme_prerequis": ch.programme_prerequis,
+        "rubrique": ch.rubrique,
     }
 
 

@@ -57,6 +57,12 @@ L'état de la banque (matrice de couverture, trous, validation, registre des sou
 > **Français** (#98) : `contenu/francais/<niveau>/*.json` suit un autre contrat, sans correction automatique ni
 > solution exacte : voir [francais/FORMAT-IMPORT.md](francais/FORMAT-IMPORT.md). Ces fichiers ne sont lus ni par
 > `python -m app.contenu` ni par l'import au démarrage ; ils s'importent par `python -m app.francais importer`.
+>
+> **Chapitres de français interactifs** (#177) : les exercices de français corrigés automatiquement (QCM, choix
+> multiples, réponse courte) suivent au contraire le format YAML ci-dessous, avec `matiere: francais`, rangés sous
+> `contenu/francais/<niveau>/tronc-commun/`. Chaque chapitre de français déclare une **`rubrique`** :
+> `conjugaison`, `grammaire`, `redaction` ou `mon_cours` (obligatoire en français, refusée en maths). Les rubriques
+> sont indépendantes des niveaux : un adulte filtre par exemple toute la conjugaison de la 6e à la 3e.
 
 ## Cycle de travail
 
