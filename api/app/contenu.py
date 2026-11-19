@@ -319,7 +319,9 @@ class FichierContenu(_Strict):
                 raise ValueError(f"pas de valeurs variables (`gabarit`) dans un diagnostic : {', '.join(variables)}")
             return self
         if not self.chapitre.diagnostic:
-            reserves = [q.code for c in self.competences for q in c.questions if q.type in TYPES_DIAGNOSTIC]
+            # Issue #179 : un sujet de rédaction est permis dans un chapitre de français de la rubrique « redaction ».
+            permis = {TypeQuestion.REDACTION} if self.chapitre.rubrique is RubriqueFrancais.REDACTION else set()
+            reserves = [q.code for c in self.competences for q in c.questions if q.type in TYPES_DIAGNOSTIC - permis]
             if reserves:
                 raise ValueError(
                     f"types « choix_multiples » et « redaction » réservés aux chapitres de diagnostic : {', '.join(reserves)}"

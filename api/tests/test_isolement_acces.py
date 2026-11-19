@@ -82,6 +82,7 @@ def remplir(chemin: str, valeurs: dict[str, object]) -> str:
 CORPS: dict[tuple[str, str], dict] = {
     ("POST", "/enseignants/classes/{classe_id}/eleves"): {"prenoms": ["Intrus"]},
     ("PUT", "/enseignants/classes/{classe_id}/chapitres"): {"chapitre_ids": []},
+    ("POST", "/enseignants/redactions/{redaction_id}/correction"): {"commentaire": "Commentaire de l'intrus"},  # #179
     ("PUT", "/enseignants/classes/{classe_id}/diagnostic"): {"ouvert": True},
     ("PATCH", "/enseignants/eleves/{eleve_id}"): {"prenom": "Renomme"},
     ("POST", "/enseignants/eleves/{eleve_id}/parents"): {"email": "intrus@exemple.fr"},

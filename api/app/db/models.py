@@ -195,6 +195,39 @@ class ClassePilote(Base):
     accordee_par: Mapped["Enseignant | None"] = relationship()
 
 
+class Redaction(Base):
+    """Rédaction d'un élève sur un sujet de français (issue #179, décision RGPD-2).
+
+    Une ligne par version : brouillon (visible de l'élève seul), remise (visible du professeur de la classe),
+    corrigée (commentaire du professeur, puis réécriture possible dans une nouvelle version). Conservée jusqu'au
+    31 août de l'année scolaire (`conserver_jusqu_au`), puis supprimée par la purge ; supprimée avec l'élève.
+    """
+
+    __tablename__ = "redaction"
+    __table_args__ = (
+        UniqueConstraint("eleve_id", "question_id", "version", name="uq_redaction_eleve_question_version"),
+        CheckConstraint("statut IN ('brouillon', 'remise', 'corrigee')", name="statut"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("question.id", ondelete="RESTRICT"), index=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    texte: Mapped[str] = mapped_column(Text, default="")
+    statut: Mapped[str] = mapped_column(String(10), default="brouillon")
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, server_default=func.now())
+    maj_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, server_default=func.now())
+    remise_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    commentaire: Mapped[str | None] = mapped_column(Text)
+    corrigee_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    correcteur_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    conserver_jusqu_au: Mapped[date] = mapped_column(Date, index=True)
+
+    eleve: Mapped["Eleve"] = relationship()
+    question: Mapped["Question"] = relationship()
+    correcteur: Mapped["Enseignant | None"] = relationship()
+
+
 class Eleve(Base):
     __tablename__ = "eleve"
     __table_args__ = (

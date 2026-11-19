@@ -12,6 +12,7 @@ from fastapi import APIRouter, HTTPException, Request, Response, status
 from pkp_engine import (
     ESPACEMENT_REVISION,
     Question,
+    TypeQuestion,
     Verdict,
     calculer_maitrise,
     choisir_prochaine_question,
@@ -319,6 +320,7 @@ def _candidates(session: SessionDB, seance: models.Seance, eleve: models.Eleve) 
                 # Chapitres choisis pour la séance ; séances antérieures : tous les chapitres ouverts.
                 models.Chapitre.id.in_([c.id for c in seance.chapitres] or ids_ouverts(eleve.classe)),
                 models.Question.archivee.is_(False),
+                models.Question.type != TypeQuestion.REDACTION,  # #179 : se rédige dans « Rédaction », jamais en séance
                 *filtre_apprentissage(),
                 *filtre_validation(),
                 *([models.Question.competence_id.in_([c.id for c in seance.competences])] if seance.competences else []),

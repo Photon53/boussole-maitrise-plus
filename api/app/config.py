@@ -38,6 +38,10 @@ class Settings(BaseSettings):
     # le renforcement du contrôle des PDF (#4) : PKP_PDF_FRANCAIS_OUVERT=true n'a d'effet que si CONTROLE_PDF_RENFORCE
     # est vrai (procédure : docs/DEPLOIEMENT.md).
     pdf_francais_ouvert: bool = False
+    # Issue #179 (décision RGPD-2) : rédaction en ligne fermée tant que le responsable, la base légale et
+    # l'information des élèves et des parents ne sont pas validés ; PKP_REDACTION_ACTIVE=true pour l'ouvrir.
+    redaction_active: bool = False
+    redaction_longueur_max: int = 10_000
     # Vérifier qu'un lien répond au moment où il est enregistré (désactivé en test).
     verifier_liens: bool = True
 
