@@ -7,6 +7,7 @@ modifiée ici porte `modifiee_admin_le` ; l'import YAML ne l'écrase plus sans `
 from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
+from fastapi.concurrency import run_in_threadpool
 from pkp_engine import CorrectionHumaineRequise, ExpressionInvalide, Forme, Niveau, TypeQuestion, Verdict, gabarits, reponse_modele, verifier
 from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import selectinload
@@ -564,7 +565,8 @@ async def envoyer_pdf(ressource_id: int, request: Request, admin: AdminCourant, 
         raise HTTPException(422, "Seul le PDF d'une ressource commune s'envoie ici.")
     if refus := ressources.refus_envoi_pdf(session, r):  # #180 : liens seulement en français pendant le pilote
         raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
-    ressources.enregistrer_pdf(r, await _lire_corps(request))
+    # Analyse isolée et bloquante (#4) : hors de la boucle d'événements.
+    await run_in_threadpool(ressources.enregistrer_pdf, r, await _lire_corps(request))
     journal.noter(session, admin, "envoyer-pdf", "ressource", r.id)
     session.commit()
     return ressources.detail(session, r)

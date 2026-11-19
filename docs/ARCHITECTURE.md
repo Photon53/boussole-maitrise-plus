@@ -146,6 +146,11 @@ Un enfant n'a **aucun nom de famille** : la colonne `enfant.nom` a été supprim
 - **Saisie** : un champ `nom` est refusé par l'API (`extra="forbid"`) ; un classeur d'import qui remplit la colonne « Nom » est refusé ; un prénom sans aucune lettre est refusé.
 - **Limitation des tentatives** : voir `docs/audit/rgpd-1-limitation-connexion.md`.
 
+### Vue élève simulée (#184)
+Un professeur ou un administrateur ouvre l'espace élève d'une classe avec un élève fictif (`eleve.simulation_par_id`,
+migration `0045`) et un jeton élève ordinaire. Un filtre ORM global (`app/db/simulation.py`) retire ces élèves et
+tout leur travail de toutes les autres lectures. Détails, limites et purge : [SIMULATION-ELEVE.md](SIMULATION-ELEVE.md).
+
 ### Français (préparation, #98)
 Tables `dossier_francais` et `dossier_francais_version` (migration 0037) : parties élève et professeur séparées,
 empreinte du fichier source, circuit de validation des séances d'anglais. Contrat et accès :

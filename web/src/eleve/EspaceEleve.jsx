@@ -14,6 +14,8 @@ import Progression from "./Progression.jsx";
 import EspaceEnfant, { CLE_ENFANT } from "./EspaceEnfant.jsx";
 import PkpMath from "../pkpmath/PkpMath.jsx";
 import Remarques from "../ui/Remarques.jsx";
+import { naviguer } from "../navigation.js";
+import { ORIGINES, viderSessionEleve } from "../simulation.js";
 
 const CLE_COMPTE = "pkp.eleve";
 
@@ -113,6 +115,36 @@ export default function EspaceEleve() {
     quitterInscription();
     ecrire(CLE_ENFANT, null);
     setEnfant(null);
+    // Simulation (issue #184) : expirée, révoquée ou terminée, on revient à l'espace d'origine.
+    if (compte?.simulation) {
+      viderSessionEleve();
+      naviguer(ORIGINES[compte.simulation.role]?.vers ?? "/");
+    }
+  }
+
+  async function reinitialiserSimulation() {
+    if (!window.confirm("Effacer les réponses, la progression et le travail de cet élève fictif ?")) return;
+    try {
+      const nouveau = await api("/eleves/moi/simulation/reinitialiser", { methode: "POST", jeton: compte.jeton });
+      ecrire(CLE_SEANCE, null);
+      ecrire(CLE_BILAN, null);
+      ecrire(CLE_CIBLE, null);
+      setCible(null);
+      setLeconOuverte(null);
+      setHistoriqueDe(null);
+      setOnglet("exercice");
+      setErreurParcours(null);
+      connecter({ jeton: nouveau.jeton, eleve: nouveau.eleve, simulation: nouveau.simulation }, false);
+    } catch (err) {
+      if (err.status === 401) return deconnecter();
+      setErreurParcours(err.message);
+    }
+  }
+
+  async function terminerSimulation() {
+    // Le serveur révoque le jeton ; même s'il ne répond pas, la session locale est fermée.
+    await api("/eleves/moi/simulation/fermer", { methode: "POST", jeton: compte.jeton }).catch(() => {});
+    deconnecter();
   }
 
   function connexionCarte(reponse, durable) {
@@ -137,6 +169,13 @@ export default function EspaceEleve() {
 
   return (
     <>
+      {compte.simulation && (
+        <BandeauSimulation
+          simulation={compte.simulation}
+          onReinitialiser={reinitialiserSimulation}
+          onRetour={terminerSimulation}
+        />
+      )}
       <div className="barre-session">
         <p>
           Bonjour <strong>{compte.eleve.prenom}</strong>{" "}
@@ -159,7 +198,7 @@ export default function EspaceEleve() {
             </select>
           </div>
         )}
-        {enfant ? (
+        {compte.simulation ? null : enfant ? (
           <button className="lien" onClick={quitterInscription}>
             ← Mes matières
           </button>
@@ -235,6 +274,34 @@ export default function EspaceEleve() {
       {onglet === "progression" && <Progression key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
       {onglet === "remarques" && <Remarques jeton={compte.jeton} onExpire={deconnecter} tutoiement />}
     </>
+  );
+}
+
+/** Bandeau permanent de la vue élève simulée (issue #184) : contexte, réinitialisation, retour à l'espace d'origine. */
+export function BandeauSimulation({ simulation, onReinitialiser, onRetour }) {
+  const origine = ORIGINES[simulation.role] ?? ORIGINES.enseignant;
+  const fin = simulation.expire_le
+    ? new Date(simulation.expire_le).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })
+    : null;
+  return (
+    <section className="bandeau-simulation" aria-label="Simulation élève">
+      <p>
+        <strong>Simulation élève</strong> · {simulation.domaine} · {simulation.niveau} · classe {simulation.code_classe}
+        <br />
+        <span>
+          Élève fictif : vos essais n'apparaissent ni chez le professeur, ni dans les statistiques, ni chez les familles.
+          {fin && ` Simulation ouverte jusqu'à ${fin}.`}
+        </span>
+      </p>
+      <div className="actions">
+        <button type="button" className="secondaire" onClick={onReinitialiser}>
+          Réinitialiser la simulation
+        </button>
+        <button type="button" onClick={onRetour}>
+          {origine.libelle}
+        </button>
+      </div>
+    </section>
   );
 }
 

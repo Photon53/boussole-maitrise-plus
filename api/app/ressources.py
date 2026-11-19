@@ -7,6 +7,7 @@ Qui voit quoi :
 - administrateur : toutes.
 
 Usage du contrôle hebdomadaire des liens, depuis `api/` : `python -m app.ressources verifier-liens`
+Réanalyse des PDF déjà déposés (#4, lecture seule) : `python -m app.ressources verifier-pdf`
 """
 
 import argparse
@@ -19,7 +20,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session, selectinload
 
-from app import liens_sortants
+from app import controle_pdf, liens_sortants
 from app.config import settings
 from app.db import models
 from app.progression import ids_ouverts_eleve
@@ -53,8 +54,7 @@ def detail(session: Session, r: models.Ressource) -> RessourceDetail:
 
 
 PDF_FRANCAIS_FERME = (
-    "En français, le pilote n'accepte que des liens : le dépôt de PDF ouvrira après le renforcement du contrôle des "
-    "fichiers. Ajoutez plutôt un lien."
+    "En français, le pilote n'accepte que des liens : le dépôt de PDF n'est pas encore ouvert. Ajoutez plutôt un lien."
 )
 
 
@@ -62,8 +62,8 @@ def refus_pdf_francais(
     session: Session, chapitre_id: int | None, competence_id: int | None, classe_ids: list[int] | None
 ) -> str | None:
     """Issue #180 : un PDF rattaché à un chapitre de français ou destiné à une classe de français est refusé tant
-    que `pdf_francais_ouvert` est faux, ou que le contrôle renforcé des PDF (#4) n'est pas livré
-    (`config.CONTROLE_PDF_RENFORCE`). Les maths ne changent pas."""
+    que `pdf_francais_ouvert` est faux, ou sans le contrôle renforcé des PDF (#4, `config.CONTROLE_PDF_RENFORCE`).
+    Les maths ne changent pas."""
     from app import config
 
     if settings.pdf_francais_ouvert and config.CONTROLE_PDF_RENFORCE:
@@ -260,18 +260,22 @@ def dossier() -> Path:
 
 
 def valider_pdf(contenu: bytes) -> None:
-    """Signature %PDF-, taille, ni chiffrement ni JavaScript (EA5.5)."""
+    """Taille, puis analyse complète dans un processus isolé (#4, EA5.5) : voir `app.controle_pdf`."""
     if len(contenu) > settings.pdf_taille_max_mo * 1024 * 1024:
         raise HTTPException(413, f"Le PDF dépasse {settings.pdf_taille_max_mo} Mo.")
     if not contenu.startswith(b"%PDF-"):
         raise HTTPException(422, "Ce fichier n'est pas un PDF.")
-    if b"/Encrypt" in contenu:
-        raise HTTPException(422, "Les PDF protégés par mot de passe ne sont pas acceptés.")
-    if b"/JavaScript" in contenu or b"/JS" in contenu:
-        raise HTTPException(422, "Les PDF contenant du JavaScript ne sont pas acceptés.")
+    try:
+        controle_pdf.analyser_isole(contenu)
+    except controle_pdf.PdfRefuse as refus:
+        raise HTTPException(422, str(refus)) from None
 
 
 def enregistrer_pdf(r: models.Ressource, contenu: bytes) -> None:
+    """Contrôle, puis écriture sous un nom aléatoire. Un PDF refusé n'est jamais écrit : rien n'est publié.
+
+    Appel bloquant (l'analyse peut durer plusieurs secondes) : depuis une route asynchrone, passer par
+    `run_in_threadpool`."""
     valider_pdf(contenu)
     ancien = r.fichier
     nom = secrets.token_hex(16) + ".pdf"
@@ -295,14 +299,37 @@ def supprimer_fichier(nom: str | None) -> None:
         (dossier() / nom).unlink(missing_ok=True)
 
 
+def verifier_pdf_deposes(session: Session) -> list[tuple[models.Ressource, str]]:
+    """Réanalyse les PDF déjà déposés (#4) ; renvoie ceux que le contrôle actuel refuserait, avec le motif.
+
+    Lecture seule : rien n'est masqué ni supprimé ; un administrateur décide de la suite."""
+    refuses = []
+    for r in session.scalars(select(models.Ressource).where(models.Ressource.fichier.is_not(None)).order_by(models.Ressource.id)):
+        chemin = dossier() / r.fichier
+        if not chemin.is_file():
+            refuses.append((r, "fichier introuvable"))
+            continue
+        try:
+            controle_pdf.analyser_isole(chemin.read_bytes())
+        except controle_pdf.PdfRefuse as refus:
+            refuses.append((r, str(refus)))
+    return refuses
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Ressources PKP Math Lycée")
-    parser.add_argument("commande", choices=["verifier-liens"])
-    parser.parse_args()
+    parser.add_argument("commande", choices=["verifier-liens", "verifier-pdf"])
+    commande = parser.parse_args().commande
 
     from app.db.session import SessionLocale
 
     with SessionLocale() as session:
+        if commande == "verifier-pdf":
+            refuses = verifier_pdf_deposes(session)
+            for r, motif in refuses:
+                print(f"PDF refusé par le contrôle actuel : ressource {r.id} « {r.titre} » — {motif}")
+            print(f"Contrôle terminé : {len(refuses)} PDF à revoir (rien n'a été modifié).")
+            return
         caches = verifier_liens(session)
         for r in caches:
             print(f"Lien en échec, caché aux élèves : « {r.titre} » ({r.url}), auteur {r.auteur.email}")

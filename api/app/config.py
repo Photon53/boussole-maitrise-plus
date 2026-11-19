@@ -6,10 +6,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 CLE_DEV = "dev-uniquement-a-changer"
 
 
-# Issue #180 (relecture de la PR #186) : verrou technique des PDF de français. Ne passe à True que dans la PR qui livre
-# le contrôle renforcé des PDF (#4), avec ses tests. Tant qu'il est faux, PKP_PDF_FRANCAIS_OUVERT reste sans effet, et
-# l'API refuse de démarrer en production si le réglage est activé.
-CONTROLE_PDF_RENFORCE = False
+# Issue #180 (relecture de la PR #186) : verrou technique des PDF de français. Passé à True par la PR qui livre le
+# contrôle renforcé des PDF (#4, `app/controle_pdf.py`), avec ses tests. S'il était faux, PKP_PDF_FRANCAIS_OUVERT
+# resterait sans effet et l'API refuserait de démarrer en production avec ce réglage. L'ouverture des PDF de français
+# reste soumise à la décision du propriétaire (docs/DEPLOIEMENT.md) : PKP_PDF_FRANCAIS_OUVERT vaut false par défaut.
+CONTROLE_PDF_RENFORCE = True
 
 
 class Settings(BaseSettings):
@@ -34,9 +35,9 @@ class Settings(BaseSettings):
     dossier_fichiers: str = "./fichiers"
     pdf_taille_max_mo: int = 10
     pdf_max_par_enseignant: int = 50
-    # Issue #180 (décision du 19/11/2026) : en français, liens seulement pendant le pilote. Les PDF s'ouvriront après
-    # le renforcement du contrôle des PDF (#4) : PKP_PDF_FRANCAIS_OUVERT=true n'a d'effet que si CONTROLE_PDF_RENFORCE
-    # est vrai (procédure : docs/DEPLOIEMENT.md).
+    # Issue #180 (décision du 19/11/2026) : en français, liens seulement pendant le pilote. Les PDF s'ouvriront sur
+    # décision du propriétaire, le contrôle renforcé des PDF (#4) étant livré : PKP_PDF_FRANCAIS_OUVERT=true n'a
+    # d'effet que si CONTROLE_PDF_RENFORCE est vrai (procédure : docs/DEPLOIEMENT.md).
     pdf_francais_ouvert: bool = False
     # Issue #179 (décision RGPD-2) : rédaction en ligne fermée tant que le responsable, la base légale et
     # l'information des élèves et des parents ne sont pas validés ; PKP_REDACTION_ACTIVE=true pour l'ouvrir.
