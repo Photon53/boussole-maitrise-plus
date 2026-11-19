@@ -9,7 +9,7 @@ from app import config
 from app.config import settings
 from app.db import models
 from tests import pdf_exemples
-from tests.conftest import connecter_admin, connecter_enseignant
+from tests.conftest import connecter_admin, connecter_eleve, connecter_enseignant
 from tests.test_classes_pilotes import pilote  # noqa: F401  (fixture : classe pilote de Lina, classe révoquée de Noé)
 
 PDF = pdf_exemples.ordinaire()
@@ -38,6 +38,17 @@ def test_mon_cours_suit_l_avancee_du_cours(client, pilote):  # noqa: F811
     assert client.get("/cours/mon-cours", headers=pilote["lina"]).json() == []
     assert client.put(chemin, headers=prof, json={"chapitre_ids": [pilote["chapitre"]]}).status_code == 200
     assert len(client.get("/cours/mon-cours", headers=pilote["lina"]).json()) == 1
+
+
+def test_un_eleve_d_une_autre_matiere_ne_voit_pas_le_lien(client, pilote):  # noqa: F811
+    """Classe de maths de démonstration : ni « Mon cours » ni le cours ne servent le lien de la classe de français."""
+    lien = _lien(client, pilote)
+    maths = connecter_eleve(client)
+    cours = client.get("/cours/mon-cours", headers=maths)
+    assert cours.status_code == 200, cours.text
+    assert pilote["chapitre"] not in {c["id"] for c in cours.json()}
+    assert lien["id"] not in {r["id"] for c in cours.json() for r in c["ressources"]}
+    assert client.get(f"/cours/{pilote['competence']}", headers=maths).status_code == 404
 
 
 def test_un_lien_masque_ou_reserve_aux_enseignants_n_apparait_pas(client, pilote):  # noqa: F811

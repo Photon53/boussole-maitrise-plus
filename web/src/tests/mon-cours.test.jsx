@@ -1,6 +1,7 @@
 // Issue #180 — Mon cours : fiches de la professeure au fil du cours (Claude)
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import EspaceEleve from "../eleve/EspaceEleve.jsx";
 import MonCours from "../eleve/MonCours.jsx";
 import { fausseApi } from "./setup.js";
 
@@ -32,5 +33,30 @@ describe("Mon cours (#180)", () => {
     fausseApi({ "GET /cours/mon-cours": { json: [] } });
     render(<MonCours jeton="j" onExpire={vi.fn()} />);
     expect(await screen.findByText("Ta professeure n'a pas encore ouvert de chapitre.")).toBeInTheDocument();
+  });
+});
+
+describe("onglet « Mon cours » selon la matière (#180)", () => {
+  const session = (matiere) =>
+    sessionStorage.setItem(
+      "pkp.eleve",
+      JSON.stringify({ jeton: "j", eleve: { id: 1, prenom: "Lina", code_classe: "5E-FR-AAAAA", niveau: "5e", matiere } }),
+    );
+
+  it("apparaît pour une classe de français", async () => {
+    session("francais");
+    fausseApi({});
+    render(<EspaceEleve />);
+    expect(await screen.findByRole("tab", { name: "Mon cours" })).toBeInTheDocument();
+    sessionStorage.clear();
+  });
+
+  it("n'apparaît pas pour une classe de maths", async () => {
+    session("maths");
+    fausseApi({});
+    render(<EspaceEleve />);
+    expect(await screen.findByRole("tab", { name: "S'entraîner" })).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Mon cours" })).not.toBeInTheDocument();
+    sessionStorage.clear();
   });
 });
