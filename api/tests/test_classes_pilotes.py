@@ -224,3 +224,36 @@ def test_autorisation_refusee_si_le_professeur_n_est_plus_habilite(client, sessi
     session.commit()
     r = client.post(f"/admin/classes-pilotes/{classe_id}", headers=ctx["admin"], json={"motif": "Reprise"})
     assert r.status_code == 409 and "plus habilité" in r.json()["detail"]
+
+
+def test_parent_et_progression_apres_revocation(client, session, pilote):
+    """Décisions du 19/11 : le parent ne voit plus énoncé, solution ni correction ; la progression de l'élève se
+    limite à ce qu'il a déjà travaillé ; le professeur garde sa vue complète."""
+    h = pilote["lina"]
+    seance = client.post("/seances", headers=h).json()["id"]
+    _repondre(client, h, seance)
+    lina = session.scalar(select(models.Eleve).where(models.Eleve.classe_id == pilote["classe"]))
+    # Un parent rattaché à Lina par son professeur.
+    admin = pilote["admin"]
+    p = client.post(f"/enseignants/eleves/{lina.id}/parents", headers=connecter_enseignant(client), json={"email": "p@x.test"})
+    assert p.status_code == 201, p.text
+    j = client.post("/parents/connexion", json={"email": "p@x.test", "mot_de_passe": p.json()["mot_de_passe_provisoire"]}).json()
+    hp = entete(client.post("/parents/mot-de-passe", headers=entete(j["jeton"]),
+                            json={"actuel": p.json()["mot_de_passe_provisoire"], "nouveau": "un-nouveau-mdp-2026"}).json()["jeton"])
+    avant = client.get(f"/parents/enfants/{lina.id}/historique", headers=hp).json()["elements"]
+    assert avant[0]["enonce"] and avant[0]["solution"] and avant[0]["contenu_masque"] is False
+
+    assert client.delete(f"/admin/classes-pilotes/{pilote['classe']}", headers=admin).status_code == 204
+    reponse = client.get(f"/parents/enfants/{lina.id}/historique", headers=hp)
+    apres = reponse.json()["elements"]
+    assert apres[0]["contenu_masque"] is True and apres[0]["enonce"] == "" and apres[0]["solution"] == ""
+    assert apres[0]["correction"] is None and apres[0]["reponse_donnee"] == "finissent"
+    assert "finir, ils" not in reponse.text and "ils finissent" not in reponse.text
+    # Le professeur garde l'énoncé et la correction dans sa vue.
+    prof = client.get(f"/enseignants/eleves/{lina.id}/historique", headers=connecter_enseignant(client)).json()["elements"]
+    assert prof[0]["enonce"] and prof[0]["contenu_masque"] is False
+
+    # Progression : Noé (jamais rien fait, classe révoquée) ne voit plus le programme ; Lina, seulement ce qu'elle a travaillé.
+    assert client.get("/eleves/moi/progression", headers=pilote["noe"]).json() == []
+    assert [c["nb_reponses"] > 0 for c in client.get("/eleves/moi/progression", headers=h).json()] == [True]
+    assert client.get(f"/enseignants/eleves/{lina.id}/progression", headers=connecter_enseignant(client)).json() != []

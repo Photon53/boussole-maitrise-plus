@@ -132,9 +132,24 @@ def competences_du_niveau(session: Session, eleve: models.Eleve) -> list[models.
     )
 
 
-def progression_eleve(session: Session, eleve: models.Eleve) -> list[ProgressionCompetence]:
+def _acces_refuse(session: Session, eleve: models.Eleve) -> bool:
+    from app.permissions import refus_acces_classe
+
+    return refus_acces_classe(session, eleve.classe) is not None
+
+
+def progression_eleve(session: Session, eleve: models.Eleve, limiter: bool = False) -> list[ProgressionCompetence]:
+    """Progression par compétence des chapitres ouverts de la classe.
+
+    `limiter` (vue de l'élève et de son parent, #176, décision du 19/11/2026) : si la classe n'a pas accès à son
+    domaine (domaine fermé, classe non pilote ou révoquée), seules les compétences déjà travaillées sont listées,
+    pour ne pas révéler le programme d'un domaine fermé. La vue du professeur n'est pas limitée.
+    """
     historique = historique_eleve(session, eleve.id)
     nb_par_competence = Counter(r.competence_id for r in historique)
+    competences = competences_du_niveau(session, eleve)
+    if limiter and _acces_refuse(session, eleve):
+        competences = [c for c in competences if nb_par_competence[c.id]]
     return [
         ProgressionCompetence(
             competence_id=c.id,
@@ -145,7 +160,7 @@ def progression_eleve(session: Session, eleve: models.Eleve) -> list[Progression
             maitrise=calculer_maitrise(historique, c.id),
             maitrisee=est_maitrisee(historique, c.id),
         )
-        for c in competences_du_niveau(session, eleve)
+        for c in competences
     ]
 
 
@@ -215,9 +230,15 @@ def export_eleve(session: Session, eleve: models.Eleve) -> JSONResponse:
 
 
 def historique_reponses(
-    session: Session, eleve: models.Eleve, page: int = 1, erreurs_seulement: bool = False, competence_id: int | None = None
+    session: Session, eleve: models.Eleve, page: int = 1, erreurs_seulement: bool = False, competence_id: int | None = None,
+    pour_parent: bool = False,
 ) -> PageHistorique:
-    """Réponses de l'élève, de la plus récente à la plus ancienne, avec la correction de chaque question."""
+    """Réponses de l'élève, de la plus récente à la plus ancienne, avec la correction de chaque question.
+
+    `pour_parent` (#176, SEC-D6 option b) : si la classe n'a pas accès à son domaine, énoncé, solution et correction
+    sont retirés ; la réponse donnée, le résultat et les libellés restent (données de l'enfant).
+    """
+    masquer = pour_parent and _acces_refuse(session, eleve)
     filtres = [models.Seance.eleve_id == eleve.id]
     if competence_id is not None:
         filtres.append(models.Question.competence_id == competence_id)
@@ -244,10 +265,11 @@ def historique_reponses(
         elements=[
             ReponseHistorique(
                 id=r.id, repondu_le=r.repondu_le, seance_id=r.seance_id, question_id=q.id, competence_id=c.id,
-                competence=c.libelle, chapitre=ch.titre, enonce=exemplaires.enonce(q, r.tirage), type=q.type,
-                difficulte=q.difficulte, reponse_donnee=r.reponse_donnee, correcte=r.correcte,
-                solution=exemplaires.solution(q, r.tirage), correction=exemplaires.correction(q, r.tirage),
-                duree_s=round(r.duree_s, 1),
+                competence=c.libelle, chapitre=ch.titre, type=q.type,
+                difficulte=q.difficulte, reponse_donnee=r.reponse_donnee, correcte=r.correcte, duree_s=round(r.duree_s, 1),
+                **({"enonce": "", "solution": "", "correction": None, "contenu_masque": True} if masquer else {
+                    "enonce": exemplaires.enonce(q, r.tirage), "solution": exemplaires.solution(q, r.tirage),
+                    "correction": exemplaires.correction(q, r.tirage)}),
             )
             for r, q, c, ch in lignes
         ],

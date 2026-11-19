@@ -213,7 +213,7 @@ def changer_de_parcours(eleve_id: int, eleve: EleveCourant, session: SessionDB) 
 
 @router.get("/eleves/moi/progression", response_model=list[ProgressionCompetence])
 def ma_progression(eleve: EleveCourant, session: SessionDB) -> list[ProgressionCompetence]:
-    return progression_eleve(session, eleve)
+    return progression_eleve(session, eleve, limiter=True)
 
 
 @router.get("/eleves/moi/chapitres", response_model=list[ChapitreOuvert])
