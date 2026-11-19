@@ -119,4 +119,13 @@ Sauvegardes : chiffrées, copiées hors du serveur, gardées 60 jours, restaurat
   60 échecs de connexion élève par 15 min, SEC-D5) sont réglés pour une classe entière ; voir `PKP_CONNEXION_*`
   dans `app/config.py`. Plusieurs classes qui se connectent en même temps derrière la même adresse peuvent
   approcher le plafond de 60 échecs : l'augmenter avec `PKP_CONNEXION_ELEVE_MAX_ECHECS_PAR_IP` dans `.env` si besoin.
-- **PDF des ressources de français** (#180) : fermés pendant le pilote (liens seulement). Ils s'ouvriront après le renforcement du contrôle des PDF (#4), par `PKP_PDF_FRANCAIS_OUVERT=true` dans `.env` ; ne pas l'activer avant.
+- **PDF des ressources de français** (#180) : fermés pendant le pilote (liens seulement). Verrou technique :
+  `PKP_PDF_FRANCAIS_OUVERT=true` reste sans effet tant que `CONTROLE_PDF_RENFORCE` vaut `False` dans
+  `api/app/config.py`, et l'API refuse alors de démarrer en production avec ce réglage. Procédure d'ouverture,
+  dans cet ordre :
+  1. la PR qui livre le contrôle renforcé des PDF (#4) passe `CONTROLE_PDF_RENFORCE` à `True`, avec ses tests
+     (PDF ordinaires, malformés, chiffrés, à actions actives ; limites de taille et de durée) ; revue de sécurité ;
+  2. le propriétaire consigne la décision d'ouverture dans `docs/DECISIONS.md` (« V2-D12 — Mon cours ») ;
+  3. activation d'abord en DEV, essai par la professeure (dépôt, consultation par une classe pilote, refus d'un PDF
+     piégé) ;
+  4. sauvegarde, puis `PKP_PDF_FRANCAIS_OUVERT=true` dans le `.env` de production et redémarrage.

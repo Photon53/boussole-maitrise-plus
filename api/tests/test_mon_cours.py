@@ -2,7 +2,9 @@
 le français n'accepte que des liens (décision du 19/11/2026), les PDF rouvrant par réglage après #4."""
 # Issue #180 — Mon cours : fiches de la professeure au fil du cours (Claude)
 
-from sqlalchemy import select
+from sqlalchemy import event, select
+
+from app import config
 
 from app.config import settings
 from app.db import models
@@ -58,8 +60,11 @@ def test_pdf_refuse_en_francais_pendant_le_pilote(client, session, pilote, monke
     # Ressource commune de l'administrateur rattachée au français : refusée aussi.
     admin = connecter_admin(client)
     assert client.post("/admin/ressources", headers=admin, json={**pdf_fr, "classe_ids": []}).status_code == 403
-    # Après #4, le réglage rouvre les PDF ; si on le referme, l'envoi du fichier est de nouveau refusé.
+    # Verrou technique : le réglage seul ne rouvre rien tant que le contrôle renforcé des PDF (#4) n'est pas livré.
     monkeypatch.setattr(settings, "pdf_francais_ouvert", True)
+    assert client.post("/enseignants/ressources", headers=prof, json=pdf_fr).status_code == 403
+    # Après #4 (verrou levé), le réglage rouvre les PDF ; refermé, l'envoi du fichier est de nouveau refusé.
+    monkeypatch.setattr(config, "CONTROLE_PDF_RENFORCE", True)
     cree = client.post("/enseignants/ressources", headers=prof, json=pdf_fr)
     assert cree.status_code == 201, cree.text
     monkeypatch.setattr(settings, "pdf_francais_ouvert", False)
@@ -70,3 +75,25 @@ def test_pdf_refuse_en_francais_pendant_le_pilote(client, session, pilote, monke
 def test_mon_cours_reserve_aux_eleves(client):
     assert client.get("/cours/mon-cours").status_code == 401
     assert client.get("/cours/mon-cours", headers=connecter_enseignant(client)).status_code in (401, 403)
+
+
+def test_mon_cours_en_nombre_de_requetes_fixe(client, session, pilote):  # noqa: F811
+    """Relecture de la PR #186 : le nombre de requêtes SQL ne dépend pas du nombre de ressources."""
+    moteur = session.get_bind()
+
+    def requetes() -> int:
+        compte = []
+        ecouteur = lambda *args: compte.append(1)  # noqa: E731
+        event.listen(moteur, "before_cursor_execute", ecouteur)
+        try:
+            assert client.get("/cours/mon-cours", headers=pilote["lina"]).status_code == 200
+        finally:
+            event.remove(moteur, "before_cursor_execute", ecouteur)
+        return len(compte)
+
+    _lien(client, pilote)
+    avec_une = requetes()
+    for i in range(5):
+        _lien(client, pilote, titre=f"Fiche {i}", url=f"https://fr.wikipedia.org/wiki/Conjugaison_{i}")
+    assert len(client.get("/cours/mon-cours", headers=pilote["lina"]).json()[0]["ressources"]) == 6
+    assert requetes() == avec_une

@@ -42,11 +42,7 @@ def mon_cours(eleve: EleveCourant, session: SessionDB) -> list[ChapitreMonCours]
     fiches et liens qu'il y a rattachés pour la classe ; mêmes règles d'accès que le reste des cours (#176)."""
     ouverts = set(ids_ouverts_eleve(session, eleve.classe))
     chapitres = sorted((c for c in eleve.classe.chapitres_proposes if c.id in ouverts), key=lambda c: c.ordre)
-    toutes = ressources.pour_eleve(session, eleve, None, None)
-    par_chapitre: dict[int, list] = {c.id: [] for c in chapitres}
-    for r in toutes:
-        source = session.get(models.Ressource, r.id)
-        par_chapitre.setdefault(ressources.chapitre_de(source).id, []).append(r)
+    par_chapitre = ressources.par_chapitre_pour_eleve(session, eleve, ouverts)
     return [ChapitreMonCours(id=c.id, titre=c.titre, ressources=par_chapitre[c.id]) for c in chapitres]
 
 
