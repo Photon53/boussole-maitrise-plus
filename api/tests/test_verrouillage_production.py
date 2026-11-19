@@ -8,9 +8,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app import production
+from app.db import models
 from app.config import settings
 from app.db.seed import DemoInterdite, charger_demo
 from tests.test_production import PROD_VALIDE, config
+
+DOMAINE_FR = "francais-college"
 
 
 @pytest.fixture
@@ -62,3 +65,23 @@ def test_documentation_interactive_fermee_en_production(en_production):
     finally:
         settings.environnement = "dev"
         importlib.reload(module_main)
+
+
+def test_classe_d_un_domaine_ferme_hors_pilote_signalee(session):
+    """SEC-D6 (#176) : une classe active d'un domaine fermé perd l'accès au contenu si elle n'est pas pilote."""
+    prof = models.Enseignant(email="prof@lycee.test", nom="Prof", mot_de_passe_hash="x")
+    session.add(prof)
+    session.flush()
+    domaine = session.get(models.DomainePedagogique, DOMAINE_FR)
+    domaine.actif, domaine.public = True, False
+    classe = models.Classe(code="FR5A", niveau=models.Niveau.CINQUIEME, enseignant_id=prof.id,
+                           domaine_code=DOMAINE_FR)
+    session.add(classe)
+    session.commit()
+    trouves = production.avertissements(session)
+    assert len(trouves) == 1 and DOMAINE_FR in trouves[0] and "FR5A" not in trouves[0]
+
+    session.add(models.ClassePilote(classe_id=classe.id, motif="Pilote"))
+    session.commit()
+    assert production.avertissements(session) == []
+    assert production.problemes(session) == []  # un avertissement ne bloque pas la préparation

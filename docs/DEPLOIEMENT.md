@@ -38,6 +38,8 @@ Avant l'API, le service ponctuel `preparation` applique les migrations, importe 
 (idempotent) et contrôle la base (`python -m app.production verifier`). S'il échoue, l'API ne démarre pas :
 lire `docker compose logs preparation`. Un redémarrage de l'API seule (`docker compose restart api`) ne migre
 plus la base ; `docker compose up -d` relance la préparation.
+Elle affiche aussi, sans bloquer, des `AVERTISSEMENT` : par exemple des classes actives d'un domaine fermé absentes
+des classes pilotes, dont les élèves n'ont plus accès au contenu (SEC-D6).
 Les données de démo ne sont **jamais** chargées en production : `python -m app.db.seed` refuse de s'exécuter
 avec `PKP_ENVIRONNEMENT=production`, et la préparation échoue si un compte de démonstration est présent.
 
