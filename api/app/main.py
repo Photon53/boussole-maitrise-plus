@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routes import admin, admin_contenu, archivage, cartes, classes_pilotes, collaboration, cours, redactions, diagnostic, domaines, eleves, enseignants, enseignants_contenu, health, parents, ressources, anglais, anglais_eleves, enfants, familles, francais, masse, pkp_math, prevalidation_ia, repertoire, remarques, simulation, suivi, validation_maths
+from app.routes import accueil, admin, admin_contenu, archivage, cartes, classes_pilotes, collaboration, cours, redactions, diagnostic, domaines, eleves, enseignants, enseignants_contenu, health, parents, ressources, anglais, anglais_eleves, enfants, familles, francais, masse, pkp_math, prevalidation_ia, repertoire, remarques, simulation, suivi, validation_maths
 
 # En production, la documentation interactive n'est pas exposée publiquement.
 app = FastAPI(
@@ -58,6 +58,7 @@ app.include_router(enfants.router)
 app.include_router(familles.router)
 app.include_router(pkp_math.router)
 app.include_router(remarques.router)
-app.include_router(collaboration.router)  # issue #171 : /collaboration/*, /admin/accueil/demandes
+app.include_router(collaboration.router)  # issue #171 : /collaboration/*
+app.include_router(accueil.router)  # issue #172 : /admin/accueil/* (« Accueil et demandes »)
 app.include_router(prevalidation_ia.router_admin)
 app.include_router(prevalidation_ia.router_service)

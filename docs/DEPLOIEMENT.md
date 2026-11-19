@@ -138,8 +138,10 @@ Sauvegardes : chiffrées, copiées hors du serveur, gardées 60 jours, restaurat
   4. sauvegarde, puis `PKP_PDF_FRANCAIS_OUVERT=true` dans le `.env` de production et redémarrage.
 - **Candidatures et partenariats** (#171, « Enseigner ou collaborer avec nous ») : **fermés par défaut**
   (`PKP_COLLABORATION_ACTIVE=false` : le formulaire l'annonce, l'API répond 403, l'accueil n'affiche pas l'entrée).
-  En production, l'API refuse de démarrer avec `PKP_COLLABORATION_ACTIVE=true` sans `PKP_COLLABORATION_CONSERVATION_JOURS`
-  (durée décidée par le propriétaire, RGPD-3). Les CV (PDF, `PKP_CV_TAILLE_MAX_MO`, 5 Mo par défaut, contrôlés comme
+  En production, l'API refuse de démarrer avec `PKP_COLLABORATION_ACTIVE=true` sans les durées « candidature » et
+  « partenariat » dans `PKP_ACCUEIL_CONSERVATION_JOURS` (JSON, par exemple `{"candidature": 180, "partenariat": 365}` ;
+  durées décidées par le propriétaire, RGPD-3). Même règle pour les autres files d'« Accueil et demandes » (#172) :
+  sans durée, la saisie y est refusée. Les CV (PDF, `PKP_CV_TAILLE_MAX_MO`, 5 Mo par défaut, contrôlés comme
   ci-dessous) sont écrits dans `PKP_DOSSIER_CANDIDATURES`, distinct de `PKP_DOSSIER_FICHIERS`. **Avant activation**, à
   faire dans une PR d'exploitation dédiée : volume persistant pour ce dossier dans `docker-compose.yml` (sinon les CV
   disparaissent au redéploiement), décision sur son inclusion dans les sauvegardes (SEC-D4) et réapplication des
