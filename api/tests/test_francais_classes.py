@@ -10,7 +10,7 @@ from tests.conftest import connecter_admin, connecter_enseignant
 from tests.test_contenu import ecrire, erreurs
 
 CHAPITRE_FR = """
-chapitre: {code: FR5-CH, matiere: francais, niveau: 5e, parcours: tronc-commun, ordre: 1, titre: Le présent}
+chapitre: {code: FR5-CH, matiere: francais, rubrique: conjugaison, niveau: 5e, parcours: tronc-commun, ordre: 1, titre: Le présent}
 competences:
   - code: FR5-PRES
     libelle: Conjuguer au présent

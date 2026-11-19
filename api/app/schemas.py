@@ -156,6 +156,7 @@ class ChapitreOuvert(BaseModel):
     code: str
     titre: str
     nb_questions: int
+    rubrique: str | None = None  # français (#177)
 
 
 class ChapitreProgramme(BaseModel):
@@ -167,6 +168,7 @@ class ChapitreProgramme(BaseModel):
     ordre: int
     propose: bool
     nb_competences: int
+    rubrique: str | None = None  # français (#177)
     nb_questions: int
 
 
@@ -212,6 +214,7 @@ class ChapitreCours(BaseModel):
     id: int
     code: str
     titre: str
+    rubrique: str | None = None  # français (#177)
     competences: list[CompetenceCours]
 
 
@@ -226,6 +229,14 @@ class RessourceVue(BaseModel):
     domaine: str | None
     taille_octets: int | None
     portee: str
+
+
+class ChapitreMonCours(BaseModel):
+    """Issue #180 : un chapitre ouvert de la classe, dans l'ordre du cours, avec les fiches de la professeure."""
+
+    id: int
+    titre: str
+    ressources: list[RessourceVue]
 
 
 class RessourceCreation(BaseModel):
@@ -332,6 +343,9 @@ class ReponseHistorique(BaseModel):
     solution: str
     correction: dict | None = None
     duree_s: float
+    # #176 (SEC-D6, option b) : vu par un parent alors que la classe n'a plus accès au domaine, l'énoncé, la
+    # solution et la correction sont retirés ; la réponse de l'enfant et son résultat restent.
+    contenu_masque: bool = False
 
 
 class AvancementCompetence(BaseModel):

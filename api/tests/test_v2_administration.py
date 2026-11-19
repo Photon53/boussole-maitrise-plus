@@ -293,7 +293,7 @@ class TestRessources:
         lecon = client.get(f"/cours/{competence}", headers=connecter_eleve(client)).json()
         assert [x["titre"] for x in lecon["ressources"]] == ["Vidéo"]
 
-    @pytest.mark.parametrize("url", ["http://example.org", "javascript:alert(1)", "https://user:mdp@example.org"])
+    @pytest.mark.parametrize("url", ["http://example.org", "javascript:alert(1)", "https://user:mdp@example.org", "https://example.org:8443"])
     def test_lien_non_https_refuse(self, client, url):
         h = connecter_enseignant(client)
         corps = {"type": "lien", "titre": "X", "url": url, "chapitre_id": 1, "classe_ids": [self._classe_demo(client, h)]}
@@ -361,7 +361,7 @@ class TestRessources:
         corps = {"type": "lien", "titre": "Mort", "url": "https://example.org/404", "competence_id": competence,
                  "classe_ids": [self._classe_demo(client, h)]}
         client.post("/enseignants/ressources", headers=h, json=corps)
-        monkeypatch.setattr(ressources, "lien_repond", lambda url: False)
+        monkeypatch.setattr(ressources, "lien_repond", lambda url, session=None: False)
         with fabrique() as s:
             assert ressources.verifier_liens(s) == []
         assert len(client.get(f"/cours/{competence}", headers=connecter_eleve(client)).json()["ressources"]) == 1

@@ -23,7 +23,7 @@ def _ressource_autorisee(ressource_id: int, identifiants: Identifiants, session:
         autorise = r is not None and ressources.visible_par_enseignant(r, enseignant)
     elif lire_jeton(jeton, ELEVE):
         eleve = eleve_courant(identifiants, session)
-        autorise = r is not None and ressources.visible_par_eleve(r, eleve)
+        autorise = r is not None and ressources.visible_par_eleve(session, r, eleve)
     else:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Authentification requise.", headers={"WWW-Authenticate": "Bearer"})
     # 404 et non 403 : on ne révèle pas l'existence des ressources des autres.

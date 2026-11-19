@@ -37,10 +37,13 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, rela
 from app.referentiel import (
     SOURCE_PKP,
     Adaptation,
+    NatureChapitre,
     Parcours,
     PorteeRessource,
     PublicRessource,
     Role,
+    RubriqueFrancais,
+    StatutObservation,
     StatutValidation,
     TypeRessource,
 )
@@ -164,12 +167,65 @@ class Classe(Base):
     archivee_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
     archivee_par: Mapped[str | None] = mapped_column(String(80))
     motif_archivage: Mapped[str | None] = mapped_column(String(200))
+    # Issue #162 (lot 3) : le professeur ouvre le diagnostic des acquis antérieurs à ses élèves ; fermé par défaut.
+    diagnostic_ouvert: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
 
     enseignant: Mapped[Enseignant] = relationship(back_populates="classes")
     chapitres_proposes: Mapped[list["Chapitre"]] = relationship(secondary=chapitres_de_classe)
     eleves: Mapped[list["Eleve"]] = relationship(
         back_populates="classe", cascade="all, delete-orphan", passive_deletes=True
     )
+
+
+class ClassePilote(Base):
+    """Classe autorisée à travailler dans un domaine actif mais fermé au public (issue #176, SEC-D6).
+
+    Exception à EX.4, accordée par un administrateur : la trace (qui, quand, pourquoi) reste dans cette table et
+    dans le journal. Révoquer l'autorisation coupe l'accès des élèves sans rien supprimer de leur travail.
+    """
+
+    __tablename__ = "classe_pilote"
+
+    classe_id: Mapped[int] = mapped_column(ForeignKey("classe.id", ondelete="CASCADE"), primary_key=True)
+    accordee_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    accordee_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, server_default=func.now())
+    motif: Mapped[str] = mapped_column(String(200))
+
+    classe: Mapped[Classe] = relationship()
+    accordee_par: Mapped["Enseignant | None"] = relationship()
+
+
+class Redaction(Base):
+    """Rédaction d'un élève sur un sujet de français (issue #179, décision RGPD-2).
+
+    Une ligne par version : brouillon (visible de l'élève seul), remise (visible du professeur de la classe),
+    corrigée (commentaire du professeur, puis réécriture possible dans une nouvelle version). Conservée jusqu'au
+    31 août de l'année scolaire (`conserver_jusqu_au`), puis supprimée par la purge ; supprimée avec l'élève.
+    """
+
+    __tablename__ = "redaction"
+    __table_args__ = (
+        UniqueConstraint("eleve_id", "question_id", "version", name="uq_redaction_eleve_question_version"),
+        CheckConstraint("statut IN ('brouillon', 'remise', 'corrigee')", name="statut"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True)
+    question_id: Mapped[int] = mapped_column(ForeignKey("question.id", ondelete="RESTRICT"), index=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    texte: Mapped[str] = mapped_column(Text, default="")
+    statut: Mapped[str] = mapped_column(String(10), default="brouillon")
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, server_default=func.now())
+    maj_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, server_default=func.now())
+    remise_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    commentaire: Mapped[str | None] = mapped_column(Text)
+    corrigee_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    correcteur_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    conserver_jusqu_au: Mapped[date] = mapped_column(Date, index=True)
+
+    eleve: Mapped["Eleve"] = relationship()
+    question: Mapped["Question"] = relationship()
+    correcteur: Mapped["Enseignant | None"] = relationship()
 
 
 class Eleve(Base):
@@ -558,6 +614,16 @@ class Chapitre(Base):
     domaine_code: Mapped[str] = mapped_column(
         ForeignKey("domaine_pedagogique.code", ondelete="RESTRICT"), index=True, default="maths-lycee", server_default="maths-lycee"
     )
+    # Issue #162 : un chapitre de diagnostic n'est jamais ouvert à une classe ni servi en séance d'entraînement.
+    nature: Mapped[NatureChapitre] = mapped_column(
+        _enum(NatureChapitre, "nature_chapitre"), default=NatureChapitre.APPRENTISSAGE,
+        server_default=NatureChapitre.APPRENTISSAGE.value,
+    )
+    # Diagnostic : parcours des classes concernées, programme de l'année précédente interrogé.
+    publics: Mapped[list | None] = mapped_column(JSON)
+    programme_prerequis: Mapped[str | None] = mapped_column(String(40))
+    # Issue #177 : rubrique d'un chapitre de français ; vide pour les maths.
+    rubrique: Mapped[RubriqueFrancais | None] = mapped_column(_enum(RubriqueFrancais, "rubrique_francais"))
 
     competences: Mapped[list["Competence"]] = relationship(back_populates="chapitre")
 
@@ -577,6 +643,8 @@ class Competence(Base):
     prerequis: Mapped[list | None] = mapped_column(JSON)  # codes d'autres compétences
     methodes: Mapped[list | None] = mapped_column(JSON)  # [{titre, quand, etapes, exemple}]
     erreurs_frequentes: Mapped[list | None] = mapped_column(JSON)  # [{erreur, explication}]
+    # Diagnostic (#162) : compétences du diagnostic du niveau précédent, ouvertes si celle-ci est à reprendre.
+    retour: Mapped[list | None] = mapped_column(JSON)
 
     chapitre: Mapped[Chapitre] = relationship(back_populates="competences")
     questions: Mapped[list["Question"]] = relationship(back_populates="competence")
@@ -704,6 +772,52 @@ class Reponse(Base):
 
     seance: Mapped[Seance] = relationship(back_populates="reponses")
     question: Mapped[Question] = relationship()
+
+
+class PassationDiagnostic(Base):
+    """Une passation du diagnostic par un élève (issue #162, lot 3) : une question à la fois, servie par le serveur,
+    sans correction affichée. Une seule passation par inscription ; elle se reprend tant qu'elle n'est pas finie."""
+
+    __tablename__ = "passation_diagnostic"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True, unique=True)
+    debut: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
+    fin: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    question_courante_id: Mapped[int | None] = mapped_column(ForeignKey("question.id", ondelete="RESTRICT"))
+    question_servie_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    eleve: Mapped["Eleve"] = relationship()
+    question_courante: Mapped["Question | None"] = relationship()
+    observations: Mapped[list["ObservationDiagnostic"]] = relationship(
+        back_populates="passation", order_by="ObservationDiagnostic.id"
+    )
+
+
+class ObservationDiagnostic(Base):
+    """Réponse d'un élève à une question de diagnostic (issue #162).
+
+    Table distincte de `reponse` : le taux de maîtrise, calculé sur `reponse`, ne voit jamais le diagnostic.
+    Une réponse rédigée reste « en attente de correction » jusqu'à la décision d'un professeur.
+    """
+
+    __tablename__ = "observation_diagnostic"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True)
+    passation_id: Mapped[int | None] = mapped_column(ForeignKey("passation_diagnostic.id", ondelete="CASCADE"), index=True)
+    duree_s: Mapped[float | None] = mapped_column(Float)
+    question_id: Mapped[int] = mapped_column(ForeignKey("question.id", ondelete="RESTRICT"), index=True)
+    reponse_donnee: Mapped[str] = mapped_column(Text)
+    statut: Mapped[StatutObservation] = mapped_column(_enum(StatutObservation, "statut_observation"), index=True)
+    observe_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
+    corrige_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    corrige_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    eleve: Mapped["Eleve"] = relationship()
+    question: Mapped[Question] = relationship()
+    corrige_par: Mapped["Enseignant | None"] = relationship()
+    passation: Mapped["PassationDiagnostic | None"] = relationship(back_populates="observations")
 
 
 class Remarque(Base):

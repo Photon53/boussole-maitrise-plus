@@ -13,6 +13,7 @@ from app import ressources
 from app.auth import EnseignantCourant, SessionDB
 from app.config import settings
 from app.db import models
+from app.progression import filtre_apprentissage
 from app.referentiel import Parcours, PorteeRessource, TypeRessource
 from app.schemas import (
     ChapitreCoursEnseignant,
@@ -50,7 +51,8 @@ def sommaire(
     """Sommaire de la banque ; `q` cherche dans les titres, libellés et textes de cours (EA4.8)."""
     requete = (
         select(models.Chapitre)
-        .where(models.Chapitre.masque.is_(False))
+        # Les chapitres de diagnostic (#162) n'ont pas de cours : ils se relisent dans la validation des questions.
+        .where(models.Chapitre.masque.is_(False), *filtre_apprentissage())
         .options(selectinload(models.Chapitre.competences).selectinload(models.Competence.lecon))
         .order_by(models.Chapitre.niveau, models.Chapitre.parcours, models.Chapitre.ordre)
     )
@@ -182,6 +184,8 @@ async def envoyer_pdf(ressource_id: int, request: Request, enseignant: Enseignan
     r = _ma_ressource(session, ressource_id, enseignant)
     if r.type != TypeRessource.PDF:
         raise HTTPException(422, "Cette ressource est un lien, pas un PDF.")
+    if refus := ressources.refus_envoi_pdf(session, r):  # #180 : liens seulement en français pendant le pilote
+        raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
     ressources.enregistrer_pdf(r, await _lire_corps(request))
     session.commit()
     return ressources.detail(session, r)
