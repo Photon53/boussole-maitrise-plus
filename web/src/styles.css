@@ -106,6 +106,15 @@ button.icone:hover:not(:disabled) { background: var(--surface-2); color: var(--t
 .info { background: var(--action-doux); color: var(--texte); }
 .avertissement { background: var(--alerte-doux); color: var(--alerte); padding: 10px 12px; border-radius: var(--rayon-petit); margin: 12px 0; }
 
+/* Issue #184 : vue élève simulée, toujours visible en haut de l'espace élève. */
+.bandeau-simulation {
+  position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px 16px; padding: 10px 12px; margin: 0 0 12px; border-radius: var(--rayon-petit);
+  background: var(--alerte-doux); color: var(--texte); border: 2px solid var(--alerte);
+}
+.bandeau-simulation p { margin: 0; }
+.bandeau-simulation .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+
 .barre-session { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 
 /* --- Onglets ------------------------------------------------------------------------------ */

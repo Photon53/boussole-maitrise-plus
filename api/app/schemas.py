@@ -840,3 +840,42 @@ class ArchiveResume(BaseModel):
 class ArchiveDetail(ArchiveResume):
     contenu: dict
 
+
+
+# --- Vue élève simulée (issue #184) ---------------------------------------------
+
+
+class ContexteSimulation(BaseModel):
+    """Classe dans laquelle le professeur ou l'administrateur peut ouvrir un élève fictif."""
+
+    classe_id: int
+    code_classe: str
+    niveau: Niveau
+    parcours: Parcours
+    matiere: str
+    domaine: str  # libellé : « Maths lycée », « Français collège »…
+    professeur: str
+    # Accès des élèves de la classe à son contenu (domaine public ou classe pilote, #176) : sinon, la simulation
+    # montre ce que voient ces élèves, c'est-à-dire le message de fermeture.
+    ouverte_aux_eleves: bool
+    motif_fermeture: str | None = None
+    # Un élève fictif existe déjà : la simulation reprend là où elle s'était arrêtée.
+    en_cours: bool = False
+
+
+class DemandeSimulation(BaseModel):
+    classe_id: int
+
+
+class InfoSimulation(BaseModel):
+    role: Literal["enseignant", "admin"]
+    classe_id: int
+    code_classe: str
+    niveau: Niveau
+    matiere: str
+    domaine: str
+    expire_le: datetime | None = None
+
+
+class JetonSimulation(JetonEleve):
+    simulation: InfoSimulation
