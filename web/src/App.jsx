@@ -8,6 +8,8 @@ import { Logo } from "./ui/Icone.jsx";
 // les élèves ne téléchargent ni l'espace professeur (QR codes) ni l'administration.
 const EspaceEleve = lazy(() => import("./eleve/EspaceEleve.jsx"));
 const Methode = lazy(() => import("./Methode.jsx"));
+// Issue #171 : « Enseigner ou collaborer avec nous », formulaire public sans compte.
+const Collaborer = lazy(() => import("./Collaborer.jsx"));
 const EspaceEnseignant = lazy(() => import("./enseignant/EspaceEnseignant.jsx"));
 const EspaceAdmin = lazy(() => import("./admin/EspaceAdmin.jsx"));
 const EspaceParent = lazy(() => import("./parent/EspaceParent.jsx"));
@@ -62,6 +64,7 @@ export default function App() {
   // Élève et accueil public : colonne centrée, priorité au mobile.
   const eleve = chemin === "/eleve" || chemin.startsWith("/eleve/");
   const methode = chemin === "/methode";
+  const collaborer = chemin === "/collaborer";
   return (
     <div className="page">
       <header className="entete">
@@ -93,6 +96,10 @@ export default function App() {
         ) : methode ? (
           <Suspense fallback={<p className="doux">Chargement…</p>}>
             <Methode />
+          </Suspense>
+        ) : collaborer ? (
+          <Suspense fallback={<p className="doux">Chargement…</p>}>
+            <Collaborer />
           </Suspense>
         ) : (
           <Accueil />

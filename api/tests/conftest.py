@@ -53,6 +53,7 @@ def reglages_v2(monkeypatch, tmp_path):
     """Statistiques recalculées à chaque test, PDF dans un dossier jetable, liens non appelés sur le réseau."""
     statistiques.vider_cache()
     monkeypatch.setattr(settings, "dossier_fichiers", str(tmp_path / "fichiers"))
+    monkeypatch.setattr(settings, "dossier_candidatures", str(tmp_path / "candidatures"))  # issue #171
     monkeypatch.setattr(settings, "verifier_liens", False)
 
 

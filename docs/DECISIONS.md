@@ -15,7 +15,7 @@ Pour lever l'ambiguïté, ce registre les **préfixe** ; les documents sources g
 | `V2-D` | Cahier des charges V2, `docs/CAHIER-DES-CHARGES-V2.md` § 15 | D1 à D14 |
 | `DEV-D` | Ticket #65 (pipeline DEV GitHub → GCP) et ses commentaires | D1 à D5 |
 | `ARCH` | `docs/ARCHITECTURE.md` « Décisions validées » (non numérotées à la source) | — |
-| `RGPD` | Décisions du propriétaire sur les données personnelles, consignées dans ce registre et `docs/RGPD.md` | 1 |
+| `RGPD` | Décisions du propriétaire sur les données personnelles, consignées dans ce registre et `docs/RGPD.md` | 1 à 3 |
 
 Exemple : « D1 » seul est ambigu ; `SEC-D1` désigne le code personnel des élèves, `V2-D1` le premier client visé,
 `DEV-D1` la fusion de la PR #64.
@@ -87,6 +87,7 @@ comptées ici comme prises (V2-D3, V2-D11 et arbitrages de présentation de V2-D
 | V2-D13 | Seuil d'ouverture publique d'un domaine | Par exemple 80 % des compétences d'un niveau couvertes par du contenu publié | Propriétaire + référent | Ouverture de chaque domaine |
 | V2-D10 | Avancer la vue de classe au lot 1 | Oui (recommandation du CDC, non actée) | Propriétaire | Périmètre du lot 1 |
 | V2-D12 | Reste du cadrage français : contrat des activités, réponses, groupes non publics et ouverture | Présentation et héritage confirmés ci-dessus ; autres propositions dans la fiche dédiée à relire. EX.4 reste applicable | Propriétaire + référent | Lots suivants du français ; création de groupes non publics avant arbitrage EX.4 |
+| RGPD-3 | **Candidatures et partenariats** (#171) : durée de conservation d'une demande et de son CV sans suite donnée (comptée depuis le dernier traitement), responsable de traitement et base légale ; validation des formats et de la taille du CV proposés (PDF seulement, 5 Mo) | Durée courte, alignée sur la finalité (étudier la demande et y répondre) ; la CNIL publie des repères pour le recrutement, à confirmer avec un avis spécialisé. Collecte fermée tant que la durée n'est pas fixée (`PKP_COLLABORATION_ACTIVE`) | Propriétaire, avis spécialisé | Ouverture du formulaire (#171) |
 | V2-D14 | Abonnement par domaine ou tous domaines inclus | Par domaine au lancement, bouquet plus tard | Propriétaire | Lot 1 (offres) |
 | SEC-D2 | Politique de correction : forme exigée (développée, factorisée, simplifiée, libre) par question | Le moteur ne vérifie que l'équivalence ; le lot B de l'audit ne peut pas définir « correct » sans cette règle | Référent pédagogique | Audit lot B |
 | DEV-D4 | Retirer `roles/editor` du compte Compute par défaut | Accord de principe ; **suspendu** tant que l'absence d'usage n'est pas démontrée (plusieurs contrôles incomplets) ; prévoir des droits de remplacement | Propriétaire | Rien (sécurité en profondeur) |

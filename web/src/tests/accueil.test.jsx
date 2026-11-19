@@ -116,8 +116,8 @@ describe("page d'accueil : attirer élèves, parents et professeurs", () => {
     await userEvent.click(screen.getAllByRole("radio")[1]);
     await userEvent.click(screen.getByRole("button", { name: "Vérifier ma réponse" }));
     expect(screen.getByText("Bravo, c'est juste !")).toBeInTheDocument();
-    // Rien n'est envoyé au serveur : seules les deux lectures publiques de l'accueil.
-    expect(new Set(appels.map((a) => a.cle))).toEqual(new Set(["GET /domaines/publics", "GET /domaines/chiffres"]));
+    // Rien n'est envoyé au serveur : seules les lectures publiques de l'accueil (#171 : état de la collecte).
+    expect(new Set(appels.map((a) => a.cle))).toEqual(new Set(["GET /domaines/publics", "GET /domaines/chiffres", "GET /collaboration/etat"]));
   });
 
   it("répond aux questions fréquentes des familles", async () => {
