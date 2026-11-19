@@ -8,10 +8,11 @@ from app import config
 
 from app.config import settings
 from app.db import models
+from tests import pdf_exemples
 from tests.conftest import connecter_admin, connecter_enseignant
 from tests.test_classes_pilotes import pilote  # noqa: F401  (fixture : classe pilote de Lina, classe révoquée de Noé)
 
-PDF = b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n"
+PDF = pdf_exemples.ordinaire()
 
 
 def _lien(client, pilote, **autres) -> dict:
@@ -60,10 +61,11 @@ def test_pdf_refuse_en_francais_pendant_le_pilote(client, session, pilote, monke
     # Ressource commune de l'administrateur rattachée au français : refusée aussi.
     admin = connecter_admin(client)
     assert client.post("/admin/ressources", headers=admin, json={**pdf_fr, "classe_ids": []}).status_code == 403
-    # Verrou technique : le réglage seul ne rouvre rien tant que le contrôle renforcé des PDF (#4) n'est pas livré.
+    # Verrou technique : le réglage seul ne rouvre rien sans le contrôle renforcé des PDF (#4).
+    monkeypatch.setattr(config, "CONTROLE_PDF_RENFORCE", False)
     monkeypatch.setattr(settings, "pdf_francais_ouvert", True)
     assert client.post("/enseignants/ressources", headers=prof, json=pdf_fr).status_code == 403
-    # Après #4 (verrou levé), le réglage rouvre les PDF ; refermé, l'envoi du fichier est de nouveau refusé.
+    # Avec #4 (verrou levé, valeur livrée), le réglage rouvre les PDF ; refermé, l'envoi du fichier est de nouveau refusé.
     monkeypatch.setattr(config, "CONTROLE_PDF_RENFORCE", True)
     cree = client.post("/enseignants/ressources", headers=prof, json=pdf_fr)
     assert cree.status_code == 201, cree.text

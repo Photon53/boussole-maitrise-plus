@@ -129,9 +129,23 @@ Sauvegardes : chiffrées, copiées hors du serveur, gardées 60 jours, restaurat
   `PKP_PDF_FRANCAIS_OUVERT=true` reste sans effet tant que `CONTROLE_PDF_RENFORCE` vaut `False` dans
   `api/app/config.py`, et l'API refuse alors de démarrer en production avec ce réglage. Procédure d'ouverture,
   dans cet ordre :
-  1. la PR qui livre le contrôle renforcé des PDF (#4) passe `CONTROLE_PDF_RENFORCE` à `True`, avec ses tests
-     (PDF ordinaires, malformés, chiffrés, à actions actives ; limites de taille et de durée) ; revue de sécurité ;
+  1. ✅ contrôle renforcé des PDF livré (#4) : `CONTROLE_PDF_RENFORCE` vaut `True`, tests dans
+     `api/tests/test_controle_pdf.py` (voir « Contrôle des PDF déposés » ci-dessous) ; revue de sécurité à la relecture
+     de la PR ;
   2. le propriétaire consigne la décision d'ouverture dans `docs/DECISIONS.md` (« V2-D12 — Mon cours ») ;
   3. activation d'abord en DEV, essai par la professeure (dépôt, consultation par une classe pilote, refus d'un PDF
      piégé) ;
   4. sauvegarde, puis `PKP_PDF_FRANCAIS_OUVERT=true` dans le `.env` de production et redémarrage.
+- **Contrôle des PDF déposés** (#4, `api/app/controle_pdf.py`) : chaque PDF envoyé par un professeur ou un
+  administrateur est analysé par `pypdf` dans un **processus séparé** (démarrage `spawn`), limité à **512 Mo** de
+  mémoire et **15 s** (temps processeur et durée totale), **2 analyses simultanées** au plus, **500 pages** et
+  **100 000 objets** au plus. Tous les objets du document sont examinés, y compris ceux des flux d'objets compressés
+  et les objets orphelins. Sont acceptés : texte, images, polices, signets, liens internes, navigation, liens web
+  `http`, `https` et `mailto`, formulaires sans script. Sont **refusés** : PDF chiffrés, malformés ou sans page,
+  JavaScript, toute autre action (`Launch`, `SubmitForm`, `ImportData`, `GoToR`…), actions automatiques (`/AA`),
+  action d'ouverture autre qu'un saut de page, fichiers embarqués ou joints, multimédia, formulaires XFA. Un PDF refusé
+  n'est **jamais écrit sur disque** ; le fichier accepté est conservé tel quel. Les limites sont des constantes du
+  module. Sous Windows, seule la durée est bornée (pas de limite de mémoire). Les PDF déposés avant ce contrôle ne
+  sont pas réanalysés automatiquement : après déploiement, lancer
+  `docker compose exec api python -m app.ressources verifier-pdf` (lecture seule, liste les PDF que le contrôle
+  refuserait, sans rien masquer ni supprimer) ; un administrateur masque ou remplace ceux qui sont signalés.
