@@ -9,6 +9,9 @@ des classes inscrites ici. Le contrôle lui-même est fait côté API, route par
 - Autoriser une classe existante (par exemple une classe dont le domaine a été fermé depuis).
 - Révoquer : l'accès des élèves est coupé immédiatement, séance en cours comprise ; rien n'est supprimé.
 
+Une autorisation suit la classe, pas l'état du domaine : si le domaine devient public, elle est sans effet ; s'il
+est refermé ensuite, elle s'applique de nouveau. La révoquer explicitement si ce n'est pas voulu.
+
 Chaque opération est journalisée. Réservé à l'administrateur (second facteur obligatoire en production).
 """
 # Issue #176 — Accès au français réservé aux classes pilotes (Claude)
@@ -18,6 +21,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, Response, status
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 
 from app import journal, permissions
 from app.auth import AdminCourant, SessionDB
@@ -105,9 +109,19 @@ def autoriser(classe_id: int, corps: AutorisationPilote, admin: AdminCourant, se
     _domaine_ferme_et_actif(session, classe.domaine_code)
     if session.get(models.ClassePilote, classe.id):
         raise HTTPException(status.HTTP_409_CONFLICT, "Cette classe est déjà une classe pilote.")
+    # Le professeur de la classe doit toujours enseigner cette matière à ce niveau.
+    matiere = permissions.MATIERES.get(classe.domaine_code, "")
+    refus = permissions.refus_matiere_enseignee(classe.enseignant, matiere, classe.domaine_code, classe.niveau)
+    if refus or not classe.enseignant.actif:
+        raise HTTPException(status.HTTP_409_CONFLICT,
+                            f"Le professeur de {classe.code} n'est plus habilité ou plus actif : {refus or 'compte inactif'}.")
     pilote = models.ClassePilote(classe=classe, accordee_par=admin, motif=corps.motif)
     session.add(pilote)
-    session.flush()
+    try:
+        session.flush()
+    except IntegrityError:  # deux autorisations simultanées de la même classe
+        session.rollback()
+        raise HTTPException(status.HTTP_409_CONFLICT, "Cette classe est déjà une classe pilote.") from None
     journal.noter(session, admin, "autoriser", "classe-pilote", classe.id,
                   apres={"code": classe.code, "domaine": classe.domaine_code, "motif": corps.motif})
     session.commit()

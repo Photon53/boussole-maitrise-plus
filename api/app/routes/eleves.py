@@ -271,14 +271,15 @@ def demarrer_seance(eleve: EleveCourant, session: SessionDB, corps: SeanceCreati
     return seance
 
 
-def _seance_ouverte(session: SessionDB, seance_id: int, eleve: models.Eleve) -> models.Seance:
+def _seance_ouverte(session: SessionDB, seance_id: int, eleve: models.Eleve, verifier_acces: bool = True) -> models.Seance:
     seance = session.get(models.Seance, seance_id)
     if seance is None or seance.eleve_id != eleve.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Séance introuvable.")
     if seance.fin is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Cette séance est terminée.")
     # Révocation d'une classe pilote ou fermeture du domaine : la séance en cours s'arrête aussi (#176).
-    refus = permissions.refus_acces_classe(session, eleve.classe)
+    # Seule la clôture reste permise (`verifier_acces=False`) : elle ne sert aucun contenu.
+    refus = verifier_acces and permissions.refus_acces_classe(session, eleve.classe)
     if refus:
         raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
     return seance
@@ -286,7 +287,7 @@ def _seance_ouverte(session: SessionDB, seance_id: int, eleve: models.Eleve) -> 
 
 @router.post("/seances/{seance_id}/fin", response_model=SeanceInfo)
 def terminer_seance(seance_id: int, eleve: EleveCourant, session: SessionDB) -> models.Seance:
-    seance = _seance_ouverte(session, seance_id, eleve)
+    seance = _seance_ouverte(session, seance_id, eleve, verifier_acces=False)
     seance.fin = _maintenant()
     seance.question_courante = None
     seance.question_servie_le = None
