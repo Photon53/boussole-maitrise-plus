@@ -22,7 +22,7 @@ import PkpMath from "../pkpmath/PkpMath.jsx";
 
 const PkpMathAdmin = ({ jeton, onExpire }) => (
   <section className="carte">
-    <PkpMath jeton={jeton} onExpire={onExpire} />
+    <PkpMath jeton={jeton} onExpire={onExpire} adulte />
   </section>
 );
 

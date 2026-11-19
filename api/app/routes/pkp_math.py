@@ -10,12 +10,16 @@ le sont (voir `filtre_validation`). Solution et correction (ARCH-4, décision du
 un élève ou un enfant ne les voit que pour les questions auxquelles il a déjà répondu, réponse enregistrée ;
 les adultes (administrateur, professeur, parent) les voient toutes. Tant qu'une question du chapitre n'est pas validée, le document porte la
 mention NON VALIDÉ.
+
+Version élève (#178) : `?version=eleve` renvoie le document sans aucune solution ni aucun corrigé, quel que soit le
+lecteur. Un professeur imprime ainsi une fiche pour sa classe sans que les corrigés quittent le serveur.
 """
 
 import random
 from dataclasses import dataclass
+from typing import Literal
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Query, status
 from pkp_engine import gabarits
 from pydantic import BaseModel
 from sqlalchemy import select
@@ -42,11 +46,20 @@ from app.security import lire_jeton
 
 router = APIRouter(prefix="/pkp-math", tags=["pkp-math"])
 
+# « complete » : selon les droits du lecteur (ARCH-4) ; « eleve » : aucune solution ni aucun corrigé, pour tout lecteur.
+VersionDocument = Literal["complete", "eleve"]
+
+
+def matiere_du_chapitre(chapitre: models.Chapitre) -> str:
+    """Matière du domaine du chapitre (« maths-lycee » → « maths »), d'après la table des domaines."""
+    return permissions.MATIERES[chapitre.domaine_code]
+
 
 class ChapitreCatalogue(BaseModel):
     id: int
     code: str
     titre: str
+    matiere: str
     niveau: Niveau
     parcours: Parcours
     libelle_parcours: str
@@ -85,6 +98,8 @@ class DocumentChapitre(BaseModel):
     id: int
     code: str
     titre: str
+    matiere: str
+    version: VersionDocument
     niveau: Niveau
     parcours: Parcours
     libelle_parcours: str
@@ -180,7 +195,7 @@ def _questions(session: SessionDB, lecteur: Lecteur, competence: models.Competen
     return list(session.scalars(requete.order_by(models.Question.difficulte, models.Question.id)))
 
 
-def _instancier(q: models.Question, lecteur: Lecteur) -> QuestionDocument:
+def _instancier(q: models.Question, lecteur: Lecteur, sans_corrige: bool = False) -> QuestionDocument:
     """Question à gabarit : un tirage fixe (le même à chaque export), pour une fiche reproductible."""
     enonce, solution, correction = q.enonce, q.solution, q.correction
     if q.gabarit:
@@ -190,7 +205,7 @@ def _instancier(q: models.Question, lecteur: Lecteur) -> QuestionDocument:
             correction = gabarits.remplir_correction(correction, tirage)
         except gabarits.GabaritInvalide:
             pass
-    corrige_visible = lecteur.corriges is None or q.id in lecteur.corriges
+    corrige_visible = not sans_corrige and (lecteur.corriges is None or q.id in lecteur.corriges)
     if not corrige_visible:
         solution, correction = "", None  # ARCH-4 : pas de corrigé avant la réponse de l'élève
     return QuestionDocument(
@@ -216,7 +231,7 @@ def catalogue(identifiants: Identifiants, session: SessionDB, niveau: Niveau | N
             continue
         questions = [q for c in _competences(ch) for q in _questions(session, lecteur, c)]
         resultat.append(ChapitreCatalogue(
-            id=ch.id, code=ch.code, titre=ch.titre, niveau=ch.niveau, parcours=ch.parcours,
+            id=ch.id, code=ch.code, titre=ch.titre, matiere=matiere_du_chapitre(ch), niveau=ch.niveau, parcours=ch.parcours,
             libelle_parcours=LIBELLES_PARCOURS.get(ch.parcours, ch.parcours.value), ordre=ch.ordre,
             nb_competences=len(_competences(ch)), nb_questions=len(questions),
             valide=bool(questions) and all(q.statut_validation == StatutValidation.VALIDEE for q in questions),
@@ -225,15 +240,21 @@ def catalogue(identifiants: Identifiants, session: SessionDB, niveau: Niveau | N
 
 
 @router.get("/chapitres/{chapitre_id}", response_model=DocumentChapitre)
-def document(chapitre_id: int, identifiants: Identifiants, session: SessionDB) -> DocumentChapitre:
-    """Résumé, cours, méthodes, erreurs fréquentes et questions corrigées de chaque compétence du chapitre."""
+def document(
+    chapitre_id: int, identifiants: Identifiants, session: SessionDB,
+    version: VersionDocument = Query("complete"),
+) -> DocumentChapitre:
+    """Résumé, cours, méthodes, erreurs fréquentes et questions corrigées de chaque compétence du chapitre.
+
+    `version=eleve` : énoncés seuls, sans solution ni corrigé, même pour un adulte (fiche à imprimer pour une classe).
+    """
     lecteur = _lecteur(identifiants, session)
     chapitre = session.get(models.Chapitre, chapitre_id)
     if chapitre is None or not _permis(session, lecteur, chapitre):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Chapitre introuvable.")
     competences = []
     for c in _competences(chapitre):
-        questions = [_instancier(q, lecteur) for q in _questions(session, lecteur, c)]
+        questions = [_instancier(q, lecteur, sans_corrige=version == "eleve") for q in _questions(session, lecteur, c)]
         competences.append(CompetenceDocument(
             id=c.id, code=c.code, libelle=c.libelle, objectifs=c.objectifs or [],
             resume=c.lecon.resume if c.lecon else "", cours=c.lecon.cours if c.lecon else "",
@@ -241,7 +262,8 @@ def document(chapitre_id: int, identifiants: Identifiants, session: SessionDB) -
         ))
     toutes = [q for c in competences for q in c.questions]
     return DocumentChapitre(
-        id=chapitre.id, code=chapitre.code, titre=chapitre.titre, niveau=chapitre.niveau, parcours=chapitre.parcours,
+        id=chapitre.id, code=chapitre.code, titre=chapitre.titre, matiere=matiere_du_chapitre(chapitre), version=version,
+        niveau=chapitre.niveau, parcours=chapitre.parcours,
         libelle_parcours=LIBELLES_PARCOURS.get(chapitre.parcours, chapitre.parcours.value),
         valide=bool(toutes) and all(q.validee for q in toutes), competences=competences,
     )
