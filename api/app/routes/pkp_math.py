@@ -40,8 +40,8 @@ from app.auth import (
     parent_courant,
 )
 from app.db import models
-from app.progression import est_apprentissage, filtre_validation, ids_ouverts
-from app.referentiel import LIBELLES_PARCOURS, Niveau, Parcours, StatutValidation, domaine_maths
+from app.progression import est_apprentissage, filtre_validation, ids_ouverts_eleve
+from app.referentiel import LIBELLES_PARCOURS, Niveau, Parcours, StatutValidation
 from app.security import lire_jeton
 
 router = APIRouter(prefix="/pkp-math", tags=["pkp-math"])
@@ -154,12 +154,12 @@ def _lecteur(identifiants: Identifiants, session: SessionDB) -> Lecteur:
         return Lecteur(ENSEIGNANT, complet=True)
     if lire_jeton(jeton, ELEVE):
         eleve = eleve_courant(identifiants, session)
-        return Lecteur(ELEVE, complet=False, chapitres=set(ids_ouverts(eleve.classe)),
+        return Lecteur(ELEVE, complet=False, chapitres=set(ids_ouverts_eleve(session, eleve.classe)),
                        corriges=_repondues(session, [eleve.id]))
     if lire_jeton(jeton, ENFANT):
         enfant = enfant_courant(identifiants, session)
         actives = [e.classe for e in enfant.inscriptions if e.classe.archivee_le is None]
-        ouverts = {i for c in actives for i in ids_ouverts(c)}
+        ouverts = {i for c in actives for i in ids_ouverts_eleve(session, c)}
         return Lecteur(ENFANT, complet=False, chapitres=ouverts, niveaux={enfant.niveau},
                        parcours_exclus=voie_exclue(actives),
                        corriges=_repondues(session, [e.id for e in enfant.inscriptions]))
@@ -177,10 +177,12 @@ def _permis(session: SessionDB, lecteur: Lecteur, chapitre: models.Chapitre) -> 
         return True
     if not est_apprentissage(chapitre):
         return False  # issue #162 : un diagnostic n'est montré ni aux élèves, ni aux enfants, ni aux parents
-    if permissions.refus_domaine_ferme(session, domaine_maths(chapitre.niveau)):
-        return False
+    # Accès par classe : chapitres déjà filtrés par l'ouverture de la classe (`ids_ouverts_eleve`, #176).
     if lecteur.chapitres is not None and chapitre.id in lecteur.chapitres:
         return True
+    # Accès par niveau (enfant de famille, parent) : domaines publics seulement, d'après le domaine du chapitre.
+    if permissions.refus_domaine_ferme(session, chapitre.domaine_code):
+        return False
     return (lecteur.niveaux is not None and chapitre.niveau in lecteur.niveaux
             and chapitre.parcours not in lecteur.parcours_exclus)
 

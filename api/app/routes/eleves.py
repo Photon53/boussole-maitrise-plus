@@ -35,6 +35,7 @@ from app.progression import (
     avancement_competence,
     historique_reponses,
     ids_ouverts,
+    ids_ouverts_eleve,
     nb_questions_servables,
     progression_eleve,
     validees_en_priorite,
@@ -212,13 +213,14 @@ def changer_de_parcours(eleve_id: int, eleve: EleveCourant, session: SessionDB) 
 
 @router.get("/eleves/moi/progression", response_model=list[ProgressionCompetence])
 def ma_progression(eleve: EleveCourant, session: SessionDB) -> list[ProgressionCompetence]:
-    return progression_eleve(session, eleve)
+    return progression_eleve(session, eleve, limiter=True)
 
 
 @router.get("/eleves/moi/chapitres", response_model=list[ChapitreOuvert])
 def mes_chapitres(eleve: EleveCourant, session: SessionDB) -> list[ChapitreOuvert]:
     """Chapitres ouverts par l'enseignant, avec le nombre de questions disponibles."""
-    chapitres = sorted((c for c in eleve.classe.chapitres_proposes if not c.masque and est_apprentissage(c)), key=lambda c: c.ordre)
+    permis = set(ids_ouverts_eleve(session, eleve.classe))
+    chapitres = sorted((c for c in eleve.classe.chapitres_proposes if c.id in permis), key=lambda c: c.ordre)
     nb = nb_questions_servables(session, [c.id for c in chapitres])
     return [ChapitreOuvert(id=c.id, code=c.code, titre=c.titre, nb_questions=nb.get(c.id, 0)) for c in chapitres]
 
@@ -235,7 +237,7 @@ def mon_historique(
 def mon_avancement(competence_id: int, eleve: EleveCourant, session: SessionDB) -> AvancementCompetence:
     """Avancement dans la méthode PKP pour une compétence d'un chapitre ouvert."""
     competence = session.get(models.Competence, competence_id)
-    if competence is None or competence.masque or competence.chapitre_id not in ids_ouverts(eleve.classe):
+    if competence is None or competence.masque or competence.chapitre_id not in ids_ouverts_eleve(session, eleve.classe):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Compétence introuvable.")
     return avancement_competence(session, eleve, competence)
 
@@ -243,7 +245,7 @@ def mon_avancement(competence_id: int, eleve: EleveCourant, session: SessionDB) 
 @router.post("/seances", response_model=SeanceInfo, status_code=status.HTTP_201_CREATED)
 def demarrer_seance(eleve: EleveCourant, session: SessionDB, corps: SeanceCreation | None = None) -> models.Seance:
     """Démarre une séance sur les chapitres choisis (tous les chapitres ouverts si aucun choix)."""
-    refus = permissions.refus_domaine_ferme(session, eleve.classe.domaine_code)
+    refus = permissions.refus_acces_classe(session, eleve.classe)
     if refus:
         raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
     ouverts = {c.id: c for c in eleve.classe.chapitres_proposes if not c.masque and est_apprentissage(c)}
@@ -269,18 +271,23 @@ def demarrer_seance(eleve: EleveCourant, session: SessionDB, corps: SeanceCreati
     return seance
 
 
-def _seance_ouverte(session: SessionDB, seance_id: int, eleve: models.Eleve) -> models.Seance:
+def _seance_ouverte(session: SessionDB, seance_id: int, eleve: models.Eleve, verifier_acces: bool = True) -> models.Seance:
     seance = session.get(models.Seance, seance_id)
     if seance is None or seance.eleve_id != eleve.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Séance introuvable.")
     if seance.fin is not None:
         raise HTTPException(status.HTTP_409_CONFLICT, "Cette séance est terminée.")
+    # Révocation d'une classe pilote ou fermeture du domaine : la séance en cours s'arrête aussi (#176).
+    # Seule la clôture reste permise (`verifier_acces=False`) : elle ne sert aucun contenu.
+    refus = verifier_acces and permissions.refus_acces_classe(session, eleve.classe)
+    if refus:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
     return seance
 
 
 @router.post("/seances/{seance_id}/fin", response_model=SeanceInfo)
 def terminer_seance(seance_id: int, eleve: EleveCourant, session: SessionDB) -> models.Seance:
-    seance = _seance_ouverte(session, seance_id, eleve)
+    seance = _seance_ouverte(session, seance_id, eleve, verifier_acces=False)
     seance.fin = _maintenant()
     seance.question_courante = None
     seance.question_servie_le = None

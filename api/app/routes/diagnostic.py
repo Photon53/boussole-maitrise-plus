@@ -70,7 +70,7 @@ def _refus(exc: DiagnosticRefuse) -> HTTPException:
 
 
 def _domaine_ouvert(session: SessionDB, eleve) -> None:
-    refus = permissions.refus_domaine_ferme(session, eleve.classe.domaine_code)
+    refus = permissions.refus_acces_classe(session, eleve.classe)
     if refus:
         raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
 

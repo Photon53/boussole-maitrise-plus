@@ -22,7 +22,7 @@ from sqlalchemy.orm import Session
 from app import liens_sortants
 from app.config import settings
 from app.db import models
-from app.progression import ids_ouverts
+from app.progression import ids_ouverts_eleve
 from app.referentiel import PorteeRessource, PublicRessource, TypeRessource
 from app.schemas import RessourceCreation, RessourceDetail, RessourceVue
 
@@ -94,10 +94,10 @@ def _rattachees(session: Session, chapitre_id: int | None, competence_id: int | 
     return list(session.scalars(requete))
 
 
-def visible_par_eleve(r: models.Ressource, eleve: models.Eleve) -> bool:
+def visible_par_eleve(session: Session, r: models.Ressource, eleve: models.Eleve) -> bool:
     if r.masquee or r.public == PublicRessource.ENSEIGNANTS or r.echecs_lien >= ECHECS_AVANT_MASQUAGE:
         return False
-    if chapitre_de(r).id not in ids_ouverts(eleve.classe):
+    if chapitre_de(r).id not in ids_ouverts_eleve(session, eleve.classe):
         return False
     return r.portee == PorteeRessource.COMMUNE or any(c.id == eleve.classe_id for c in r.classes)
 
@@ -109,7 +109,7 @@ def visible_par_enseignant(r: models.Ressource, enseignant: models.Enseignant) -
 
 
 def pour_eleve(session: Session, eleve: models.Eleve, chapitre_id: int | None, competence_id: int | None) -> list[RessourceVue]:
-    return [vue(r) for r in _rattachees(session, chapitre_id, competence_id) if visible_par_eleve(r, eleve)]
+    return [vue(r) for r in _rattachees(session, chapitre_id, competence_id) if visible_par_eleve(session, r, eleve)]
 
 
 def pour_enseignant(

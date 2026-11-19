@@ -176,6 +176,24 @@ class Classe(Base):
     )
 
 
+class ClassePilote(Base):
+    """Classe autorisée à travailler dans un domaine actif mais fermé au public (issue #176, SEC-D6).
+
+    Exception à EX.4, accordée par un administrateur : la trace (qui, quand, pourquoi) reste dans cette table et
+    dans le journal. Révoquer l'autorisation coupe l'accès des élèves sans rien supprimer de leur travail.
+    """
+
+    __tablename__ = "classe_pilote"
+
+    classe_id: Mapped[int] = mapped_column(ForeignKey("classe.id", ondelete="CASCADE"), primary_key=True)
+    accordee_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    accordee_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, server_default=func.now())
+    motif: Mapped[str] = mapped_column(String(200))
+
+    classe: Mapped[Classe] = relationship()
+    accordee_par: Mapped["Enseignant | None"] = relationship()
+
+
 class Eleve(Base):
     __tablename__ = "eleve"
     __table_args__ = (

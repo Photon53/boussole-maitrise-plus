@@ -136,6 +136,7 @@ describe("configuration", () => {
     const appels = fausseApi({
       "GET /admin/domaines": { json: [domaine] },
       "POST /admin/domaines/anglais-lycee": (corps) => ({ json: [{ ...domaine, ...corps }] }),
+      "GET /admin/classes-pilotes": { json: [] },
     });
     render(<Configuration jeton="j" onExpire={vi.fn()} />);
     expect(await screen.findByLabelText("Anglais lycée ouvert aux élèves")).toBeDisabled();
