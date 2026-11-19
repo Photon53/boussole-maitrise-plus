@@ -335,6 +335,9 @@ class ReponseHistorique(BaseModel):
     solution: str
     correction: dict | None = None
     duree_s: float
+    # #176 (SEC-D6, option b) : vu par un parent alors que la classe n'a plus accès au domaine, l'énoncé, la
+    # solution et la correction sont retirés ; la réponse de l'enfant et son résultat restent.
+    contenu_masque: bool = False
 
 
 class AvancementCompetence(BaseModel):

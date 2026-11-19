@@ -62,3 +62,19 @@ describe("classes pilotes (#176)", () => {
     expect(await screen.findByText(/activez d'abord un domaine sans l'ouvrir aux élèves/)).toBeInTheDocument();
   });
 });
+
+describe("historique vu par le parent après révocation (#176, option b)", () => {
+  it("n'affiche ni énoncé ni réponse attendue quand le contenu est masqué", async () => {
+    const { default: Historique } = await import("../eleve/Historique.jsx");
+    const element = {
+      id: 1, repondu_le: "2026-11-19T08:00:00Z", seance_id: 1, question_id: 1, competence_id: 1, competence: "Conjuguer au présent",
+      chapitre: "Le présent", enonce: "", type: "texte", difficulte: 1, reponse_donnee: "finissons", correcte: false, solution: "",
+      correction: null, duree_s: 12, contenu_masque: true,
+    };
+    fausseApi({ "GET /parents/enfants/5/historique?page=1&erreurs=false": { json: { total: 1, erreurs: 1, elements: [element] } } });
+    render(<Historique jeton="j" onExpire={vi.fn()} chemin="/parents/enfants/5/historique" eleve={false} />);
+    expect(await screen.findByText("Énoncé et correction réservés aux élèves de la classe pilote.")).toBeInTheDocument();
+    expect(screen.getByText("finissons")).toBeInTheDocument();
+    expect(screen.queryByText(/Réponse attendue/)).not.toBeInTheDocument();
+  });
+});
