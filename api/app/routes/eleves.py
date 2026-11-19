@@ -222,7 +222,7 @@ def mes_chapitres(eleve: EleveCourant, session: SessionDB) -> list[ChapitreOuver
     permis = set(ids_ouverts_eleve(session, eleve.classe))
     chapitres = sorted((c for c in eleve.classe.chapitres_proposes if c.id in permis), key=lambda c: c.ordre)
     nb = nb_questions_servables(session, [c.id for c in chapitres])
-    return [ChapitreOuvert(id=c.id, code=c.code, titre=c.titre, nb_questions=nb.get(c.id, 0)) for c in chapitres]
+    return [ChapitreOuvert(id=c.id, code=c.code, titre=c.titre, nb_questions=nb.get(c.id, 0), rubrique=(c.rubrique.value if c.rubrique else None)) for c in chapitres]
 
 
 @router.get("/eleves/moi/historique", response_model=PageHistorique)

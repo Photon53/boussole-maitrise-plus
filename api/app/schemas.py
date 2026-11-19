@@ -156,6 +156,7 @@ class ChapitreOuvert(BaseModel):
     code: str
     titre: str
     nb_questions: int
+    rubrique: str | None = None  # français (#177)
 
 
 class ChapitreProgramme(BaseModel):
@@ -167,6 +168,7 @@ class ChapitreProgramme(BaseModel):
     ordre: int
     propose: bool
     nb_competences: int
+    rubrique: str | None = None  # français (#177)
     nb_questions: int
 
 
@@ -212,6 +214,7 @@ class ChapitreCours(BaseModel):
     id: int
     code: str
     titre: str
+    rubrique: str | None = None  # français (#177)
     competences: list[CompetenceCours]
 
 

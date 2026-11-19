@@ -26,6 +26,7 @@ def sommaire(eleve: EleveCourant, session: SessionDB) -> list[ChapitreCours]:
             id=ch.id,
             code=ch.code,
             titre=ch.titre,
+            rubrique=ch.rubrique.value if ch.rubrique else None,
             competences=[
                 CompetenceCours(id=c.id, code=c.code, libelle=c.libelle, a_une_lecon=c.lecon is not None)
                 for c in sorted(ch.competences, key=lambda c: (c.ordre, c.code))
