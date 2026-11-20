@@ -16,6 +16,7 @@ from sqlalchemy.orm import Session
 from app import francais, journal, permissions
 from app.auth import EnseignantAuthentifie, SessionDB
 from app.db import models
+from app.referentiel import Role
 
 router = APIRouter(prefix="/francais", tags=["français"])
 
@@ -44,6 +45,18 @@ def dossier_ou_404(session: Session, code: str, qui: models.Enseignant) -> model
 def _sans_cache(reponse: Response) -> None:
     # Corrigés et supports professeur : ni cache partagé, ni conservation par le navigateur.
     reponse.headers["Cache-Control"] = "private, no-store"
+
+
+@router.get("/etat")
+def etat(qui: EnseignantAuthentifie, session: SessionDB, reponse: Response):
+    """Issue #212 : pourquoi la liste est vide ou refusée (import absent, domaine non activé), pour l'administrateur
+    seul, y compris quand aucun domaine français n'est actif. Les contrôles d'accès aux dossiers sont inchangés."""
+    if qui.mdp_provisoire:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Choisissez d'abord un nouveau mot de passe.")
+    if qui.role != Role.ADMIN:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Réservé aux administrateurs.")
+    _sans_cache(reponse)
+    return francais.etat(session)
 
 
 @router.get("/dossiers")
