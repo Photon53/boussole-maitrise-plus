@@ -8,10 +8,11 @@ from app import config
 
 from app.config import settings
 from app.db import models
-from tests.conftest import connecter_admin, connecter_enseignant
+from tests import pdf_exemples
+from tests.conftest import connecter_admin, connecter_eleve, connecter_enseignant
 from tests.test_classes_pilotes import pilote  # noqa: F401  (fixture : classe pilote de Lina, classe révoquée de Noé)
 
-PDF = b"%PDF-1.4\n1 0 obj\n<<>>\nendobj\ntrailer\n<<>>\n%%EOF\n"
+PDF = pdf_exemples.ordinaire()
 
 
 def _lien(client, pilote, **autres) -> dict:
@@ -39,6 +40,17 @@ def test_mon_cours_suit_l_avancee_du_cours(client, pilote):  # noqa: F811
     assert len(client.get("/cours/mon-cours", headers=pilote["lina"]).json()) == 1
 
 
+def test_un_eleve_d_une_autre_matiere_ne_voit_pas_le_lien(client, pilote):  # noqa: F811
+    """Classe de maths de démonstration : ni « Mon cours » ni le cours ne servent le lien de la classe de français."""
+    lien = _lien(client, pilote)
+    maths = connecter_eleve(client)
+    cours = client.get("/cours/mon-cours", headers=maths)
+    assert cours.status_code == 200, cours.text
+    assert pilote["chapitre"] not in {c["id"] for c in cours.json()}
+    assert lien["id"] not in {r["id"] for c in cours.json() for r in c["ressources"]}
+    assert client.get(f"/cours/{pilote['competence']}", headers=maths).status_code == 404
+
+
 def test_un_lien_masque_ou_reserve_aux_enseignants_n_apparait_pas(client, pilote):  # noqa: F811
     _lien(client, pilote, public="enseignants")
     assert client.get("/cours/mon-cours", headers=pilote["lina"]).json()[0]["ressources"] == []
@@ -60,10 +72,11 @@ def test_pdf_refuse_en_francais_pendant_le_pilote(client, session, pilote, monke
     # Ressource commune de l'administrateur rattachée au français : refusée aussi.
     admin = connecter_admin(client)
     assert client.post("/admin/ressources", headers=admin, json={**pdf_fr, "classe_ids": []}).status_code == 403
-    # Verrou technique : le réglage seul ne rouvre rien tant que le contrôle renforcé des PDF (#4) n'est pas livré.
+    # Verrou technique : le réglage seul ne rouvre rien sans le contrôle renforcé des PDF (#4).
+    monkeypatch.setattr(config, "CONTROLE_PDF_RENFORCE", False)
     monkeypatch.setattr(settings, "pdf_francais_ouvert", True)
     assert client.post("/enseignants/ressources", headers=prof, json=pdf_fr).status_code == 403
-    # Après #4 (verrou levé), le réglage rouvre les PDF ; refermé, l'envoi du fichier est de nouveau refusé.
+    # Avec #4 (verrou levé, valeur livrée), le réglage rouvre les PDF ; refermé, l'envoi du fichier est de nouveau refusé.
     monkeypatch.setattr(config, "CONTROLE_PDF_RENFORCE", True)
     cree = client.post("/enseignants/ressources", headers=prof, json=pdf_fr)
     assert cree.status_code == 201, cree.text

@@ -132,3 +132,28 @@ par le besoin pédagogique, et non des durées imposées par la CNIL.
 | ☐ | **Sauvegardes** : rotation de 30 jours au plus si possible (aujourd'hui 60 jours, SEC-D4) ; réappliquer les suppressions après une restauration | `docs/exploitation/technique.md` T-04/T-05 |
 | ☐ | **Vérification effective** des accès, de l'export, de l'effacement et de la purge en DEV avant l'ouverture | recette |
 
+
+## 9. Accueil et demandes (#172) : contacts adultes, candidatures et partenariats (#171) — à valider avant toute collecte réelle
+
+« Accueil et demandes » regroupe les demandes des **adultes qui ne sont pas encore inscrits**, une file par finalité :
+familles et préinscriptions, informations et questions, candidatures de professeurs, partenariats de structures. Les
+retours des utilisateurs déjà inscrits restent dans « Remarques » (§ 7), sans seconde boîte de réception.
+Entrées aujourd'hui : formulaire public « Enseigner ou collaborer avec nous » (`/collaborer`, #171, fermé par défaut)
+et saisie par un administrateur d'une demande reçue hors formulaire (familles et informations). Le formulaire des
+familles relève de #170.
+
+| État | Règle | Où |
+|---|---|---|
+| ✅ | **Contact adulte** : prénom, nom, e-mail, téléphone facultatif. **Ni compte, ni parent, ni inscrit** : aucun enfant, aucun accès, aucun résultat pédagogique relié. Chaque demande garde les coordonnées saisies avec elle | `models.ContactAdulte`, `models.DemandeAccueil` |
+| ✅ | **Données par file** : famille et information : besoin exprimé (texte), sans donnée d'enfant ; candidature : matières, niveaux, disponibilités, message, CV, facultatifs sauf matières et niveaux ; partenariat : structure, type, fonction facultative, partenariat envisagé | `app/routes/accueil.py`, `app/routes/collaboration.py` |
+| ✅ | **Rattachement prudent** : une demande rejoint un contact seulement si l'e-mail normalisé est identique (minuscules, espaces retirés, aucune ressemblance approchée) ; les coordonnées du contact ne sont jamais écrasées ; aucun accès, aucun enfant, aucun compte n'en découle ; un administrateur peut détacher une demande rattachée à tort | `accueil.contact_pour`, `accueil.detacher` |
+| ✅ | **Usage** : étudier la demande et y répondre ; aucun envoi automatique, aucune prospection, aucun export vers un outil externe ; une demande ne crée ni compte, ni inscription, ni habilitation, ni contrat ; l'issue est notée explicitement (suite demandée, inscription effective pour une famille, refus, clôture) | — |
+| ✅ | **Information** avant l'envoi du formulaire public (usage, accès, conservation, droits) ; case « J'ai lu » exigée par l'API | `web/src/Collaborer.jsx` |
+| ✅ | **CV** : PDF seulement, 5 Mo au plus (`PKP_CV_TAILLE_MAX_MO`), type réel vérifié (en-tête puis analyse complète du contrôle renforcé #4), refusé s'il est chiffré ou porte un contenu actif ; nom de fichier aléatoire, droits `0600`, dossier privé `PKP_DOSSIER_CANDIDATURES` distinct des ressources pédagogiques ; aucune URL publique, téléchargement par un administrateur seulement, journalisé | `app/collaboration.py` |
+| ✅ | **Accès** : administrateurs seulement (jeton admin, rôle revérifié en base) ; ni professeur, ni validateur, ni parent, ni élève. Journal : traitement seulement (catégorie, statut, issue, responsable, présence de notes, téléchargement, export, suppression), jamais les coordonnées, le message, les notes ni le CV | `tests/test_accueil.py`, `tests/test_collaboration.py` |
+| ✅ | **Droits** : export JSON du contact et de toutes ses demandes (accès) ; suppression d'une demande, ou du contact avec toutes ses demandes **et ses CV** (effacement) ; un contact sans demande est supprimé | `/admin/accueil/contacts/{id}/export`, `DELETE` |
+| ✅ | **Anti-abus** du formulaire public : 5 envois par heure et par adresse (refusés compris), 60 par heure au total, piège à robots, corps borné | `limitation.collaboration_*` |
+| ✅ | **Durées par finalité** : `PKP_ACCUEIL_CONSERVATION_JOURS` donne une durée par file, comptée depuis le dernier traitement ; la purge quotidienne supprime les demandes échues, leurs CV et les contacts restés sans demande. **Sans durée, une file ne collecte rien** (formulaire fermé, saisie refusée, démarrage refusé en production si le formulaire est activé) et n'est jamais purgée | `accueil.purger`, `app/purge.py` |
+| ☐ | **Durées de conservation** de chaque file, responsable de traitement et base légale : décision **RGPD-3**, en attente | propriétaire, avis spécialisé (#18) |
+| ☐ | **Exploitation** : volume persistant et sauvegarde du dossier des CV, réapplication des suppressions après une restauration (`docs/DEPLOIEMENT.md`) | PR d'exploitation |
+| ☐ | **Procédure** des demandes d'accès et d'effacement (qui reçoit, délai d'un mois) ; recette en DEV avec des données fictives | — |

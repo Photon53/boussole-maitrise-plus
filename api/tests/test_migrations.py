@@ -16,6 +16,7 @@ TABLES = {
     "remarque", "compte_service_ia", "prevalidation_ia", "acces_service_ia",
     "dossier_francais", "dossier_francais_version", "mode_correction_seance_anglais", "reponse_anglais",
     "compteur_identifiant", "observation_diagnostic", "passation_diagnostic", "classe_pilote", "redaction",
+    "contact_adulte", "demande_accueil",
 }
 
 
@@ -123,7 +124,8 @@ def test_retour_arriere_du_lot_0_v3(db_url):
     # Revenir en 0028 retire aussi les tables des migrations suivantes.
     tables_recentes = {"archive_inscription", "demande_aide", "remarque", "compte_service_ia", "prevalidation_ia", "acces_service_ia",
                        "dossier_francais", "dossier_francais_version", "mode_correction_seance_anglais", "reponse_anglais",
-                       "compteur_identifiant", "observation_diagnostic", "passation_diagnostic", "classe_pilote", "redaction"}
+                       "compteur_identifiant", "observation_diagnostic", "passation_diagnostic", "classe_pilote", "redaction",
+                       "contact_adulte", "demande_accueil"}
     assert set(inspect(moteur).get_table_names()) == (TABLES - tables_recentes) | {"alembic_version"}
     with moteur.connect() as c:
         assert c.exec_driver_sql("select identifiant from enfant").scalars().all() == ["lina-test"]

@@ -34,8 +34,14 @@ docker compose exec api python -m app.admin creer --email prof@lycee.fr --nom "M
 Vérifier : `https://<domaine>/api/health` répond `{"status":"ok"}`, puis se connecter sur
 `https://<domaine>/enseignant`.
 
-Les migrations de base de données sont appliquées automatiquement à chaque démarrage de l'API.
-Les données de démo ne sont **jamais** chargées en production.
+Avant l'API, le service ponctuel `preparation` applique les migrations, importe le contenu pédagogique
+(idempotent) et contrôle la base (`python -m app.production verifier`). S'il échoue, l'API ne démarre pas :
+lire `docker compose logs preparation`. Un redémarrage de l'API seule (`docker compose restart api`) ne migre
+plus la base ; `docker compose up -d` relance la préparation.
+Elle affiche aussi, sans bloquer, des `AVERTISSEMENT` : par exemple des classes actives d'un domaine fermé absentes
+des classes pilotes, dont les élèves n'ont plus accès au contenu (SEC-D6).
+Les données de démo ne sont **jamais** chargées en production : `python -m app.db.seed` refuse de s'exécuter
+avec `PKP_ENVIRONNEMENT=production`, et la préparation échoue si un compte de démonstration est présent.
 
 ## Oracle Cloud (Oracle Linux) : script d'installation
 
@@ -123,9 +129,33 @@ Sauvegardes : chiffrées, copiées hors du serveur, gardées 60 jours, restaurat
   `PKP_PDF_FRANCAIS_OUVERT=true` reste sans effet tant que `CONTROLE_PDF_RENFORCE` vaut `False` dans
   `api/app/config.py`, et l'API refuse alors de démarrer en production avec ce réglage. Procédure d'ouverture,
   dans cet ordre :
-  1. la PR qui livre le contrôle renforcé des PDF (#4) passe `CONTROLE_PDF_RENFORCE` à `True`, avec ses tests
-     (PDF ordinaires, malformés, chiffrés, à actions actives ; limites de taille et de durée) ; revue de sécurité ;
+  1. ✅ contrôle renforcé des PDF livré (#4) : `CONTROLE_PDF_RENFORCE` vaut `True`, tests dans
+     `api/tests/test_controle_pdf.py` (voir « Contrôle des PDF déposés » ci-dessous) ; revue de sécurité à la relecture
+     de la PR ;
   2. le propriétaire consigne la décision d'ouverture dans `docs/DECISIONS.md` (« V2-D12 — Mon cours ») ;
   3. activation d'abord en DEV, essai par la professeure (dépôt, consultation par une classe pilote, refus d'un PDF
      piégé) ;
   4. sauvegarde, puis `PKP_PDF_FRANCAIS_OUVERT=true` dans le `.env` de production et redémarrage.
+- **Candidatures et partenariats** (#171, « Enseigner ou collaborer avec nous ») : **fermés par défaut**
+  (`PKP_COLLABORATION_ACTIVE=false` : le formulaire l'annonce, l'API répond 403, l'accueil n'affiche pas l'entrée).
+  En production, l'API refuse de démarrer avec `PKP_COLLABORATION_ACTIVE=true` sans les durées « candidature » et
+  « partenariat » dans `PKP_ACCUEIL_CONSERVATION_JOURS` (JSON, par exemple `{"candidature": 180, "partenariat": 365}` ;
+  durées décidées par le propriétaire, RGPD-3). Même règle pour les autres files d'« Accueil et demandes » (#172) :
+  sans durée, la saisie y est refusée. Les CV (PDF, `PKP_CV_TAILLE_MAX_MO`, 5 Mo par défaut, contrôlés comme
+  ci-dessous) sont écrits dans `PKP_DOSSIER_CANDIDATURES`, distinct de `PKP_DOSSIER_FICHIERS`. **Avant activation**, à
+  faire dans une PR d'exploitation dédiée : volume persistant pour ce dossier dans `docker-compose.yml` (sinon les CV
+  disparaissent au redéploiement), décision sur son inclusion dans les sauvegardes (SEC-D4) et réapplication des
+  suppressions après une restauration ; puis essai en DEV avec des données fictives.
+- **Contrôle des PDF déposés** (#4, `api/app/controle_pdf.py`) : chaque PDF envoyé par un professeur ou un
+  administrateur est analysé par `pypdf` dans un **processus séparé** (démarrage `spawn`), limité à **512 Mo** de
+  mémoire et **15 s** (temps processeur et durée totale), **2 analyses simultanées** au plus, **500 pages** et
+  **100 000 objets** au plus. Tous les objets du document sont examinés, y compris ceux des flux d'objets compressés
+  et les objets orphelins. Sont acceptés : texte, images, polices, signets, liens internes, navigation, liens web
+  `http`, `https` et `mailto`, formulaires sans script. Sont **refusés** : PDF chiffrés, malformés ou sans page,
+  JavaScript, toute autre action (`Launch`, `SubmitForm`, `ImportData`, `GoToR`…), actions automatiques (`/AA`),
+  action d'ouverture autre qu'un saut de page, fichiers embarqués ou joints, multimédia, formulaires XFA. Un PDF refusé
+  n'est **jamais écrit sur disque** ; le fichier accepté est conservé tel quel. Les limites sont des constantes du
+  module. Sous Windows, seule la durée est bornée (pas de limite de mémoire). Les PDF déposés avant ce contrôle ne
+  sont pas réanalysés automatiquement : après déploiement, lancer
+  `docker compose exec api python -m app.ressources verifier-pdf` (lecture seule, liste les PDF que le contrôle
+  refuserait, sans rien masquer ni supprimer) ; un administrateur masque ou remplace ceux qui sont signalés.

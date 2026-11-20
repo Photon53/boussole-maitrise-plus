@@ -146,6 +146,18 @@ Un enfant n'a **aucun nom de famille** : la colonne `enfant.nom` a été supprim
 - **Saisie** : un champ `nom` est refusé par l'API (`extra="forbid"`) ; un classeur d'import qui remplit la colonne « Nom » est refusé ; un prénom sans aucune lettre est refusé.
 - **Limitation des tentatives** : voir `docs/audit/rgpd-1-limitation-connexion.md`.
 
+### Vue élève simulée (#184)
+Un professeur ou un administrateur ouvre l'espace élève d'une classe avec un élève fictif (`eleve.simulation_par_id`,
+migration `0045`) et un jeton élève ordinaire. Un filtre ORM global (`app/db/simulation.py`) retire ces élèves et
+tout leur travail de toutes les autres lectures. Détails, limites et purge : [SIMULATION-ELEVE.md](SIMULATION-ELEVE.md).
+
+### Accueil et demandes (#172, #171)
+Les adultes qui ne sont pas encore inscrits : `contact_adulte` porte une ou plusieurs `demande_accueil` (migration
+`0047`, qui reprend les demandes de `demande_collaboration`, migration `0046` de #171), chacune dans une file (famille, information, candidature, partenariat) avec statut et issue explicite.
+Aucun lien vers un compte, un enfant ou une donnée pédagogique. Routes `/admin/accueil/*` (administrateurs seulement,
+`app/routes/accueil.py`) ; formulaire public `/collaboration/*` (`app/routes/collaboration.py`) ; règles communes,
+rattachement par e-mail identique et purge par file dans `app/accueil.py`. Détails RGPD : `docs/RGPD.md` § 9.
+
 ### Français (préparation, #98)
 Tables `dossier_francais` et `dossier_francais_version` (migration 0037) : parties élève et professeur séparées,
 empreinte du fichier source, circuit de validation des séances d'anglais. Contrat et accès :

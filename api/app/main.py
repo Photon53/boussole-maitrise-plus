@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routes import admin, admin_contenu, archivage, cartes, classes_pilotes, cours, redactions, diagnostic, domaines, eleves, enseignants, enseignants_contenu, health, parents, ressources, anglais, anglais_eleves, enfants, familles, francais, masse, pkp_math, prevalidation_ia, repertoire, remarques, suivi, validation_maths
+from app.routes import accueil, admin, admin_contenu, archivage, cartes, classes_pilotes, collaboration, cours, redactions, diagnostic, domaines, eleves, enseignants, enseignants_contenu, health, parents, ressources, anglais, anglais_eleves, enfants, familles, francais, masse, pkp_math, prevalidation_ia, repertoire, remarques, simulation, suivi, validation_maths
 
 # En production, la documentation interactive n'est pas exposée publiquement.
 app = FastAPI(
@@ -36,6 +36,7 @@ app.include_router(domaines.router)
 app.include_router(suivi.router)  # avant eleves et enseignants : chemins plus précis
 app.include_router(diagnostic.router)  # issue #162 : /eleves/moi/diagnostic, /enseignants/classes/{id}/diagnostic
 app.include_router(redactions.router)  # issue #179 : /eleves/moi/redactions, /enseignants/.../redactions
+app.include_router(simulation.router)  # issue #184 : vue élève simulée
 app.include_router(eleves.router)
 app.include_router(enseignants.router)
 app.include_router(parents.router)
@@ -57,5 +58,7 @@ app.include_router(enfants.router)
 app.include_router(familles.router)
 app.include_router(pkp_math.router)
 app.include_router(remarques.router)
+app.include_router(collaboration.router)  # issue #171 : /collaboration/*
+app.include_router(accueil.router)  # issue #172 : /admin/accueil/* (« Accueil et demandes »)
 app.include_router(prevalidation_ia.router_admin)
 app.include_router(prevalidation_ia.router_service)

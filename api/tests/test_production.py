@@ -42,9 +42,11 @@ class TestConfiguration:
             config(**{**PROD_VALIDE, champ: valeur})
 
     def test_production_refuse_les_pdf_de_francais_avant_le_controle_renforce(self, monkeypatch):
-        """#180 : PKP_PDF_FRANCAIS_OUVERT ne s'active pas par accident avant la livraison de #4."""
+        """#180 : PKP_PDF_FRANCAIS_OUVERT ne s'active pas sans le contrôle renforcé des PDF (#4, livré)."""
         from app import config as module
 
+        assert module.CONTROLE_PDF_RENFORCE
+        monkeypatch.setattr(module, "CONTROLE_PDF_RENFORCE", False)
         with pytest.raises(ValueError, match="PKP_PDF_FRANCAIS_OUVERT"):
             config(**PROD_VALIDE, pdf_francais_ouvert=True)
         monkeypatch.setattr(module, "CONTROLE_PDF_RENFORCE", True)

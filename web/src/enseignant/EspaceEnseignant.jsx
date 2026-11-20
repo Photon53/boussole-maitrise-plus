@@ -13,6 +13,7 @@ import Questions from "./Questions.jsx";
 import Redactions from "./Redactions.jsx";
 import RessourcesEnseignant from "./RessourcesEnseignant.jsx";
 import Remarques from "../ui/Remarques.jsx";
+import VueEleve from "../ui/VueEleve.jsx";
 import Validation from "./Validation.jsx";
 
 // Session partagée avec l'espace PKP Anglais : un professeur des deux disciplines ne se connecte qu'une fois.
@@ -26,6 +27,8 @@ const PAGES = [
   { vers: "/enseignant/ressources", libelle: "Mes ressources", icone: "ressources" },
   { vers: "/enseignant/banque", libelle: "Banque de questions", icone: "exercices" },
   { vers: "/enseignant/remarques", libelle: "Remarques et suggestions", icone: "crayon" },
+  // Issue #184 : parcourir l'espace élève d'une de ses classes avec un élève fictif.
+  { vers: "/enseignant/vue-eleve", libelle: "Voir comme un élève", icone: "oeil" },
 ];
 // Validateurs en maths (ticket #29) : consulter, modifier et valider les cours et exercices de leur périmètre.
 const VALIDATION = { vers: "/enseignant/validation", libelle: "Validation", icone: "bouclier" };
@@ -121,6 +124,7 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
       {page.vers === "/enseignant/banque" && <Questions {...props} />}
       {page.vers === "/enseignant/remarques" && <Remarques {...props} />}
       {page.vers === "/enseignant/redactions" && <Redactions {...props} />}
+      {page.vers === "/enseignant/vue-eleve" && <VueEleve {...props} role="enseignant" />}
       {page.vers === "/enseignant/validation" && <Validation {...props} chemin={chemin} />}
       {page.vers === "/enseignant/pkp-math" && <section className="carte"><PkpMath {...props} adulte /></section>}
     </CadreApplication>

@@ -5,6 +5,7 @@ il prépare un chapitre avant de le proposer à ses élèves. Il ne modifie pas 
 """
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
+from fastapi.concurrency import run_in_threadpool
 from pkp_engine import Niveau
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
@@ -186,7 +187,8 @@ async def envoyer_pdf(ressource_id: int, request: Request, enseignant: Enseignan
         raise HTTPException(422, "Cette ressource est un lien, pas un PDF.")
     if refus := ressources.refus_envoi_pdf(session, r):  # #180 : liens seulement en français pendant le pilote
         raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
-    ressources.enregistrer_pdf(r, await _lire_corps(request))
+    # Analyse isolée et bloquante (#4) : hors de la boucle d'événements.
+    await run_in_threadpool(ressources.enregistrer_pdf, r, await _lire_corps(request))
     session.commit()
     return ressources.detail(session, r)
 

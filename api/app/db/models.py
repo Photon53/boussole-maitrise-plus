@@ -234,6 +234,13 @@ class Eleve(Base):
         UniqueConstraint("prenom", "classe_id", name="uq_eleve_prenom_classe"),
         # Identifiant comparé sans casse (« Lina1 » = « lina1 », RGPD-1, #87).
         Index("uq_eleve_identifiant_minuscules", text("lower(identifiant)"), unique=True),
+        # Un élève fictif par acteur, rôle d'origine et classe (issue #184).
+        UniqueConstraint("simulation_par_id", "simulation_role", "classe_id", name="uq_eleve_simulation"),
+        CheckConstraint(
+            "(simulation_par_id IS NULL AND simulation_role IS NULL) OR "
+            "(simulation_par_id IS NOT NULL AND simulation_role IN ('enseignant', 'admin'))",
+            name="simulation",
+        ),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -253,6 +260,11 @@ class Eleve(Base):
     # Enfant d'une famille (créé par l'administrateur) : il se connecte avec la carte de l'enfant, et cette
     # inscription partage son code. Vide pour les élèves créés directement dans une classe (ancien mode).
     enfant_id: Mapped[int | None] = mapped_column(ForeignKey("enfant.id", ondelete="CASCADE"), index=True)
+    # Élève fictif de simulation (issue #184) : propre à un professeur ou un administrateur (`simulation_par_id`,
+    # `simulation_role`) et à une classe. Sans identifiant ni code personnel communicable ; masqué de toutes les
+    # requêtes ordinaires (listes, statistiques, bilans) par `app.db.simulation`. Vide pour un vrai élève.
+    simulation_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="CASCADE"), index=True)
+    simulation_role: Mapped[str | None] = mapped_column(String(12))
 
     classe: Mapped[Classe] = relationship(back_populates="eleves")
     enfant: Mapped["Enfant | None"] = relationship(back_populates="inscriptions")
@@ -860,6 +872,77 @@ class Remarque(Base):
     assignee: Mapped["Enseignant | None"] = relationship()
 
 
+class ContactAdulte(Base):
+    """Adulte qui a pris contact avec Boussole hors de tout compte (issue #172, « Accueil et demandes »).
+
+    Un contact porte une ou plusieurs demandes, chacune avec sa catégorie, son statut et son historique. **Ce n'est
+    ni un compte, ni un parent, ni un inscrit** : aucun enfant, aucun accès, aucune donnée pédagogique n'y est relié.
+    Une nouvelle demande n'est rattachée à un contact existant que si l'e-mail normalisé (minuscules, sans espaces)
+    est identique ; les coordonnées saisies restent sur la demande et n'écrasent jamais celles du contact.
+    """
+
+    __tablename__ = "contact_adulte"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    prenom: Mapped[str] = mapped_column(String(60))
+    nom: Mapped[str] = mapped_column(String(80))
+    email: Mapped[str] = mapped_column(String(254), index=True)  # normalisé : minuscules, sans espaces
+    telephone: Mapped[str | None] = mapped_column(String(30))
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
+
+    demandes: Mapped[list["DemandeAccueil"]] = relationship(
+        back_populates="contact", cascade="all, delete-orphan", order_by="DemandeAccueil.cree_le"
+    )
+
+
+class DemandeAccueil(Base):
+    """Demande d'un contact adulte, rangée dans une file d'« Accueil et demandes » (issues #172, #171).
+
+    Files : familles et préinscriptions, informations et questions, candidatures de professeurs, partenariats de
+    structures. Une demande ne vaut ni inscription, ni compte, ni habilitation, ni contrat ; son issue est explicite.
+    Les champs propres à la catégorie (matières d'un candidat, type de structure…) sont dans `details`, validés à
+    l'entrée par l'API. Le CV d'une candidature est un fichier hors base (`app.collaboration`), supprimé avec elle.
+    """
+
+    __tablename__ = "demande_accueil"
+    __table_args__ = (
+        CheckConstraint("categorie IN ('famille', 'information', 'candidature', 'partenariat')", name="categorie"),
+        CheckConstraint("origine IN ('formulaire-collaboration', 'saisie-admin')", name="origine"),
+        CheckConstraint("statut IN ('nouveau', 'a-traiter', 'traite')", name="statut"),
+        CheckConstraint(
+            "issue IS NULL OR issue IN ('suite-demandee', 'inscription-effective', 'refus', 'cloture')", name="issue"
+        ),
+        CheckConstraint("statut <> 'traite' OR issue IS NOT NULL", name="issue_si_traite"),
+        CheckConstraint("issue IS NULL OR issue <> 'inscription-effective' OR categorie = 'famille'", name="inscription_famille"),
+        CheckConstraint("categorie = 'candidature' OR cv_fichier IS NULL", name="cv_candidature"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    reference: Mapped[str] = mapped_column(String(20), unique=True)
+    contact_id: Mapped[int] = mapped_column(ForeignKey("contact_adulte.id", ondelete="CASCADE"), index=True)
+    categorie: Mapped[str] = mapped_column(String(12), index=True)
+    origine: Mapped[str] = mapped_column(String(30))  # d'où vient la demande, dans Boussole
+    # Coordonnées telles que saisies avec cette demande (le contact garde les siennes).
+    prenom: Mapped[str] = mapped_column(String(60))
+    nom: Mapped[str] = mapped_column(String(80))
+    email: Mapped[str] = mapped_column(String(254))
+    telephone: Mapped[str | None] = mapped_column(String(30))
+    organisation: Mapped[str | None] = mapped_column(String(150))  # nom de la structure, pour un partenariat
+    message: Mapped[str | None] = mapped_column(String(3000))  # besoin, message ou partenariat envisagé
+    details: Mapped[dict] = mapped_column(JSON, default=dict)
+    cv_fichier: Mapped[str | None] = mapped_column(String(64))  # nom aléatoire sur disque, jamais exposé
+    cv_taille_octets: Mapped[int | None] = mapped_column(Integer)
+    statut: Mapped[str] = mapped_column(String(10), default="nouveau", index=True)
+    issue: Mapped[str | None] = mapped_column(String(24))
+    notes_internes: Mapped[str | None] = mapped_column(String(3000))
+    responsable_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    cree_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, index=True)
+    maj_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, index=True)
+
+    contact: Mapped["ContactAdulte"] = relationship(back_populates="demandes")
+    responsable: Mapped["Enseignant | None"] = relationship()
+
+
 class DemandeAide(Base):
     """« Je n'ai pas compris » d'un élève (ticket #28), sur un cours, un exercice ou sa correction.
 
@@ -1157,3 +1240,7 @@ def _interdire_suppression_question(session: Session, _contexte, _instances) -> 
     # toute question ayant reçu au moins une réponse.
     if any(isinstance(objet, Question) for objet in session.deleted):
         raise SuppressionInterdite("Une question ne se supprime pas : archivez-la (archivee = True).")
+
+
+# Masque les élèves fictifs (issue #184) de toutes les requêtes : importé ici pour être toujours actif.
+from app.db import simulation as _simulation  # noqa: E402, F401
