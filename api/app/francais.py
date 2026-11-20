@@ -22,7 +22,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, ValidationError, model_validator
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app import permissions
@@ -310,6 +310,22 @@ def domaine_actif(session: Session, domaine: str) -> bool:
 def lisibles(session: Session, enseignant: models.Enseignant) -> list[models.DossierFrancais]:
     dossiers = session.scalars(select(models.DossierFrancais).order_by(models.DossierFrancais.code))
     return [d for d in dossiers if domaine_actif(session, d.domaine_code) and peut_lire(enseignant, d.domaine_code, d.niveau)]
+
+
+def etat(session: Session) -> dict:
+    """État du français sur l'instance, pour l'administrateur (#212) : domaines et nombre de dossiers par domaine.
+
+    Explique une liste vide ou un refus sans rien divulguer d'autre : ni contenu de dossier, ni donnée personnelle.
+    """
+    nombres = dict(session.execute(
+        select(models.DossierFrancais.domaine_code, func.count(models.DossierFrancais.id))
+        .group_by(models.DossierFrancais.domaine_code)
+    ).all())
+    domaines = [
+        {"code": code, "libelle": d.libelle, "actif": domaine_actif(session, code), "dossiers": nombres.get(code, 0)}
+        for code, d in DOMAINES_FRANCAIS.items()
+    ]
+    return {"domaines": domaines, "dossiers": sum(nombres.values())}
 
 
 # --- Vues ------------------------------------------------------------------------------------------

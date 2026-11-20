@@ -1,5 +1,6 @@
 // Issue #98 — Intégration du premier dossier Français 3e en DEV (Claude)
 import { useCallback, useEffect, useState } from "react";
+import { api } from "../api.js";
 import { Erreur, Onglets } from "../composants.jsx";
 import { AccesReserve, CLE_COMPTE, ConnexionEnseignant, NouveauMotDePasse, PageSimple } from "../enseignant/EspaceEnseignant.jsx";
 import { useApi } from "../enseignant/useApi.js";
@@ -10,6 +11,50 @@ import { CadreApplication, EntetePage, Vide } from "../ui/Cadre.jsx";
 import Icone from "../ui/Icone.jsx";
 
 const MARQUE = "Français";
+const SANS_DOSSIER = "Aucun dossier de français accessible avec vos habilitations.";
+
+/**
+ * Issue #212 : cause réelle d'une liste vide ou d'un refus, d'après l'état de l'instance (administrateurs seuls).
+ * Renvoie une liste de phrases, vide si l'état n'explique rien.
+ */
+export function causesAbsence(etat) {
+  if (!etat) return [];
+  const causes = [];
+  const actifs = etat.domaines.filter((d) => d.actif);
+  const enAttente = etat.domaines.filter((d) => !d.actif && d.dossiers > 0);
+  if (etat.dossiers === 0) {
+    causes.push(
+      "Aucun dossier de français n'est importé dans la base de cette instance. L'import est une opération d'exploitation " +
+        "(docs/francais/INTEGRATION-DEV.md, étape 3) : il n'est fait ni au démarrage, ni au déploiement.",
+    );
+  }
+  for (const d of enAttente) {
+    causes.push(
+      `${d.dossiers} dossier(s) rangé(s) dans « ${d.libelle} », qui n'est pas activé pour la préparation. ` +
+        "L'activer dans Administration → Configuration → Domaines, sans l'ouvrir au public.",
+    );
+  }
+  if (actifs.length === 0 && enAttente.length === 0) {
+    causes.push("Aucun domaine de français n'est activé pour la préparation (Administration → Configuration → Domaines).");
+  }
+  return causes;
+}
+
+function Causes({ causes }) {
+  if (causes.length === 0) return null;
+  return (
+    <div className="carte" role="status">
+      <p>
+        <strong>Diagnostic administrateur</strong>
+      </p>
+      <ul>
+        {causes.map((c) => (
+          <li key={c}>{c}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
 /** Espace de préparation du français : adultes habilités seulement ; rien n'y est ouvert aux élèves (#98). */
 export default function EspaceFrancais() {
@@ -47,14 +92,29 @@ function Dossiers({ compte, onDeconnexion }) {
   const [dossiers, setDossiers] = useState(null);
   const [refus, setRefus] = useState(false);
   const [choisi, setChoisi] = useState(null);
+  const [causes, setCauses] = useState([]);
+
+  // Lu sans passer par `appeler` : un refus (professeur) est attendu ici et ne doit afficher aucune erreur.
+  const expliquer = useCallback(async () => {
+    try {
+      setCauses(causesAbsence(await api("/francais/etat", { jeton: compte.jeton })));
+    } catch {
+      setCauses([]);
+    }
+  }, [compte.jeton]);
 
   const charger = useCallback(async () => {
     try {
-      setDossiers(await appeler("/francais/dossiers"));
+      const liste = await appeler("/francais/dossiers");
+      setDossiers(liste);
+      if (liste.length === 0) expliquer();
     } catch (err) {
-      if (err.status === 403) setRefus(true);
+      if (err.status === 403) {
+        setRefus(true);
+        expliquer();
+      }
     }
-  }, [appeler]);
+  }, [appeler, expliquer]);
 
   useEffect(() => {
     charger();
@@ -64,6 +124,7 @@ function Dossiers({ compte, onDeconnexion }) {
     return (
       <PageSimple marque={MARQUE}>
         <AccesReserve titre="Espace réservé aux adultes habilités en français" compte={compte} onDeconnexion={onDeconnexion} />
+        <Causes causes={causes} />
       </PageSimple>
     );
   }
@@ -92,7 +153,10 @@ function Dossiers({ compte, onDeconnexion }) {
       {dossiers === null ? (
         <p className="doux">Chargement…</p>
       ) : dossiers.length === 0 ? (
-        <Vide>Aucun dossier de français accessible avec vos habilitations.</Vide>
+        <>
+          <Vide>{SANS_DOSSIER}</Vide>
+          <Causes causes={causes} />
+        </>
       ) : choisi ? (
         <Detail
           code={choisi}
