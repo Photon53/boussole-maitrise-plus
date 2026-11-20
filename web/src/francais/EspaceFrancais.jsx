@@ -31,11 +31,11 @@ export function causesAbsence(etat) {
   for (const d of enAttente) {
     causes.push(
       `${d.dossiers} dossier(s) rangé(s) dans « ${d.libelle} », qui n'est pas activé pour la préparation. ` +
-        "L'activer dans Administration → Domaines, sans l'ouvrir au public.",
+        "L'activer dans Administration → Configuration → Domaines, sans l'ouvrir au public.",
     );
   }
   if (actifs.length === 0 && enAttente.length === 0) {
-    causes.push("Aucun domaine de français n'est activé pour la préparation (Administration → Domaines).");
+    causes.push("Aucun domaine de français n'est activé pour la préparation (Administration → Configuration → Domaines).");
   }
   return causes;
 }

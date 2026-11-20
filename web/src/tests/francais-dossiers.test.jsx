@@ -1,5 +1,5 @@
 // Issue #98 — Intégration du premier dossier Français 3e en DEV (Claude)
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 import EspaceFrancais, { causesAbsence } from "../francais/EspaceFrancais.jsx";
@@ -33,12 +33,13 @@ function connecte() {
 describe("Français : préparation réservée aux adultes", () => {
   it("un compte sans habilitation française voit un accès réservé", async () => {
     connecte();
-    fausseApi({
+    const appels = fausseApi({
       "GET /francais/dossiers": { status: 403, json: { detail: "Réservé" } },
       "GET /francais/etat": { status: 403, json: { detail: "Réservé aux administrateurs." } },
     });
     render(<EspaceFrancais />);
     expect(await screen.findByText("Espace réservé aux adultes habilités en français")).toBeInTheDocument();
+    await waitFor(() => expect(appels.some((a) => a.cle === "GET /francais/etat")).toBe(true));
     expect(screen.queryByText("Diagnostic administrateur")).not.toBeInTheDocument();
   });
 
@@ -106,12 +107,13 @@ describe("Français : cause d'une liste vide (#212)", () => {
 
   it("professeur : liste vide sans diagnostic ni message d'erreur", async () => {
     connecte();
-    fausseApi({
+    const appels = fausseApi({
       "GET /francais/dossiers": { json: [] },
       "GET /francais/etat": { status: 403, json: { detail: "Réservé aux administrateurs." } },
     });
     render(<EspaceFrancais />);
     expect(await screen.findByText("Aucun dossier de français accessible avec vos habilitations.")).toBeInTheDocument();
+    await waitFor(() => expect(appels.some((a) => a.cle === "GET /francais/etat")).toBe(true));
     expect(screen.queryByText("Diagnostic administrateur")).not.toBeInTheDocument();
     expect(screen.queryByText(/Réservé aux administrateurs/)).not.toBeInTheDocument();
   });

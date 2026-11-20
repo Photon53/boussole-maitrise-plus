@@ -276,6 +276,13 @@ class TestEtatIncident212:
         for h in (connecter_eleve(client), connecter_parent(client), {}, prepare):
             assert client.get("/francais/etat", headers=h).status_code == 401
 
+    def test_mot_de_passe_provisoire_refuse(self, client, fabrique):
+        admin = connecter_enseignant(client, email="admin@pkp.test")
+        with fabrique() as s:
+            s.scalar(select(models.Enseignant).where(models.Enseignant.email == "admin@pkp.test")).mdp_provisoire = True
+            s.commit()
+        assert client.get("/francais/etat", headers=admin).status_code == 403
+
     def test_ne_divulgue_aucun_contenu(self, client, prepare):
         admin = connecter_enseignant(client, email="admin@pkp.test")
         corps = client.get("/francais/etat", headers=admin).text
@@ -308,7 +315,8 @@ class TestCorriges:
 
     def test_aucune_route_ne_recoit_de_reponse_d_eleve(self):
         chemins = {c: m for c, m in app.openapi()["paths"].items() if c.startswith("/francais")}
-        assert len(chemins) == 6
+        assert len(chemins) == 7  # dont /francais/etat (#212), en lecture seule et réservée aux administrateurs
+        assert set(chemins["/francais/etat"]) == {"get"}
         ecritures = sorted(c for c, m in chemins.items() if set(m) & {"post", "put", "patch"})
         assert ecritures == ["/francais/dossiers/{code}/refuser", "/francais/dossiers/{code}/valider"]
 
