@@ -315,10 +315,16 @@ class TestCorriges:
 
     def test_aucune_route_ne_recoit_de_reponse_d_eleve(self):
         chemins = {c: m for c, m in app.openapi()["paths"].items() if c.startswith("/francais")}
-        assert len(chemins) == 7  # dont /francais/etat (#212), en lecture seule et réservée aux administrateurs
+        assert len(chemins) == 15  # dont /francais/etat (#212), en lecture seule et réservée aux administrateurs
         assert set(chemins["/francais/etat"]) == {"get"}
-        ecritures = sorted(c for c, m in chemins.items() if set(m) & {"post", "put", "patch"})
-        assert ecritures == ["/francais/dossiers/{code}/refuser", "/francais/dossiers/{code}/valider"]
+        # Côté élève (#212) : lecture seule, aucune réponse reçue ni corrigée.
+        assert {c: set(m) for c, m in chemins.items() if c.startswith("/francais/eleve")} == {
+            "/francais/eleve/dossiers": {"get"}, "/francais/eleve/dossiers/{code}": {"get"}}
+        ecritures = sorted(c for c, m in chemins.items() if set(m) & {"post", "put", "patch", "delete"})
+        assert ecritures == [
+            "/francais/dossiers/{code}/classes/{classe_id}", "/francais/dossiers/{code}/refuser",
+            "/francais/dossiers/{code}/valider", "/francais/validation/{code}/refuser", "/francais/validation/{code}/valider",
+        ]
 
 
 # --- Circuit de validation : décision humaine, sans publication aux élèves ----------------------------------
@@ -357,6 +363,167 @@ class TestValidation:
         assert _importer(fabrique, _ecrire(tmp_path, d)).nouvelles_versions == [CODE]
         histo = client.get(f"/francais/dossiers/{CODE}/historique", headers=val).json()
         assert [(v["numero"], v["statut"]) for v in histo] == [(2, "soumis"), (1, "refuse")]
+
+
+# --- Circuit aligné sur l'anglais (#212) : file de validation, version validée diffusée, ouverture aux classes ----
+
+def _version_modifiee(fabrique, tmp_path, coup_de_pouce: str) -> None:
+    d = copy.deepcopy(_brut())
+    d["eleve"]["questions"][3]["coup_de_pouce"] = coup_de_pouce
+    assert _importer(fabrique, _ecrire(tmp_path, d)).nouvelles_versions == [CODE]
+
+
+def _eleve_de(client, prof: dict, classe_id: int, classe_code: str, prenom: str) -> dict:
+    r = client.post(f"/enseignants/classes/{classe_id}/eleves", headers=prof, json={"prenoms": [prenom]})
+    assert r.status_code == 201, r.text
+    return connecter_eleve(client, prenom, classe_code, r.json()["crees"][0]["code"])
+
+
+@pytest.fixture
+def circuit(client, prepare):
+    """Professeure de français 3e, validateur distinct, classe pilote (Lina) et classe révoquée (Noé)."""
+    prof_info, prof = _creer(client, prepare, "fr3@pkp.test", [{"role": "professeur", "domaine": DOMAINE, "niveau": "3e"}])
+    _, val = _creer(client, prepare, "val@pkp.test", [{"role": "validateur", "domaine": DOMAINE, "niveau": "3e"}])
+    classes = {}
+    for prenom in ("Lina", "Noé"):
+        r = client.post("/admin/classes-pilotes", headers=prepare, json={
+            "matiere": "francais", "niveau": "3e", "enseignant_id": prof_info["id"], "motif": "Pilote de janvier 2027"})
+        assert r.status_code == 201, r.text
+        classes[prenom] = (r.json()["classe_id"], _eleve_de(client, prof, r.json()["classe_id"], r.json()["code"], prenom))
+    assert client.delete(f"/admin/classes-pilotes/{classes['Noé'][0]}", headers=prepare).status_code == 204
+    return {"admin": prepare, "prof": prof, "val": val, "pilote": classes["Lina"], "hors_pilote": classes["Noé"]}
+
+
+class TestCircuitAligneSurLAnglais:
+    def test_file_de_validation_reservee_aux_validateurs(self, client, circuit):
+        val, prof = circuit["val"], circuit["prof"]
+        [ligne] = client.get("/francais/validation", headers=val).json()
+        assert (ligne["code"], ligne["statut"], ligne["est_auteur"], ligne["peut_valider"]) == (CODE, "soumis", False, True)
+        for h in (prof, connecter_enseignant(client, email="demo@pkp.test"), connecter_enseignant(client, email="admin@pkp.test")):
+            assert client.get("/francais/validation", headers=h).status_code == 403
+            assert client.post(f"/francais/validation/{CODE}/valider", headers=h).status_code == 403
+        for h in (connecter_eleve(client), circuit["pilote"][1], {}):
+            assert client.get("/francais/validation", headers=h).status_code == 401
+
+        r = client.get(f"/francais/validation/{CODE}", headers=val)
+        assert r.status_code == 200 and r.headers["cache-control"] == "private, no-store"
+        corps = r.json()
+        assert corps["version_affichee"] == 1 and corps["validee"] is False
+        assert {"eleve", "professeur", "historique"} <= set(corps) and corps["historique"][0]["statut"] == "soumis"
+        assert client.post(f"/francais/validation/{CODE}/refuser", headers=val, json={"motif": " "}).status_code == 422
+        r = client.post(f"/francais/validation/{CODE}/valider", headers=val)
+        assert r.status_code == 200 and (r.json()["statut"], r.json()["version_validee"]) == ("valide", 1)
+        assert client.get("/francais/validation", headers=val).json() == []
+        assert client.post(f"/francais/validation/{CODE}/valider", headers=val).status_code == 409
+        journal = client.get("/admin/journal?objet=dossier_francais", headers=circuit["admin"]).json()
+        assert [e["action"] for e in journal["elements"]] == ["valider"]
+
+    def test_auto_validation_interdite(self, client, circuit, fabrique):
+        with fabrique() as s:
+            moi = s.scalar(select(models.Enseignant).where(models.Enseignant.email == "val@pkp.test"))
+            s.scalar(select(models.DossierFrancais)).courante.auteur_id = moi.id
+            s.commit()
+        [ligne] = client.get("/francais/validation", headers=circuit["val"]).json()
+        assert (ligne["est_auteur"], ligne["peut_valider"]) == (True, False)
+        r = client.post(f"/francais/validation/{CODE}/valider", headers=circuit["val"])
+        assert r.status_code == 409 and "propre contenu" in r.json()["detail"]
+
+    def test_ouverture_seulement_d_une_version_validee(self, client, circuit):
+        prof, (classe, lina) = circuit["prof"], circuit["pilote"]
+        lignes = client.get(f"/francais/dossiers/{CODE}/classes", headers=prof).json()
+        assert {(c["id"], c["ouvert"], c["acces_eleves"]) for c in lignes} == {
+            (classe, False, True), (circuit["hors_pilote"][0], False, False)}
+        r = client.put(f"/francais/dossiers/{CODE}/classes/{classe}", headers=prof)
+        assert r.status_code == 409 and "validée" in r.json()["detail"]
+        assert client.get("/francais/eleve/dossiers", headers=lina).json() == []
+        assert client.get(f"/francais/eleve/dossiers/{CODE}", headers=lina).status_code == 404
+
+        assert client.post(f"/francais/validation/{CODE}/valider", headers=circuit["val"]).status_code == 200
+        r = client.put(f"/francais/dossiers/{CODE}/classes/{classe}", headers=prof)
+        assert r.status_code == 200 and next(c for c in r.json() if c["id"] == classe)["ouvert"] is True
+        assert client.put(f"/francais/dossiers/{CODE}/classes/{classe}", headers=prof).status_code == 200  # idempotent
+        [ligne] = client.get("/francais/dossiers", headers=prof).json()
+        assert (ligne["visible_eleves"], ligne["classes_ouvertes"]) == (True, 1)
+        journal = client.get("/admin/journal?objet=dossier_francais", headers=circuit["admin"]).json()
+        assert [e["action"] for e in journal["elements"]].count("ouvrir") == 1
+
+    def test_l_eleve_pilote_lit_la_partie_eleve_validee_sans_corrige(self, client, circuit):
+        prof, (classe, lina) = circuit["prof"], circuit["pilote"]
+        client.post(f"/francais/validation/{CODE}/valider", headers=circuit["val"])
+        client.put(f"/francais/dossiers/{CODE}/classes/{classe}", headers=prof)
+        assert client.get("/francais/eleve/dossiers", headers=lina).json() == [
+            {"code": CODE, "titre": _brut()["titre"], "niveau": "3e", "version": 1}]
+        r = client.get(f"/francais/eleve/dossiers/{CODE}", headers=lina)
+        assert r.status_code == 200 and r.headers["cache-control"] == "private, no-store"
+        assert set(r.json()) == {"code", "titre", "niveau", "version", "eleve"}
+        for p in _corriges():
+            assert p not in r.text
+        assert "corrige" not in r.text and len(r.json()["eleve"]["questions"]) == 11
+        # Les supports professeur et la file de validation restent fermés à l'élève.
+        for route in (f"/francais/dossiers/{CODE}/professeur", f"/francais/validation/{CODE}", "/francais/dossiers"):
+            assert client.get(route, headers=lina).status_code == 401
+
+        # Fermeture : l'accès est coupé immédiatement.
+        assert client.delete(f"/francais/dossiers/{CODE}/classes/{classe}", headers=prof).status_code == 200
+        assert client.get(f"/francais/eleve/dossiers/{CODE}", headers=lina).status_code == 404
+
+    def test_hors_pilote_hors_classe_et_hors_perimetre_refuses(self, client, circuit, fabrique):
+        prof, (classe, _) = circuit["prof"], circuit["pilote"]
+        autre, noe = circuit["hors_pilote"]
+        client.post(f"/francais/validation/{CODE}/valider", headers=circuit["val"])
+        for c in (classe, autre):  # même ouvert, le dossier n'est pas servi à une classe sans accès (SEC-D6)
+            assert client.put(f"/francais/dossiers/{CODE}/classes/{c}", headers=prof).status_code == 200
+        assert client.get("/francais/eleve/dossiers", headers=noe).json() == []
+        r = client.get(f"/francais/eleve/dossiers/{CODE}", headers=noe)
+        assert r.status_code == 403 and "pas ouvert à ta classe" in r.json()["detail"]
+        # Élève de maths : rien, même par adresse directe.
+        maths = connecter_eleve(client)
+        assert client.get("/francais/eleve/dossiers", headers=maths).json() == []
+        assert client.get(f"/francais/eleve/dossiers/{CODE}", headers=maths).status_code == 404
+        # Un autre professeur (habilité ailleurs) ne voit ni n'ouvre la classe de la professeure.
+        _, fr6 = _creer(client, circuit["admin"], "fr6@pkp.test", [{"role": "professeur", "domaine": DOMAINE, "niveau": "6e"}])
+        assert client.get(f"/francais/dossiers/{CODE}/classes", headers=fr6).status_code == 404
+        assert client.delete(f"/francais/dossiers/{CODE}/classes/{classe}", headers=fr6).status_code == 404
+        admin_prof = connecter_enseignant(client, email="admin@pkp.test")
+        assert client.get(f"/francais/dossiers/{CODE}/classes", headers=admin_prof).json() == []
+        assert client.put(f"/francais/dossiers/{CODE}/classes/{classe}", headers=admin_prof).status_code == 404
+        # Domaine désactivé (l'écran d'administration l'interdit tant que des habilitations existent) : plus rien.
+        with fabrique() as s:
+            s.get(models.DomainePedagogique, DOMAINE).actif = False
+            s.commit()
+        assert client.get("/francais/eleve/dossiers", headers=circuit["pilote"][1]).json() == []
+        assert client.get(f"/francais/eleve/dossiers/{CODE}", headers=circuit["pilote"][1]).status_code == 403
+
+    def test_une_revision_ne_remplace_pas_la_version_diffusee(self, client, circuit, fabrique, tmp_path):
+        prof, val, (classe, lina) = circuit["prof"], circuit["val"], circuit["pilote"]
+        client.post(f"/francais/validation/{CODE}/valider", headers=val)
+        client.put(f"/francais/dossiers/{CODE}/classes/{classe}", headers=prof)
+        _version_modifiee(fabrique, tmp_path, "Compare les lignes 2 et 12.")
+
+        # Révision soumise : l'élève et la consultation gardent la v1 validée ; la file montre la v2.
+        assert client.get(f"/francais/eleve/dossiers/{CODE}", headers=lina).json()["version"] == 1
+        assert "Compare les lignes 2 et 12." not in client.get(f"/francais/eleve/dossiers/{CODE}", headers=lina).text
+        apercu = client.get(f"/francais/dossiers/{CODE}/eleve", headers=prof).json()
+        assert (apercu["version"], apercu["statut"], apercu["version_affichee"], apercu["validee"]) == (2, "soumis", 1, True)
+        assert client.get(f"/francais/validation/{CODE}", headers=val).json()["version_affichee"] == 2
+
+        # Révision refusée : toujours la v1.
+        client.post(f"/francais/validation/{CODE}/refuser", headers=val, json={"motif": "Coup de pouce trop direct."})
+        assert client.get(f"/francais/eleve/dossiers/{CODE}", headers=lina).json()["version"] == 1
+
+        # Révision suivante validée : elle remplace la v1 dans la classe déjà ouverte.
+        _version_modifiee(fabrique, tmp_path, "Relis les lignes 2 et 12.")
+        assert client.post(f"/francais/validation/{CODE}/valider", headers=val).status_code == 200
+        r = client.get(f"/francais/eleve/dossiers/{CODE}", headers=lina)
+        assert r.json()["version"] == 3 and "Relis les lignes 2 et 12." in r.text
+        histo = client.get(f"/francais/dossiers/{CODE}/historique", headers=prof).json()
+        assert [(v["numero"], v["statut"]) for v in histo] == [(3, "valide"), (2, "refuse"), (1, "archive")]
+
+    def test_mot_de_passe_provisoire_refuse(self, client, circuit, fabrique):
+        with fabrique() as s:
+            s.scalar(select(models.Enseignant).where(models.Enseignant.email == "val@pkp.test")).mdp_provisoire = True
+            s.commit()
+        assert client.get("/francais/validation", headers=circuit["val"]).status_code == 403
 
 
 # --- Non-régression maths et anglais ------------------------------------------------------------------------

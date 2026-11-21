@@ -48,7 +48,7 @@ describe("navigation vers le Français en préparation", () => {
     await userEvent.click(within(navigation).getByRole("link", { name: "Boussole Français (préparation)" }));
     expect(await screen.findByRole("heading", { name: "Dossiers de français" })).toBeInTheDocument();
     expect(window.location.pathname).toBe("/francais");
-    expect(screen.getByText(/non publiés aux élèves/)).toBeInTheDocument();
+    expect(screen.getByText(/lue par les élèves/)).toBeInTheDocument();
     expect(appels.some((a) => a.cle === "GET /francais/dossiers")).toBe(true);
     expect(appels.some((a) => a.cle.startsWith("GET /enseignants/"))).toBe(false);
   });

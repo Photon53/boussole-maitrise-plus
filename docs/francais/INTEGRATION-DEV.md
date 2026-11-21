@@ -96,6 +96,18 @@ Ouvrir l'IHM DEV par le tunnel habituel (`scripts/tester-ihm-gcp.ps1`, exécuté
 3. Se connecter avec ce compte sur `/francais` : le dossier apparaît « Soumis à validation », « Non visible des
    élèves », rédaction Codex (#55), intégration Claude (#98).
 
+### 4 bis. Validation et ouverture à une classe pilote (#212, même circuit que l'anglais)
+
+1. Administration → Domaines → **Classes pilotes** : créer une classe pilote Français collège 3e pour le professeur
+   habilité (motif obligatoire), puis y inscrire un élève de test.
+2. Le validateur se connecte sur `/francais` → onglet **Validation** : relire la version soumise (partie élève,
+   supports professeur, historique), puis valider, ou refuser avec motif. Il ne peut pas valider sa propre version.
+3. Le professeur ouvre le dossier → onglet **Mes classes** → « Ouvrir à cette classe » (refusé sans version validée).
+4. L'élève de la classe pilote → **Mon cours** → « Mes dossiers » : le dossier est lu dans sa version validée, sans
+   corrigé. Un élève d'une autre classe de français, non pilote, ne le voit pas, et
+   `GET /api/francais/eleve/dossiers/FR3-DNB27-01` lui répond 403.
+5. Non-régression : un professeur d'anglais voit toujours ses séances et sa file de validation.
+
 ## 5. Vérifications à relever
 
 | Contrôle | Attendu |
@@ -119,7 +131,8 @@ le dossier et son historique restent en base (aucune suppression).
 
 - Relire leçon, textes, Q1–Q8, T1–T3 et corrigés selon `docs/PROTOCOLE-RELECTURE-PEDAGOGIQUE.md`, sur la
   **version 1** importée (empreinte relevée à l'étape 3) ; confirmer difficultés proposées et durées.
-- Valider ou refuser (motif) dans l'onglet « Versions et validation », par un validateur habilité distinct de l'auteur.
+- Valider ou refuser (motif) dans l'onglet « Validation », par un validateur habilité distinct de l'auteur ; puis
+  ouvrir le dossier à sa classe pilote (onglet « Mes classes »).
 - Corrections éventuelles : modifier le fichier JSON **et** les fiches Markdown par PR ; le nouvel import crée une
   version 2 à relire.
 - Essais en séance sur support imprimé ou projeté, retours agrégés sans donnée nominative.

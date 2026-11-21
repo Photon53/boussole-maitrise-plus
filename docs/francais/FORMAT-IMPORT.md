@@ -86,23 +86,27 @@ c'est une commande explicite.
 
 | Qui | Accès |
 |---|---|
-| Élève (maths ou anglais), enfant, parent, anonyme | **aucun** : 401 sur toutes les routes `/francais` ; il n'existe pas de route élève |
+| Enfant, parent, élève d'anglais, anonyme | **aucun** : 401 sur toutes les routes `/francais` |
+| Élève d'une classe de français | `/francais/eleve/*` seulement (#212) : partie élève de la **version validée** des dossiers que son professeur a ouverts à sa classe, si la classe a accès au domaine (classe pilote, SEC-D6) ; 401 sur toutes les autres routes `/francais` |
 | Professeur de maths ou d'anglais sans habilitation française | 403 |
 | Professeur ou validateur habilité Français collège (tout le domaine ou le niveau du dossier) | lecture : aperçu élève, supports professeur, historique |
 | Administrateur (rôle `admin`, connexion professeur) | lecture ; **pas** de validation sans habilitation de validateur (EX.9-bis) |
-| Validateur habilité pour le domaine et le niveau, distinct de l'auteur | valider ou refuser (motif obligatoire) une version `soumis` ; décision journalisée |
+| Validateur habilité pour le domaine et le niveau, distinct de l'auteur | file `/francais/validation` : relire, valider ou refuser (motif obligatoire) une version `soumis` ; décision journalisée |
+| Professeur habilité au domaine et au niveau, pour **ses** classes actives de ce niveau | ouvrir ou retirer un dossier dont une version est validée ; journalisé |
 
 Le domaine doit être **actif** (préparation par l'équipe). Un dossier hors habilitation ou d'un domaine inactif
 répond 404. Les réponses portent `Cache-Control: private, no-store`.
 
-**Valider ne publie rien aux élèves.** Un dossier validé n'est pas compté comme contenu ouvert : l'ouverture
-publique de Français collège reste refusée (409) tant qu'aucun module élève n'existe.
+**Même circuit que l'anglais (#212).** Valider rend une version diffusable ; elle n'est lue que dans les classes
+auxquelles le professeur ouvre le dossier. Une révision soumise ou refusée ne remplace pas la version validée déjà
+diffusée. Un dossier validé n'est pas compté comme contenu ouvert au public : l'ouverture publique de Français
+collège reste refusée (409) ; pendant le pilote, seules les classes pilotes y accèdent (SEC-D6).
 
 ## Ce que le format ne fait pas
 
 - Aucune saisie ni conservation de réponse d'élève, aucune correction automatique, aucune note, aucun score,
   aucun taux de maîtrise. La grille d'observation reste un support professeur, sans valeur importable.
-- Pas de module élève : le support de saisie et le retour humain dans l'application restent à cadrer (V2-D12).
+- Lecture seule côté élève : le support de saisie et le retour humain dans l'application restent à cadrer (V2-D12).
 
 ---
 
