@@ -158,6 +158,10 @@ Aucun lien vers un compte, un enfant ou une donnée pédagogique. Routes `/admin
 `app/routes/accueil.py`) ; formulaire public `/collaboration/*` (`app/routes/collaboration.py`) ; règles communes,
 rattachement par e-mail identique et purge par file dans `app/accueil.py`. Détails RGPD : `docs/RGPD.md` § 9.
 
+### Ajouter une matière (#215)
+Parcours par rôle, mécanismes communs (domaines, habilitations, classes pilotes, circuit versionné
+`app/circuit_validation.py`), divergences à arbitrer et procédure : [MATIERES.md](MATIERES.md).
+
 ### Français (préparation #98, validation et diffusion #212)
 Tables `dossier_francais` et `dossier_francais_version` (migration 0037) : parties élève et professeur séparées,
 empreinte du fichier source, circuit de validation des séances d'anglais. Contrat et accès :

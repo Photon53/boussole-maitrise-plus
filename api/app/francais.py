@@ -20,7 +20,6 @@ import hashlib
 import json
 import sys
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Annotated, Literal
 
@@ -28,7 +27,7 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, Validation
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app import permissions
+from app import circuit_validation, permissions
 from app.db import models
 from app.referentiel import Role
 
@@ -454,25 +453,10 @@ def historique(dossier: models.DossierFrancais) -> list[dict]:
 
 # --- Circuit de validation (décision humaine uniquement) ------------------------------------------
 
-def peut_decider(version: models.DossierFrancaisVersion, qui: models.Enseignant) -> str | None:
-    if version.statut != "soumis":
-        return "Seule une version soumise peut être validée ou refusée."
-    if version.auteur_id == qui.id:
-        return "Vous ne pouvez pas valider votre propre contenu : un autre validateur doit le faire."
-    return None
-
-
-def valider(dossier: models.DossierFrancais, qui: models.Enseignant) -> None:
-    for v in dossier.versions[:-1]:
-        if v.statut == "valide":
-            v.statut = "archive"
-    c = dossier.courante
-    c.statut, c.validateur, c.decide_le, c.motif_refus = "valide", qui, datetime.now(UTC), None
-
-
-def refuser(dossier: models.DossierFrancais, qui: models.Enseignant, motif: str) -> None:
-    c = dossier.courante
-    c.statut, c.validateur, c.decide_le, c.motif_refus = "refuse", qui, datetime.now(UTC), motif
+# Circuit commun aux contenus versionnés (#215) : mêmes règles qu'en anglais.
+peut_decider = circuit_validation.peut_decider
+valider = circuit_validation.valider
+refuser = circuit_validation.refuser
 
 
 # --- Ligne de commande -----------------------------------------------------------------------------
