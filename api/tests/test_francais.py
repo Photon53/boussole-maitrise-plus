@@ -237,6 +237,59 @@ class TestAcces:
         assert client.get("/francais/dossiers", headers=prepare).status_code == 401
 
 
+# --- État de l'instance pour l'administrateur (#212) -------------------------------------------------------
+
+def _etat(client, h) -> dict:
+    r = client.get("/francais/etat", headers=h)
+    assert r.status_code == 200
+    assert r.headers["cache-control"] == "private, no-store"
+    return {d["code"]: (d["actif"], d["dossiers"]) for d in r.json()["domaines"]} | {"total": r.json()["dossiers"]}
+
+
+class TestEtatIncident212:
+    """Liste vide ou refus expliqués à l'administrateur, sans modifier les contrôles d'accès aux dossiers."""
+
+    def test_domaine_actif_sans_dossier_importe(self, client, fabrique):
+        assert _activer(client, connecter_admin(client)).status_code == 200
+        admin = connecter_enseignant(client, email="admin@pkp.test")
+        assert client.get("/francais/dossiers", headers=admin).json() == []
+        assert _etat(client, admin) == {DOMAINE: (True, 0), "francais-lycee": (False, 0), "total": 0}
+
+    def test_dossier_importe_dans_un_domaine_non_active(self, client, fabrique):
+        _importer(fabrique)
+        assert _activer(client, connecter_admin(client), "francais-lycee").status_code == 200
+        admin = connecter_enseignant(client, email="admin@pkp.test")
+        assert client.get("/francais/dossiers", headers=admin).json() == []
+        assert _etat(client, admin) == {DOMAINE: (False, 1), "francais-lycee": (True, 0), "total": 1}
+
+    def test_aucun_domaine_actif_refus_explique(self, client, fabrique):
+        _importer(fabrique)
+        admin = connecter_enseignant(client, email="admin@pkp.test")
+        assert client.get("/francais/dossiers", headers=admin).status_code == 403
+        assert _etat(client, admin) == {DOMAINE: (False, 1), "francais-lycee": (False, 0), "total": 1}
+
+    def test_reserve_aux_administrateurs(self, client, prepare):
+        _, prof = _creer(client, prepare, "fr3@pkp.test", [{"role": "professeur", "domaine": DOMAINE, "niveau": "3e"}])
+        assert client.get("/francais/dossiers", headers=prof).status_code == 200
+        assert client.get("/francais/etat", headers=prof).status_code == 403
+        assert client.get("/francais/etat", headers=connecter_enseignant(client, email="demo@pkp.test")).status_code == 403
+        for h in (connecter_eleve(client), connecter_parent(client), {}, prepare):
+            assert client.get("/francais/etat", headers=h).status_code == 401
+
+    def test_mot_de_passe_provisoire_refuse(self, client, fabrique):
+        admin = connecter_enseignant(client, email="admin@pkp.test")
+        with fabrique() as s:
+            s.scalar(select(models.Enseignant).where(models.Enseignant.email == "admin@pkp.test")).mdp_provisoire = True
+            s.commit()
+        assert client.get("/francais/etat", headers=admin).status_code == 403
+
+    def test_ne_divulgue_aucun_contenu(self, client, prepare):
+        admin = connecter_enseignant(client, email="admin@pkp.test")
+        corps = client.get("/francais/etat", headers=admin).text
+        assert CODE not in corps and "Codex" not in corps
+        assert set(client.get("/francais/etat", headers=admin).json()) == {"domaines", "dossiers"}
+
+
 # --- Corrigés protégés, aucune correction automatique ------------------------------------------------------
 
 class TestCorriges:
@@ -262,7 +315,8 @@ class TestCorriges:
 
     def test_aucune_route_ne_recoit_de_reponse_d_eleve(self):
         chemins = {c: m for c, m in app.openapi()["paths"].items() if c.startswith("/francais")}
-        assert len(chemins) == 6
+        assert len(chemins) == 7  # dont /francais/etat (#212), en lecture seule et réservée aux administrateurs
+        assert set(chemins["/francais/etat"]) == {"get"}
         ecritures = sorted(c for c, m in chemins.items() if set(m) & {"post", "put", "patch"})
         assert ecritures == ["/francais/dossiers/{code}/refuser", "/francais/dossiers/{code}/valider"]
 
