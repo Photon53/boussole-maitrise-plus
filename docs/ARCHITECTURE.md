@@ -158,7 +158,11 @@ Aucun lien vers un compte, un enfant ou une donnée pédagogique. Routes `/admin
 `app/routes/accueil.py`) ; formulaire public `/collaboration/*` (`app/routes/collaboration.py`) ; règles communes,
 rattachement par e-mail identique et purge par file dans `app/accueil.py`. Détails RGPD : `docs/RGPD.md` § 9.
 
-### Français (préparation, #98)
+### Ajouter une matière (#215)
+Parcours par rôle, mécanismes communs (domaines, habilitations, classes pilotes, circuit versionné
+`app/circuit_validation.py`), divergences à arbitrer et procédure : [MATIERES.md](MATIERES.md).
+
+### Français (préparation #98, validation et diffusion #212)
 Tables `dossier_francais` et `dossier_francais_version` (migration 0037) : parties élève et professeur séparées,
 empreinte du fichier source, circuit de validation des séances d'anglais. Contrat et accès :
 [francais/FORMAT-IMPORT.md](francais/FORMAT-IMPORT.md) ; procédure DEV : [francais/INTEGRATION-DEV.md](francais/INTEGRATION-DEV.md).
@@ -166,12 +170,17 @@ empreinte du fichier source, circuit de validation des séances d'anglais. Contr
 | Route | Rôle |
 |-------|------|
 | `GET /francais/dossiers` | Dossiers lisibles par l'adulte (domaine actif, habilitation au domaine et au niveau, ou administrateur) |
-| `GET /francais/dossiers/{code}/eleve` | Aperçu de la partie élève, sans corrigé |
-| `GET /francais/dossiers/{code}/professeur` | Corrigés, déroulement, grille d'observation |
+| `GET /francais/dossiers/{code}/eleve` | Aperçu de la partie élève, sans corrigé ; version validée, sinon courante « NON VALIDÉ » (comme l'anglais) |
+| `GET /francais/dossiers/{code}/professeur` | Corrigés, déroulement, grille d'observation ; même version affichée |
 | `GET /francais/dossiers/{code}/historique` | Versions et décisions |
-| `POST /francais/dossiers/{code}/valider`, `/refuser` | Validateur habilité, distinct de l'auteur ; journalisé ; ne publie rien aux élèves |
+| `GET /francais/validation`, `GET /francais/validation/{code}` | File de validation (#212) : versions soumises que le validateur peut relire, en entier ; `est_auteur` signale les siennes |
+| `POST /francais/validation/{code}/valider`, `/refuser` | Validateur habilité, distinct de l'auteur ; motif obligatoire pour refuser ; journalisé. Anciennes adresses `/francais/dossiers/{code}/valider`, `/refuser` conservées |
+| `GET /francais/dossiers/{code}/classes` ; `PUT`, `DELETE …/classes/{classe_id}` | Le professeur ouvre ou retire le dossier à l'une de ses classes du même domaine et niveau (#212) ; ouverture refusée (409) sans version validée ; journalisé |
+| `GET /francais/eleve/dossiers`, `GET /francais/eleve/dossiers/{code}` | Élève : partie élève de la **version validée** des dossiers ouverts à sa classe, si la classe a accès au domaine (SEC-D6) ; 403 sinon, 404 pour un dossier non ouvert ou jamais validé |
 
-Aucune route élève ; aucune réponse d'élève enregistrée ni corrigée (retour humain uniquement).
+Table `ouverture_dossier_francais` (migration 0048). Une révision soumise ou refusée ne remplace pas la version
+validée diffusée ; une nouvelle validation la remplace dans les classes déjà ouvertes. Aucune réponse d'élève
+enregistrée ni corrigée (retour humain uniquement) ; aucun corrigé servi à l'élève (ARCH-4).
 
 ### Chapitres proposés et choisis
 L'enseignant **ouvre** des chapitres du programme de sa classe ; l'élève **choisit**, parmi eux, ceux qu'il travaille
