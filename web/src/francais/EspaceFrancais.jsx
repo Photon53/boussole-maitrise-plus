@@ -1,10 +1,10 @@
 // Issue #98 — Intégration du premier dossier Français 3e en DEV (Claude)
 import { useCallback, useEffect, useState } from "react";
-import { api } from "../api.js";
+import { api, telechargerFichier } from "../api.js";
 import { Erreur, Onglets } from "../composants.jsx";
 import { AccesReserve, CLE_COMPTE, ConnexionEnseignant, NouveauMotDePasse, PageSimple } from "../enseignant/EspaceEnseignant.jsx";
 import { useApi } from "../enseignant/useApi.js";
-import { Decision, Historique, StatutSeance } from "../anglais/ValidationAnglais.jsx";
+import { Decision, Historique as HistoriqueAnglais, STATUTS, StatutSeance as StatutAnglais } from "../anglais/ValidationAnglais.jsx";
 import { Maths } from "../maths.jsx";
 import PartieEleve from "./PartieEleve.jsx";
 import { ecrire, lire } from "../stockage.js";
@@ -12,6 +12,17 @@ import { CadreApplication, EntetePage, Vide } from "../ui/Cadre.jsx";
 import Icone from "../ui/Icone.jsx";
 
 const MARQUE = "Français";
+
+// Issue #217 : une version refusée s'affiche « À corriger » ; la version validée déjà diffusée reste servie.
+export const STATUTS_FRANCAIS = { ...STATUTS, refuse: "À corriger" };
+
+function StatutSeance({ statut }) {
+  return <StatutAnglais statut={statut} libelle={STATUTS_FRANCAIS[statut]} />;
+}
+
+function Historique({ versions }) {
+  return <HistoriqueAnglais versions={versions} libelles={STATUTS_FRANCAIS} />;
+}
 const SANS_DOSSIER = "Aucun dossier de français accessible avec vos habilitations.";
 
 /**
@@ -188,6 +199,7 @@ function Dossiers({ compte, onDeconnexion }) {
       ) : choisi ? (
         <Detail
           code={choisi}
+          jeton={compte.jeton}
           appeler={appeler}
           onRetour={() => {
             setChoisi(null);
@@ -209,6 +221,7 @@ function Dossiers({ compte, onDeconnexion }) {
                   {d.visible_eleves ? `ouvert à ${d.classes_ouvertes} classe(s)` : "Non visible des élèves"}
                 </span>
               </p>
+              {d.statut === "refuse" && d.motif_refus && <p className="petit">Motif : {d.motif_refus}</p>}
               <p className="petit">
                 Rédaction : {d.attribution.redaction} (#{d.attribution.redaction_issue}) · intégration :{" "}
                 {d.attribution.integration} (#{d.attribution.integration_issue})
@@ -237,7 +250,31 @@ function VersionAffichee({ donnees }) {
   );
 }
 
-function Detail({ code, appeler, onRetour }) {
+/** Issue #217 : export PDF de la version affichée ; la version élève ne contient aucun corrigé (contrôlé par l'API). */
+function ExportPdf({ code, jeton }) {
+  const [erreur, setErreur] = useState(null);
+  async function exporter(public_) {
+    setErreur(null);
+    try {
+      await telechargerFichier(`/francais/dossiers/${encodeURIComponent(code)}/pdf/${public_}`, jeton, `${code}-${public_}.pdf`);
+    } catch (err) {
+      setErreur(err.message);
+    }
+  }
+  return (
+    <div className="actions">
+      <button className="secondaire" onClick={() => exporter("eleve")}>
+        PDF élève (sans corrigé)
+      </button>
+      <button className="secondaire" onClick={() => exporter("professeur")}>
+        PDF professeur (avec corrigés)
+      </button>
+      <Erreur message={erreur} />
+    </div>
+  );
+}
+
+function Detail({ code, jeton, appeler, onRetour }) {
   const [onglet, setOnglet] = useState("eleve");
   const [donnees, setDonnees] = useState({});
 
@@ -255,6 +292,7 @@ function Detail({ code, appeler, onRetour }) {
       <button className="lien" onClick={onRetour}>
         ← Tous les dossiers
       </button>
+      <ExportPdf code={code} jeton={jeton} />
       <Onglets
         valeur={onglet}
         onChange={setOnglet}

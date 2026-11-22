@@ -20,7 +20,7 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import francais, journal, permissions
+from app import francais, francais_pdf, journal, permissions
 from app.auth import EnseignantAuthentifie, SessionDB
 from app.db import models
 from app.referentiel import Role
@@ -91,6 +91,27 @@ def supports_professeur(code: str, qui: MembreFrancais, session: SessionDB, repo
     d = dossier_ou_404(session, code, qui)
     v = francais.version_professeur(d)
     return {**francais.resume(d, qui), **_affichee(v), "professeur": francais.vue_professeur(v)}
+
+
+@router.get("/dossiers/{code}/pdf/{public}")
+def exporter_pdf(code: str, public: str, qui: MembreFrancais, session: SessionDB) -> Response:
+    """Issue #217 : PDF de la version consultée (validée, sinon courante avec la mention NON VALIDÉ).
+
+    « eleve » : partie élève seule, sans corrigé (ARCH-4) ; « professeur » : partie élève, supports et corrigés.
+    Mêmes droits que la consultation : adulte habilité dans le domaine et le niveau, domaine actif.
+    """
+    if public not in francais_pdf.PUBLICS:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Export inconnu.")
+    d = dossier_ou_404(session, code, qui)
+    v = francais.version_professeur(d)
+    suffixe = "" if v.statut == "valide" else "-NON-VALIDE"
+    return Response(
+        content=francais_pdf.produire_pdf(d, v, public), media_type="application/pdf",
+        headers={
+            "Content-Disposition": f'attachment; filename="{d.code}-v{v.numero}-{public}{suffixe}.pdf"',
+            "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 @router.get("/dossiers/{code}/historique")

@@ -315,8 +315,10 @@ class TestCorriges:
 
     def test_aucune_route_ne_recoit_de_reponse_d_eleve(self):
         chemins = {c: m for c, m in app.openapi()["paths"].items() if c.startswith("/francais")}
-        assert len(chemins) == 15  # dont /francais/etat (#212), en lecture seule et réservée aux administrateurs
+        # dont /francais/etat (#212), réservée aux administrateurs, et l'export PDF (#217), tous deux en lecture seule
+        assert len(chemins) == 16
         assert set(chemins["/francais/etat"]) == {"get"}
+        assert set(chemins["/francais/dossiers/{code}/pdf/{public}"]) == {"get"}
         # Côté élève (#212) : lecture seule, aucune réponse reçue ni corrigée.
         assert {c: set(m) for c, m in chemins.items() if c.startswith("/francais/eleve")} == {
             "/francais/eleve/dossiers": {"get"}, "/francais/eleve/dossiers/{code}": {"get"}}

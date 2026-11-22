@@ -22,9 +22,12 @@ un dossier importé n'est **pas** ouvert aux élèves.
 - Migration `0037` : deux tables vides (`dossier_francais`, `dossier_francais_version`), appliquée par
   `boussole-dev-sync` comme toute migration. Aucune donnée existante modifiée, aucun domaine activé.
 - Nouvelles routes `/api/francais/...` (adultes habilités seulement) et page `/francais`.
-- **Pas d'import automatique** : ni au démarrage, ni dans le cycle de `boussole-dev-sync` (seul
-  `python -m app.contenu importer`, maths, y est rejoué). L'empreinte de données suivie par la synchronisation ne
-  couvre pas les tables françaises.
+- **Import automatique depuis #217** : `python -m app.contenu importer`, rejoué à chaque déploiement par
+  `boussole-dev-sync` et au démarrage du `docker-compose` de production, importe aussi les dossiers de
+  `contenu/francais/` (versions « soumis » seulement, idempotent). Rien n'est validé, ouvert aux élèves ni rendu
+  public par l'import ; les domaines ne sont pas modifiés. L'empreinte de données suivie par la synchronisation ne
+  couvre pas les tables françaises. Avant #217, l'import était manuel (§ 3), ce qui laissait une base neuve ou
+  recréée sans aucun dossier : cause probable du symptôme de #212.
 - Retour arrière : après `0037`, `boussole-dev-sync --version <sha antérieur>` sera refusé (pas de migration
   descendante, règle existante). Pour « retirer » le Français, désactiver le domaine (étape 6), sans supprimer.
 
@@ -61,6 +64,9 @@ collège `public = f`, aucun chapitre ni séance français, `dossiers = 0`. Un c
 contenu inconnu du dépôt : le signaler avant d'aller plus loin.
 
 ## 3. Sur la VM : import, puis répétition
+
+Depuis #217, cette étape est faite par le déploiement (§ 0) : la sortie de `boussole-dev-sync` se termine par la
+ligne « Dossiers de français : … ». Les commandes ci-dessous restent utiles pour contrôler ou rejouer l'import.
 
 ```bash
 $DC exec -T api python -m app.francais importer --simulation
@@ -107,6 +113,18 @@ Ouvrir l'IHM DEV par le tunnel habituel (`scripts/tester-ihm-gcp.ps1`, exécuté
    corrigé. Un élève d'une autre classe de français, non pilote, ne le voit pas, et
    `GET /api/francais/eleve/dossiers/FR3-DNB27-01` lui répond 403.
 5. Non-régression : un professeur d'anglais voit toujours ses séances et sa file de validation.
+
+### 4 ter. Export PDF, statut « À corriger » et simulation (#217)
+
+1. Dans un dossier : « PDF élève (sans corrigé) » et « PDF professeur (avec corrigés) »
+   (`GET /api/francais/dossiers/{code}/pdf/eleve|professeur`). Tant qu'aucune version n'est validée, chaque page
+   porte « NON VALIDÉ ». Professeur hors périmètre : 404 ; jeton élève ou d'administration : 401.
+2. Un refus du validateur affiche « À corriger » et son motif ; la version validée déjà ouverte reste servie.
+3. Simulation : espace professeur (ou Administration) → « Voir comme un élève » sur la classe pilote ; l'élève
+   fictif lit le dossier ouvert ; il n'apparaît pas dans la liste des élèves de la classe.
+4. Administrateur : il consulte et exporte en se connectant sur `/francais` avec son compte (session professeur,
+   le jeton d'administration n'y est pas accepté). Il ne valide que s'il détient une habilitation de validateur
+   (EX.9-bis).
 
 ## 5. Vérifications à relever
 

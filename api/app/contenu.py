@@ -11,6 +11,10 @@ Usage, depuis `api/` :
     python -m app.contenu importer --simulation # montre ce qui changerait
     python -m app.contenu importer              # applique
 
+`verifier` et `importer` traitent aussi les dossiers de français (`contenu/francais/**/*.json`, `app.francais`) :
+l'import, rejoué à chaque déploiement, crée seulement des versions « soumis » ; rien n'est diffusé aux élèves sans
+validation humaine ni ouverture par le professeur (#217).
+
 Règles de l'import (idempotent : le relancer ne change rien) :
 - chapitres, compétences et questions sont reconnus par leur `code` ;
 - une question retirée des fichiers est archivée, jamais supprimée ;
@@ -941,6 +945,7 @@ def main() -> None:
         sys.exit(str(exc))
     nb_questions = sum(len(c.questions) for _, f in fichiers for c in f.competences)
     print(f"Contenu valide : {len(fichiers)} chapitre(s), {nb_questions} question(s).")
+    dossiers_francais = _charger_francais(args.dossier) if args.commande in ("verifier", "importer") else []
     if args.commande == "corrections":
         courtes = corrections_courtes(fichiers)
         print(f"{len(courtes)} correction(s) à détailler (difficulté {DIFFICULTE_CORRECTION_DETAILLEE} ou plus, "
@@ -974,7 +979,25 @@ def main() -> None:
 
         with SessionLocale() as session:
             rapport = importer(session, fichiers, simulation=args.simulation, forcer=args.forcer)
-        print(("[simulation] " if args.simulation else "") + str(rapport))
+            print(("[simulation] " if args.simulation else "") + str(rapport))
+            # Issue #217 : sans cet import, une base neuve ou recréée n'a aucun dossier de français à relire.
+            from app import francais
+
+            rapport_francais = francais.importer(session, dossiers_francais, simulation=args.simulation)
+        print(("[simulation] " if args.simulation else "") + str(rapport_francais))
+
+
+def _charger_francais(dossier: Path) -> list:
+    """Dossiers de français rangés sous `<dossier>/francais` : contrôlés avec le reste du contenu (#217)."""
+    from app import francais
+
+    try:
+        charges = francais.charger(dossier / "francais")
+    except francais.DossierInvalide as exc:
+        sys.exit(str(exc))
+    nb = sum(len(c.dossier.eleve.questions) for c in charges)
+    print(f"Dossiers de français valides : {len(charges)} dossier(s), {nb} question(s) à retour humain.")
+    return charges
 
 
 if __name__ == "__main__":
