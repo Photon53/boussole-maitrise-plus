@@ -24,7 +24,7 @@ documents de domaine font foi : `ARCHITECTURE.md`, `DECISIONS.md`, `RGPD.md`, `C
 
 | Rôle | Maths | Anglais | Français |
 |---|---|---|---|
-| **Administrateur** | Domaines, habilitations, classes, contenus (`/admin/chapitres`, `/admin/questions`, `/admin/lecons`), import | Domaines, habilitations (cases historiques + habilitations), séances (`/admin/anglais/*`) | Domaines, habilitations, classes pilotes ; état des contenus importés (`GET /francais/etat`, #212) ; consultation des dossiers (`/francais/dossiers`) |
+| **Administrateur** | Domaines, habilitations, classes, contenus (`/admin/chapitres`, `/admin/questions`, `/admin/lecons`), import | Domaines, habilitations (cases historiques + habilitations), séances (`/admin/anglais/*`) | Domaines, habilitations, classes pilotes ; état des contenus importés (`GET /francais/etat`, #212) ; consultation et export PDF des dossiers (`/francais/dossiers`, `/francais/dossiers/{code}/pdf/{eleve,professeur}`, #217) |
 | **Professeur** | Classes (`/enseignants/classes`), banque, cours, ouverture des chapitres à la classe, suivi | Séances (`/anglais/seances`), version validée sinon « NON VALIDÉ », groupes (`/anglais/groupes`), progression | Classes (même espace que les maths), chapitres YAML (#177) ; dossiers : consultation de la version validée, ouverture à ses classes (`/francais/dossiers/{code}/classes`, #212) |
 | **Validateur** | Page « Validation » (`/enseignants/validation/*`, #29) : question par question | File `/anglais/validation` : version soumise, valider ou refuser avec motif | File `/francais/validation` (#212) : mêmes règles que l'anglais ; chapitres YAML : même page que les maths, à confirmer (voir D2) |
 | **Élève** | Séances, cours et « PKP Math » des chapitres ouverts à sa classe | Espace séparé (`/anglais/eleve/*`) : séances **validées** de son niveau, quiz corrigés | Mêmes routes que les maths pour les chapitres ; dossiers validés ouverts à sa classe (`/francais/eleve/dossiers`, #212) ; rédactions (#179) |
@@ -83,8 +83,8 @@ Le cas Français est couvert par `api/tests/test_francais.py` (`TestAcces`, `Tes
 ### 4.3 Recette en DEV
 
 1. Déploiement vérifié (`boussole-dev-sync --etat` : version active = SHA de `develop`).
-2. Import du contenu (`docs/francais/INTEGRATION-DEV.md` § 3 pour les dossiers ; les chapitres YAML sont importés au
-   déploiement).
+2. Import du contenu : chapitres YAML et dossiers de français sont importés au déploiement par
+   `python -m app.contenu importer` (#217) ; contrôle dans `docs/francais/INTEGRATION-DEV.md` § 3.
 3. Domaine actif, non public ; habilitations professeur et validateur, comptes distincts.
 4. Classe pilote ; validation humaine ; ouverture par le professeur.
 5. Vérification des cinq profils (§ 4.2) et non-régression Maths et Anglais, avec la version testée consignée dans

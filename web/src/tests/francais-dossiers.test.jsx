@@ -1,7 +1,7 @@
 // Issue #98 — Intégration du premier dossier Français 3e en DEV (Claude)
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import MonCours from "../eleve/MonCours.jsx";
 import EspaceFrancais, { causesAbsence } from "../francais/EspaceFrancais.jsx";
 import { fausseApi } from "./setup.js";
@@ -234,5 +234,41 @@ describe("Français : lecture par l'élève (#212)", () => {
     render(<MonCours jeton="j" onExpire={() => {}} />);
     expect(await screen.findByText("Ta professeure n'a pas encore ouvert de chapitre.")).toBeInTheDocument();
     expect(screen.queryByText("Mes dossiers")).not.toBeInTheDocument();
+  });
+});
+
+describe("Français : statut « À corriger » et export PDF (#217)", () => {
+  it("une version refusée s'affiche « À corriger » avec son motif", async () => {
+    connecte();
+    fausseApi({
+      "GET /francais/dossiers": { json: [{ ...RESUME, statut: "refuse", motif_refus: "Q4 : consigne ambiguë." }] },
+      "GET /francais/validation": { status: 403, json: { detail: "Réservé" } },
+    });
+    render(<EspaceFrancais />);
+    expect(await screen.findByText("À corriger")).toBeInTheDocument();
+    expect(screen.getByText("Motif : Q4 : consigne ambiguë.")).toBeInTheDocument();
+    expect(screen.queryByText("Refusé")).not.toBeInTheDocument();
+  });
+
+  it("le professeur exporte le PDF élève et le PDF professeur du dossier", async () => {
+    connecte();
+    const appels = fausseApi({
+      "GET /francais/dossiers": { json: [RESUME] },
+      "GET /francais/validation": { status: 403, json: { detail: "Réservé" } },
+      "GET /francais/dossiers/FR3-DNB27-01/eleve": { json: { ...RESUME, eleve: ELEVE } },
+      "GET /francais/dossiers/FR3-DNB27-01/pdf/eleve": { json: {} },
+      "GET /francais/dossiers/FR3-DNB27-01/pdf/professeur": { json: {} },
+    });
+    URL.createObjectURL = vi.fn(() => "blob:x");
+    URL.revokeObjectURL = vi.fn();
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    render(<EspaceFrancais />);
+    await userEvent.click(await screen.findByRole("button", { name: "Ouvrir" }));
+    await userEvent.click(await screen.findByRole("button", { name: "PDF élève (sans corrigé)" }));
+    await userEvent.click(screen.getByRole("button", { name: "PDF professeur (avec corrigés)" }));
+    await vi.waitFor(() => expect(clic).toHaveBeenCalledTimes(2));
+    expect(clic.mock.contexts.map((a) => a.download)).toEqual(["FR3-DNB27-01-eleve.pdf", "FR3-DNB27-01-professeur.pdf"]);
+    expect(appels.map((a) => a.cle)).toContain("GET /francais/dossiers/FR3-DNB27-01/pdf/professeur");
+    clic.mockRestore();
   });
 });
