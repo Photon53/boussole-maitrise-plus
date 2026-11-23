@@ -52,7 +52,7 @@ const PAGES = [
   { groupe: "Pédagogie", vers: "/admin/prevalidation-ia", libelle: "Prévalidation IA", icone: "bouclier", Page: PrevalidationIA, permission: "prevalidation.ia", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/pkp-math", libelle: "Boussole Maths", icone: "pdf", Page: PkpMathAdmin, permission: "contenu.lire", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/anglais", libelle: "Boussole Anglais", icone: "eleve", Page: AnglaisAdmin, permission: "contenu.modifier", matiere: "anglais" },
-  // L'espace Français utilise la session professeur ; le jeton d'administration n'y est pas transmis.
+  // L'espace Français reprend la session d'administration de l'onglet (#217) : consultation, validation, PDF.
   { groupe: "Pédagogie", vers: "/francais", libelle: "Boussole Français (préparation)", icone: "cours", permission: "contenu.lire", externe: true },
   { groupe: "Configuration", vers: "/admin/configuration", libelle: "Domaines", icone: "bouclier", Page: Configuration, permission: "configuration" },
 ];

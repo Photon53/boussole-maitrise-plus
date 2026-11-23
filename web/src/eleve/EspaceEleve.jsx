@@ -8,6 +8,7 @@ import Cours from "./Cours.jsx";
 import Diagnostic from "./Diagnostic.jsx";
 import Exercice, { CLE_BILAN, CLE_CIBLE, CLE_SEANCE } from "./Exercice.jsx";
 import Historique from "./Historique.jsx";
+import DossiersFrancais from "./DossiersFrancais.jsx";
 import MonCours from "./MonCours.jsx";
 import Redaction from "./Redaction.jsx";
 import Progression from "./Progression.jsx";
@@ -228,10 +229,21 @@ export default function EspaceEleve() {
       />
       {/* Toujours monté, seulement masqué : aller au cours ne fait pas perdre la question ni sa correction. */}
       <div hidden={onglet !== "exercice"}>
+        {compte.eleve.matiere === "francais" && (
+          <p className="carte doux" role="note">
+            En français, la leçon, les textes et les questions de tes dossiers se trouvent dans l'onglet « Cours ». Tu rédiges
+            tes réponses comme te l'indique ta professeure, qui les relit. Ici n'apparaissent que les exercices corrigés
+            automatiquement, quand ta professeure en ouvre.
+          </p>
+        )}
         <Exercice key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} onVoirCours={voirCours} cible={cible} />
       </div>
       {onglet === "mon-cours" && <MonCours key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
       {onglet === "redaction" && <Redaction key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
+      {/* Issue #217 : les dossiers de français validés et ouverts à la classe apparaissent aussi dans « Cours ». */}
+      {onglet === "cours" && compte.eleve.matiere === "francais" && (
+        <DossiersFrancais key={`dossiers-${compte.eleve.id}`} jeton={compte.jeton} onExpire={deconnecter} />
+      )}
       {onglet === "cours" && (
         <Cours
           key={compte.eleve.id}

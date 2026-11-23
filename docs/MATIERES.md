@@ -11,7 +11,7 @@ documents de domaine font foi : `ARCHITECTURE.md`, `DECISIONS.md`, `RGPD.md`, `C
 | Mécanisme | Où | Règle |
 |---|---|---|
 | **Domaine pédagogique** | `permissions.DOMAINES`, table `domaine_pedagogique` | Une matière = un ou plusieurs domaines (`<matiere>-college`, `<matiere>-lycee`), chacun avec ses niveaux. `actif` : visible de l'équipe ; `public` : ouvert aux élèves (EX.1 à EX.4). Activation et visibilité : Administration → Domaines, journalisées |
-| **Habilitations** | `permissions` (`Portee`, `appliquer`, `enseigne`, `peut_valider`, `refus_validation`) | Professeur ou validateur, par domaine et éventuellement par niveau. L'administrateur n'a jamais `contenu.valider` sans habilitation de validateur (EX.9-bis) |
+| **Habilitations** | `permissions` (`Portee`, `appliquer`, `enseigne`, `peut_valider`, `refus_validation`) | Professeur ou validateur, par domaine et éventuellement par niveau. L'administrateur valide dans toutes les matières sans habilitation, jamais son propre contenu (V2-D15, remplace EX.9-bis pour lui) |
 | **Permissions** | `permissions.exiger(permission, domaine)` | Table de correspondance dans le code (EX.7) |
 | **Classes pilotes** | `permissions.refus_acces_classe`, `/admin/classes-pilotes` | Domaine actif mais fermé : seules les classes pilotes y accèdent, contrôle côté API route par route, révocation immédiate, rien supprimé (SEC-D6) |
 | **Domaine fermé** | `permissions.refus_domaine_ferme` | Ni nouvelle séance, ni nouvelle classe ou groupe dans un domaine non public (EX.4) |
@@ -70,7 +70,7 @@ L'agent ne tranche pas ces points (AGENTS.md § 0 et § 8). Recommandation entre
 
 | Rôle | Autorisé | Refus attendus |
 |---|---|---|
-| Administrateur | État des contenus, consultation, domaines, habilitations, classes pilotes | Validation sans habilitation de validateur (403) |
+| Administrateur | État des contenus, consultation, domaines, habilitations, classes pilotes ; validation dans toutes les matières (V2-D15) | Sa propre version ou question (409 ou 422) |
 | Professeur habilité | Contenus de son domaine et niveau, ouverture à **ses** classes d'une version validée | Autre niveau ou domaine (404), classe d'un autre professeur (404), version jamais validée (409) |
 | Validateur | File de son domaine et niveau, décision motivée | Hors niveau (404), sa propre version (409), mot de passe provisoire (403) |
 | Élève pilote | Version validée des contenus ouverts à sa classe, sans corrigé | Contenu non ouvert ou non validé (404) |

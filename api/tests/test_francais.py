@@ -232,9 +232,16 @@ class TestAcces:
                 assert client.get(route, headers=h).status_code == 401, (qui, route)
             assert client.post(f"/francais/dossiers/{CODE}/valider", headers=h).status_code == 401, qui
 
-    def test_jeton_d_administration_refuse(self, client, prepare):
-        # Le jeton « admin » (30 min, second facteur) n'est pas un jeton de l'équipe pédagogique.
-        assert client.get("/francais/dossiers", headers=prepare).status_code == 401
+    def test_jeton_d_administration_accepte(self, client, prepare):
+        # #217 : depuis l'administration, sans nouvelle connexion ; le rôle est revérifié en base.
+        assert [d["code"] for d in client.get("/francais/dossiers", headers=prepare).json()] == [CODE]
+
+    def test_jeton_d_administration_d_un_ancien_administrateur_refuse(self, client, prepare, fabrique):
+        with fabrique() as s:
+            admin = s.scalar(select(models.Enseignant).where(models.Enseignant.email == "admin@pkp.test"))
+            admin.role = "enseignant"
+            s.commit()
+        assert client.get("/francais/dossiers", headers=prepare).status_code == 403
 
 
 # --- État de l'instance pour l'administrateur (#212) -------------------------------------------------------
@@ -273,8 +280,9 @@ class TestEtatIncident212:
         assert client.get("/francais/dossiers", headers=prof).status_code == 200
         assert client.get("/francais/etat", headers=prof).status_code == 403
         assert client.get("/francais/etat", headers=connecter_enseignant(client, email="demo@pkp.test")).status_code == 403
-        for h in (connecter_eleve(client), connecter_parent(client), {}, prepare):
+        for h in (connecter_eleve(client), connecter_parent(client), {}):
             assert client.get("/francais/etat", headers=h).status_code == 401
+        assert client.get("/francais/etat", headers=prepare).status_code == 200  # session d'administration (#217)
 
     def test_mot_de_passe_provisoire_refuse(self, client, fabrique):
         admin = connecter_enseignant(client, email="admin@pkp.test")
@@ -335,8 +343,6 @@ class TestValidation:
     def test_seul_un_validateur_habilite_decide(self, client, prepare):
         _, prof = _creer(client, prepare, "fr3@pkp.test", [{"role": "professeur", "domaine": DOMAINE, "niveau": "3e"}])
         assert client.post(f"/francais/dossiers/{CODE}/valider", headers=prof).status_code == 403
-        admin_prof = connecter_enseignant(client, email="admin@pkp.test")
-        assert client.post(f"/francais/dossiers/{CODE}/valider", headers=admin_prof).status_code == 403
 
         _, val = _creer(client, prepare, "val@pkp.test", [{"role": "validateur", "domaine": DOMAINE, "niveau": "3e"}])
         assert client.get("/francais/dossiers", headers=val).json()[0]["peut_valider"] is True
@@ -396,12 +402,42 @@ def circuit(client, prepare):
     return {"admin": prepare, "prof": prof, "val": val, "pilote": classes["Lina"], "hors_pilote": classes["Noé"]}
 
 
+class TestValidationParLAdministrateur:
+    """Décision du propriétaire du 23/11/2026 (#217) : l'administrateur valide ou refuse les dossiers de français."""
+
+    @pytest.mark.parametrize("session_admin", ["administration", "professeur"])
+    def test_l_administrateur_voit_la_file_et_valide(self, client, prepare, session_admin):
+        h = prepare if session_admin == "administration" else connecter_enseignant(client, email="admin@pkp.test")
+        [ligne] = client.get("/francais/validation", headers=h).json()
+        assert (ligne["code"], ligne["peut_valider"], ligne["est_auteur"]) == (CODE, True, False)
+        assert client.get(f"/francais/validation/{CODE}", headers=h).status_code == 200
+        r = client.post(f"/francais/validation/{CODE}/valider", headers=h)
+        assert r.status_code == 200 and (r.json()["statut"], r.json()["version_validee"]) == ("valide", 1)
+        [e] = client.get("/admin/journal?objet=dossier_francais", headers=prepare).json()["elements"]
+        assert e["action"] == "valider"
+
+    def test_l_administrateur_refuse_avec_motif_a_corriger(self, client, prepare):
+        assert client.post(f"/francais/validation/{CODE}/refuser", headers=prepare, json={"motif": " "}).status_code == 422
+        r = client.post(f"/francais/validation/{CODE}/refuser", headers=prepare, json={"motif": "Q4 ambiguë"})
+        assert r.status_code == 200 and (r.json()["statut"], r.json()["motif_refus"]) == ("refuse", "Q4 ambiguë")
+
+    def test_l_administrateur_ne_valide_pas_sa_propre_version(self, client, prepare, fabrique):
+        with fabrique() as s:
+            admin = s.scalar(select(models.Enseignant).where(models.Enseignant.email == "admin@pkp.test"))
+            v = s.scalar(select(models.DossierFrancaisVersion))
+            v.auteur_id = admin.id
+            s.commit()
+        [ligne] = client.get("/francais/validation", headers=prepare).json()
+        assert (ligne["est_auteur"], ligne["peut_valider"]) == (True, False)
+        assert client.post(f"/francais/validation/{CODE}/valider", headers=prepare).status_code == 409
+
+
 class TestCircuitAligneSurLAnglais:
     def test_file_de_validation_reservee_aux_validateurs(self, client, circuit):
         val, prof = circuit["val"], circuit["prof"]
         [ligne] = client.get("/francais/validation", headers=val).json()
         assert (ligne["code"], ligne["statut"], ligne["est_auteur"], ligne["peut_valider"]) == (CODE, "soumis", False, True)
-        for h in (prof, connecter_enseignant(client, email="demo@pkp.test"), connecter_enseignant(client, email="admin@pkp.test")):
+        for h in (prof, connecter_enseignant(client, email="demo@pkp.test")):
             assert client.get("/francais/validation", headers=h).status_code == 403
             assert client.post(f"/francais/validation/{CODE}/valider", headers=h).status_code == 403
         for h in (connecter_eleve(client), circuit["pilote"][1], {}):

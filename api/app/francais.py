@@ -304,6 +304,11 @@ def peut_lire(enseignant: models.Enseignant, domaine: str, niveau: str | None) -
     )
 
 
+# Administrateur compris (V2-D15) ; l'auteur d'une version ne la valide jamais (`peut_decider`).
+peut_valider = permissions.peut_valider
+refus_validation = permissions.refus_validation
+
+
 def domaine_actif(session: Session, domaine: str) -> bool:
     d = session.get(models.DomainePedagogique, domaine)
     return bool(d and d.actif)
@@ -386,7 +391,7 @@ def resume(dossier: models.DossierFrancais, qui: models.Enseignant | None = None
     if qui is not None:
         ligne["peut_valider"] = (
             c.statut == "soumis" and c.auteur_id != qui.id
-            and permissions.peut_valider(qui, dossier.domaine_code, dossier.niveau)
+            and peut_valider(qui, dossier.domaine_code, dossier.niveau)
         )
         ligne["est_auteur"] = c.auteur_id is not None and c.auteur_id == qui.id
     return ligne
@@ -399,7 +404,7 @@ def a_valider(session: Session, qui: models.Enseignant) -> list[models.DossierFr
     """
     return [
         d for d in lisibles(session, qui)
-        if d.courante.statut == "soumis" and permissions.peut_valider(qui, d.domaine_code, d.niveau)
+        if d.courante.statut == "soumis" and peut_valider(qui, d.domaine_code, d.niveau)
     ]
 
 

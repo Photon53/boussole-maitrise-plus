@@ -53,12 +53,36 @@ describe("navigation vers le Français en préparation", () => {
     expect(appels.some((a) => a.cle.startsWith("GET /enseignants/"))).toBe(false);
   });
 
-  it("demande une connexion professeur si seule la session admin existe", async () => {
+  it("reprend la session d'administration si aucune session professeur n'existe (#217)", async () => {
     window.history.replaceState(null, "", "/francais");
     sessionStorage.setItem("pkp.admin", JSON.stringify({ jeton: "session-admin", nom: "Admin", expire_le: Date.now() + 600_000 }));
+    const appels = fausseApi({
+      "GET /francais/dossiers": { json: [] },
+      "GET /francais/etat": { json: { domaines: [], dossiers: 0 } },
+      "GET /francais/validation": { json: [] },
+    });
+    render(<App />);
+    expect(await screen.findByRole("heading", { name: "Dossiers de français" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Connexion — Français (préparation)" })).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: /Retour à l'administration/ })[0]).toHaveAttribute("href", "/admin");
+    expect(appels.some((a) => a.cle === "GET /francais/validation")).toBe(true);
+  });
+
+  it("demande une connexion professeur si la session admin a expiré", async () => {
+    window.history.replaceState(null, "", "/francais");
+    sessionStorage.setItem("pkp.admin", JSON.stringify({ jeton: "session-admin", nom: "Admin", expire_le: Date.now() - 1 }));
     const appels = fausseApi({});
     render(<App />);
     expect(await screen.findByRole("heading", { name: "Connexion — Français (préparation)" })).toBeInTheDocument();
     expect(appels).toHaveLength(0);
+  });
+
+  it("l'espace professeur mène à la validation du français (#217)", async () => {
+    window.history.replaceState(null, "", "/enseignant");
+    sessionStorage.setItem("pkp.enseignant", JSON.stringify({ ...PROFESSEUR, enseigne_francais: true }));
+    fausseApi({ "GET /enseignants/classes": { json: [] } });
+    render(<App />);
+    const liens = await screen.findAllByRole("link", { name: /Boussole Français : dossiers et validation/ });
+    expect(liens[0]).toHaveAttribute("href", "/francais");
   });
 });

@@ -108,6 +108,12 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
               <Icone nom="cours" /> Boussole Anglais
             </a>
           )}
+          {/* Issue #217 : dossiers, validation et ouverture aux classes du français (même session). */}
+          {compte.enseigne_francais && (
+            <a href="/francais">
+              <Icone nom="cours" /> Boussole Français : dossiers et validation
+            </a>
+          )}
           <button className="nav" onClick={deconnecter}>
             <Icone nom="sortie" /> Se déconnecter
           </button>

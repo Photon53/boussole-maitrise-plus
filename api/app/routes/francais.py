@@ -3,11 +3,12 @@
 Même circuit que l'anglais (#212) :
 - consultation : la version validée si elle existe, sinon la version courante, montrée NON VALIDÉE ;
 - file de validation (`/francais/validation`) : versions soumises, relues puis validées ou refusées avec motif par un
-  validateur habilité dans le domaine et le niveau, jamais par leur auteur ; chaque décision est journalisée ;
+  validateur habilité dans le domaine et le niveau ou par un administrateur (V2-D15), jamais par leur auteur ; chaque décision est journalisée ;
 - ouverture : le professeur ouvre à sa classe un dossier dont une version est validée ; ses élèves n'en lisent que
   la partie élève validée (`app.routes.francais_eleves`), si la classe a accès au domaine (SEC-D6).
 
-Un jeton d'élève, d'enfant ou de parent est refusé (401) partout ici. Un adulte doit être administrateur, ou
+Un jeton d'élève, d'enfant ou de parent est refusé (401) partout ici ; la session professeur et la session
+d'administration sont acceptées (#217). Un adulte doit être administrateur, ou
 professeur/validateur habilité dans le domaine et le niveau du dossier ; le domaine doit être actif. L'ouverture au
 public du domaine n'est ni nécessaire ni modifiée.
 """
@@ -21,14 +22,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import francais, francais_pdf, journal, permissions
-from app.auth import EnseignantAuthentifie, SessionDB
+from app.auth import AdulteAuthentifie, SessionDB
 from app.db import models
 from app.referentiel import Role
 
 router = APIRouter(prefix="/francais", tags=["français"])
 
 
-def membre_francais(enseignant: EnseignantAuthentifie, session: SessionDB) -> models.Enseignant:
+def membre_francais(enseignant: AdulteAuthentifie, session: SessionDB) -> models.Enseignant:
     if enseignant.mdp_provisoire:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Choisissez d'abord un nouveau mot de passe.")
     actifs = [code for code in francais.DOMAINES_FRANCAIS if francais.domaine_actif(session, code)]
@@ -55,7 +56,7 @@ def _sans_cache(reponse: Response) -> None:
 
 
 @router.get("/etat")
-def etat(qui: EnseignantAuthentifie, session: SessionDB, reponse: Response):
+def etat(qui: AdulteAuthentifie, session: SessionDB, reponse: Response):
     """Issue #212 : pourquoi la liste est vide ou refusée (import absent, domaine non activé), pour l'administrateur
     seul, y compris quand aucun domaine français n'est actif. Les contrôles d'accès aux dossiers sont inchangés."""
     if qui.mdp_provisoire:
@@ -139,7 +140,7 @@ def _decider(code: str, qui: models.Enseignant, session: Session, motif: str | N
     ouvert. Refuser laisse en place la version validée déjà diffusée.
     """
     d = dossier_ou_404(session, code, qui)
-    if refus := permissions.refus_validation(qui, d.domaine_code, d.niveau):
+    if refus := francais.refus_validation(qui, d.domaine_code, d.niveau):
         raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
     courante = d.courante
     if probleme := francais.peut_decider(courante, qui):
@@ -167,8 +168,8 @@ def refuser(code: str, corps: Refus, qui: MembreFrancais, session: SessionDB):
 
 # --- File de validation, comme l'anglais (#212) ------------------------------------------------------------------
 
-def validateur_francais(enseignant: EnseignantAuthentifie, session: SessionDB) -> models.Enseignant:
-    """Validateur d'un domaine de français actif : la qualification suffit, qu'il y enseigne ou non (EX.9-bis)."""
+def validateur_francais(enseignant: AdulteAuthentifie, session: SessionDB) -> models.Enseignant:
+    """Validateur d'un domaine de français actif, qu'il y enseigne ou non (EX.9-bis), ou administrateur (V2-D15)."""
     if enseignant.mdp_provisoire:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Choisissez d'abord un nouveau mot de passe.")
     if not any(d in francais.DOMAINES_FRANCAIS and francais.domaine_actif(session, d)
@@ -182,7 +183,7 @@ ValidateurFrancais = Annotated[models.Enseignant, Depends(validateur_francais)]
 
 def _a_relire(session: Session, code: str, qui: models.Enseignant) -> models.DossierFrancais:
     d = dossier_ou_404(session, code, qui)
-    if refus := permissions.refus_validation(qui, d.domaine_code, d.niveau):
+    if refus := francais.refus_validation(qui, d.domaine_code, d.niveau):
         raise HTTPException(status.HTTP_403_FORBIDDEN, refus)
     return d
 
