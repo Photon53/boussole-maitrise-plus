@@ -60,6 +60,28 @@ export default function PartieEleve({ eleve, apercu = false }) {
           <Maths texte={eleve.je_verifie} />
         </section>
       )}
+      {apercu && (eleve.quiz ?? []).length > 0 && (
+        <section>
+          <h3>Quiz ({eleve.quiz.length} questions, corrigé après réponse)</h3>
+          <ol>
+            {eleve.quiz.map((q, i) => (
+              <li key={i}>
+                {q.question} <span className="doux petit">({q.choix.join(" / ")})</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+      {apercu && (eleve.je_sais ?? []).length > 0 && (
+        <section>
+          <h3>Je fais le point</h3>
+          <ul>
+            {eleve.je_sais.map((p) => (
+              <li key={p}>{p}</li>
+            ))}
+          </ul>
+        </section>
+      )}
     </article>
   );
 }

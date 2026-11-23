@@ -129,6 +129,26 @@ Ouvrir l'IHM DEV par le tunnel habituel (`scripts/tester-ihm-gcp.ps1`, exécuté
 6. Élève pilote : le dossier ouvert apparaît dans « Cours » et dans « Mon cours ». Il n'existe encore **aucun
    exercice interactif de français** (chapitres de #177) : « S'entraîner » reste vide et le dit.
 
+### 4 quater. Activité des élèves au niveau de l'anglais (#217, migration `0049`)
+
+Le déploiement importe la **version 2** de `FR3-DNB27-01` (quiz de six questions et phrases « Je sais »), en
+« soumis » : la v1 validée reste servie jusqu'à la validation de la v2.
+
+1. Validateur (ou administrateur qui n'en est pas l'auteur) : onglet « Validation », relire le quiz (réponses dans
+   « Supports professeur »), valider la v2.
+2. Élève pilote, « Cours » → le dossier : répondre au quiz. Par défaut, chaque réponse est corrigée aussitôt et la
+   première compte ; le score s'affiche à la fin (« Terminer le quiz »). Remplir « Je fais le point ».
+3. Professeur : onglet « Suivi des classes » → la classe pilote : meilleur score, premier essai, essais,
+   auto-évaluation. Régler « À la fin du quiz » pour la classe ou pour le dossier ; l'élève ne voit alors la
+   correction qu'après avoir répondu à tout.
+4. Réponses rédigées : seulement si `PKP_REDACTION_ACTIVE=true` (RGPD-2, information préalable #183). L'élève
+   enregistre un brouillon, remet ; le professeur lit la réponse remise et envoie un retour ; l'élève le lit et peut
+   réécrire. L'administrateur n'a pas accès aux textes.
+5. Administrateur : détail du dossier → onglet « Modifier » : enregistrer un brouillon (même format que le fichier
+   d'import, contrôlé), le soumettre ; un **autre** validateur le valide. Le brouillon ne remplace pas la version
+   diffusée.
+6. Non-régression : un élève d'anglais fait un quiz ; un élève de maths fait une séance.
+
 ## 5. Vérifications à relever
 
 | Contrôle | Attendu |

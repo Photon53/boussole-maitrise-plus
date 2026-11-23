@@ -94,7 +94,12 @@ def purger_redactions(session: Session, maintenant: datetime) -> int:
     resultat = session.execute(delete(models.Redaction).where(
         (models.Redaction.conserver_jusqu_au < maintenant.date()) | models.Redaction.eleve_id.in_(eleves_partis)
     ))
-    return resultat.rowcount or 0
+    # Issue #217 : réponses rédigées aux dossiers de français, mêmes règles (RGPD-2).
+    francais = session.execute(delete(models.ReponseRedigeeFrancais).where(
+        (models.ReponseRedigeeFrancais.conserver_jusqu_au < maintenant.date())
+        | models.ReponseRedigeeFrancais.eleve_id.in_(eleves_partis)
+    ))
+    return (resultat.rowcount or 0) + (francais.rowcount or 0)
 
 
 JOURS_APRES_DEPART = 30

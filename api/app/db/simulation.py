@@ -48,7 +48,8 @@ def _criteres(autorise: int | None) -> list:
             models.Eleve, lambda cls: or_(cls.simulation_par_id.is_(None), cls.id == autorise), include_aliases=True
         )]
     for modele in (models.Seance, models.PassationDiagnostic, models.ObservationDiagnostic, models.DemandeAide,
-                   models.Redaction):
+                   models.Redaction, models.ProgressionFrancais, models.ReponseQuizFrancais,
+                   models.ReponseRedigeeFrancais):
         criteres.append(with_loader_criteria(modele, lambda cls: cls.eleve_id.not_in(fictifs), include_aliases=True))
     criteres.append(with_loader_criteria(
         models.Reponse, lambda cls: cls.seance_id.not_in(seances_fictives), include_aliases=True

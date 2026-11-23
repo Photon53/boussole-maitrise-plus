@@ -16,15 +16,20 @@ public du domaine n'est ni nécessaire ni modifiée.
 
 from typing import Annotated
 
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, ValidationError, field_validator
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import francais, francais_pdf, journal, permissions
+from app import correction, francais, francais_pdf, journal, permissions
 from app.auth import AdulteAuthentifie, SessionDB
 from app.db import models
+from app.config import settings
 from app.referentiel import Role
+from app.routes.francais_eleves import vue_reponse
+from app.routes.redactions import FERMEE
 
 router = APIRouter(prefix="/francais", tags=["français"])
 
@@ -283,3 +288,221 @@ def fermer(code: str, classe_id: int, qui: MembreFrancais, session: SessionDB) -
         journal.noter(session, qui, "fermer", "dossier_francais", d.id, avant={"code": d.code, "classe": classe.code})
         session.commit()
     return _classes(session, d, qui)
+
+
+# --- Suivi des classes : progression, mode de correction, réponses rédigées (#217, comme l'anglais) ---------------
+
+def _classe_francais(session: Session, qui: models.Enseignant, classe_id: int) -> models.Classe:
+    """Une classe de français active du professeur (ou toute classe de français pour l'administrateur) ; sinon 404."""
+    classe = session.get(models.Classe, classe_id)
+    if (classe is None or classe.archivee_le is not None or not classe.domaine_code.startswith("francais-")
+            or (classe.enseignant_id != qui.id and qui.role != Role.ADMIN)):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classe introuvable.")
+    return classe
+
+
+def _dossiers_ouverts(session: Session, classe: models.Classe) -> list[models.DossierFrancais]:
+    """Dossiers ouverts à la classe et diffusables (version validée), vus par le professeur (même si la classe n'a
+    plus accès au domaine : son suivi reste consultable)."""
+    return [o.dossier for o in session.scalars(
+        select(models.OuvertureDossierFrancais).where(models.OuvertureDossierFrancais.classe_id == classe.id)
+    ) if o.dossier.validee is not None]
+
+
+@router.get("/classes")
+def mes_classes(qui: MembreFrancais, session: SessionDB):
+    """Classes de français suivies : les siennes, ou toutes pour l'administrateur."""
+    requete = select(models.Classe).where(models.Classe.archivee_le.is_(None), models.Classe.domaine_code.like("francais-%"))
+    if qui.role != Role.ADMIN:
+        requete = requete.where(models.Classe.enseignant_id == qui.id)
+    return [
+        {"id": c.id, "code": c.code, "niveau": francais.niveau_de(c), "mode_correction": c.mode_correction,
+         "acces_eleves": permissions.refus_acces_classe(session, c) is None,
+         "dossiers": [{"code": d.code, "titre": d.titre} for d in _dossiers_ouverts(session, c)]}
+        for c in session.scalars(requete.order_by(models.Classe.code))
+    ]
+
+
+@router.get("/classes/{classe_id}/progression")
+def progression_de_la_classe(classe_id: int, qui: MembreFrancais, session: SessionDB, reponse: Response):
+    """Par élève et par dossier : meilleur score au quiz, score du premier essai, essais, auto-évaluation, et
+    réponses rédigées remises ou relues (nombres seulement)."""
+    _sans_cache(reponse)
+    classe = _classe_francais(session, qui, classe_id)
+    dossiers = _dossiers_ouverts(session, classe)
+    codes = [d.code for d in dossiers]
+    eleves = sorted(classe.eleves, key=lambda e: e.prenom.lower())
+    ids = [e.id for e in eleves]
+    suivi = {(p.eleve_id, p.code): p for p in session.scalars(select(models.ProgressionFrancais).where(
+        models.ProgressionFrancais.eleve_id.in_(ids), models.ProgressionFrancais.code.in_(codes)))}
+    redigees: dict[tuple[int, str], list[str]] = {}
+    for r in session.scalars(select(models.ReponseRedigeeFrancais).where(
+            models.ReponseRedigeeFrancais.eleve_id.in_(ids), models.ReponseRedigeeFrancais.statut != "brouillon")):
+        redigees.setdefault((r.eleve_id, r.code), []).append(r.statut)
+    return {
+        "classe": {"id": classe.id, "code": classe.code, "niveau": francais.niveau_de(classe)},
+        "dossiers": [{"code": d.code, "titre": d.titre, "nb_quiz": len(d.validee.quiz or []),
+                      "je_sais": d.validee.eleve.get("je_sais", [])} for d in dossiers],
+        "eleves": [
+            {"id": e.id, "prenom": e.prenom, "dossiers": {
+                code: {
+                    "score": p.meilleur_score if p else None, "premier_score": p.premier_score if p else None,
+                    "total": p.total if p else None, "tentatives": p.tentatives if p else 0,
+                    "auto_evaluation": p.auto_evaluation if p else [],
+                    "a_relire": redigees.get((e.id, code), []).count("remise"),
+                    "relues": redigees.get((e.id, code), []).count("corrigee"),
+                } for code in codes for p in [suivi.get((e.id, code))]
+            }}
+            for e in eleves
+        ],
+    }
+
+
+class ChoixModeDossier(BaseModel):
+    mode: correction.ModeCorrection | None
+
+
+def _reglage(classe: models.Classe) -> dict:
+    return {"mode": classe.mode_correction, "dossiers": {m.code: m.mode for m in classe.modes_dossiers}}
+
+
+@router.get("/classes/{classe_id}/correction")
+def mode_de_correction(classe_id: int, qui: MembreFrancais, session: SessionDB):
+    return _reglage(_classe_francais(session, qui, classe_id))
+
+
+@router.put("/classes/{classe_id}/correction")
+def regler_correction(classe_id: int, corps: correction.ChoixMode, qui: MembreFrancais, session: SessionDB):
+    classe = _classe_francais(session, qui, classe_id)
+    avant, classe.mode_correction = classe.mode_correction, corps.mode
+    journal.noter(session, qui, "regler-correction", "classe", classe.id, {"mode": avant}, {"mode": corps.mode})
+    session.commit()
+    return _reglage(classe)
+
+
+@router.put("/classes/{classe_id}/dossiers/{code}/correction")
+def regler_correction_dossier(classe_id: int, code: str, corps: ChoixModeDossier, qui: MembreFrancais, session: SessionDB):
+    """Mode propre à un dossier pour cette classe ; `null` le retire (le dossier suit le mode de la classe)."""
+    classe = _classe_francais(session, qui, classe_id)
+    if code not in {d.code for d in _dossiers_ouverts(session, classe)}:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Dossier non ouvert à cette classe.")
+    actuel = next((m for m in classe.modes_dossiers if m.code == code), None)
+    avant = actuel.mode if actuel else None
+    if corps.mode is None:
+        if actuel is not None:
+            classe.modes_dossiers.remove(actuel)
+    elif actuel is None:
+        classe.modes_dossiers.append(models.ModeCorrectionDossierFrancais(code=code, mode=corps.mode))
+    else:
+        actuel.mode = corps.mode
+    journal.noter(session, qui, "regler-correction", "classe", classe.id, {"dossier": code, "mode": avant},
+                  {"dossier": code, "mode": corps.mode})
+    session.commit()
+    return _reglage(classe)
+
+
+def _redaction_ouverte() -> None:
+    if not settings.redaction_active:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, FERMEE)
+
+
+@router.get("/classes/{classe_id}/reponses")
+def reponses_de_la_classe(classe_id: int, qui: MembreFrancais, session: SessionDB, reponse: Response):
+    """Réponses rédigées remises ou relues (jamais les brouillons), pour le seul professeur de la classe (RGPD-2)."""
+    _redaction_ouverte()
+    _sans_cache(reponse)
+    classe = _classe_francais(session, qui, classe_id)
+    if classe.enseignant_id != qui.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Classe introuvable.")
+    eleves = {e.id: e for e in classe.eleves}
+    lignes = session.scalars(select(models.ReponseRedigeeFrancais).where(
+        models.ReponseRedigeeFrancais.eleve_id.in_(eleves), models.ReponseRedigeeFrancais.statut != "brouillon"
+    ).order_by(models.ReponseRedigeeFrancais.code, models.ReponseRedigeeFrancais.question))
+    return [{"id": r.id, "eleve_id": r.eleve_id, "prenom": eleves[r.eleve_id].prenom, "dossier": r.code,
+             **vue_reponse(r)} for r in lignes]
+
+
+class Retour(BaseModel):
+    commentaire: Annotated[str, Field(min_length=1, max_length=5000)]
+
+
+@router.put("/reponses/{reponse_id}/retour")
+def faire_un_retour(reponse_id: int, corps: Retour, qui: MembreFrancais, session: SessionDB):
+    """Retour du professeur de la classe sur une réponse remise ; l'élève peut ensuite la réécrire. Journalisé sans
+    le texte de l'élève ni le commentaire."""
+    _redaction_ouverte()
+    r = session.get(models.ReponseRedigeeFrancais, reponse_id)
+    if r is None or r.statut == "brouillon" or r.eleve.classe.enseignant_id != qui.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Réponse introuvable.")
+    r.commentaire, r.statut, r.corrigee_le, r.correcteur_id = corps.commentaire.strip(), "corrigee", datetime.now(UTC), qui.id
+    journal.noter(session, qui, "retour", "reponse_redigee_francais", r.id,
+                  apres={"dossier": r.code, "question": r.question, "eleve": r.eleve_id})
+    session.commit()
+    return vue_reponse(r)
+
+
+# --- Édition dans l'application par l'administrateur (#217, comme les séances d'anglais) ---------------------------
+
+def _admin(qui: models.Enseignant) -> None:
+    if qui.role != Role.ADMIN:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Réservé aux administrateurs.")
+
+
+def source(dossier: models.DossierFrancais, version: models.DossierFrancaisVersion) -> dict:
+    """Le dossier au format du fichier d'import (docs/francais/FORMAT-IMPORT.md), pour l'éditer."""
+    return {**version.meta, "code": dossier.code, "domaine": dossier.domaine_code, "niveau": dossier.niveau,
+            "titre": dossier.titre, "eleve": version.eleve, "professeur": version.professeur,
+            "quiz": list(version.quiz or [])}
+
+
+@router.get("/dossiers/{code}/source")
+def source_du_dossier(code: str, qui: MembreFrancais, session: SessionDB, reponse: Response):
+    _admin(qui)
+    _sans_cache(reponse)
+    d = dossier_ou_404(session, code, qui)
+    return {**_affichee(d.courante), "statut": d.courante.statut, "source": source(d, d.courante)}
+
+
+@router.put("/dossiers/{code}/brouillon")
+def enregistrer_brouillon(code: str, corps: dict, qui: MembreFrancais, session: SessionDB):
+    """Même contrat que l'import. Une version validée n'est jamais modifiée : une nouvelle version « brouillon » est
+    créée ; un brouillon, une version refusée ou soumise est repris en brouillon (le validateur ne valide pas un
+    contenu qui bouge)."""
+    _admin(qui)
+    d = dossier_ou_404(session, code, qui)
+    try:
+        fichier = francais.FichierDossier.model_validate(corps)
+    except ValidationError as exc:
+        erreurs = [f"{'.'.join(map(str, e['loc'])) or 'dossier'} : {e['msg']}" for e in exc.errors()]
+        raise HTTPException(422, "Dossier invalide : " + " ; ".join(erreurs[:10])) from exc
+    if (fichier.code, fichier.domaine, fichier.niveau) != (d.code, d.domaine_code, d.niveau):
+        raise HTTPException(422, "Le code, le domaine et le niveau d'un dossier ne changent pas.")
+    donnees = fichier.model_dump(mode="json")
+    empreinte = francais.empreinte(donnees)
+    courante = d.courante
+    if courante.statut in ("valide", "archive"):
+        courante = models.DossierFrancaisVersion(numero=courante.numero + 1, empreinte="", meta={}, eleve={}, professeur={})
+        d.versions.append(courante)
+    if any(v.empreinte == empreinte for v in d.versions if v is not courante):
+        raise HTTPException(status.HTTP_409_CONFLICT, "Ce contenu est identique à une version existante.")
+    courante.eleve, courante.professeur, courante.quiz = donnees["eleve"], donnees["professeur"], donnees["quiz"]
+    courante.meta = {k: donnees[k] for k in ("format", "cible", "competences_locales", "attribution", "registre")}
+    courante.empreinte, courante.statut, courante.auteur, courante.motif_refus = empreinte, "brouillon", qui, None
+    courante.validateur, courante.decide_le = None, None
+    d.titre = fichier.titre
+    journal.noter(session, qui, "modifier", "dossier_francais", d.id, apres={"code": d.code, "version": courante.numero})
+    session.commit()
+    return francais.resume(d, qui)
+
+
+@router.post("/dossiers/{code}/soumettre")
+def soumettre(code: str, qui: MembreFrancais, session: SessionDB):
+    """Brouillon → soumis : la version rejoint la file de validation ; son auteur ne pourra pas la valider."""
+    _admin(qui)
+    d = dossier_ou_404(session, code, qui)
+    if d.courante.statut != "brouillon":
+        raise HTTPException(status.HTTP_409_CONFLICT, "Seul un brouillon peut être soumis à la validation.")
+    d.courante.statut = "soumis"
+    journal.noter(session, qui, "soumettre", "dossier_francais", d.id, apres={"code": d.code, "version": d.courante.numero})
+    session.commit()
+    return francais.resume(d, qui)

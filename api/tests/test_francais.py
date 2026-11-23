@@ -323,17 +323,26 @@ class TestCorriges:
 
     def test_aucune_route_ne_recoit_de_reponse_d_eleve(self):
         chemins = {c: m for c, m in app.openapi()["paths"].items() if c.startswith("/francais")}
-        # dont /francais/etat (#212), réservée aux administrateurs, et l'export PDF (#217), tous deux en lecture seule
-        assert len(chemins) == 16
+        # dont /francais/etat (#212), réservée aux administrateurs, l'export PDF, le suivi des classes et l'édition (#217)
+        assert len(chemins) == 30
         assert set(chemins["/francais/etat"]) == {"get"}
         assert set(chemins["/francais/dossiers/{code}/pdf/{public}"]) == {"get"}
-        # Côté élève (#212) : lecture seule, aucune réponse reçue ni corrigée.
+        # Côté élève (#217) : quiz corrigé, auto-évaluation et réponses rédigées ; rien d'autre n'est reçu.
         assert {c: set(m) for c, m in chemins.items() if c.startswith("/francais/eleve")} == {
-            "/francais/eleve/dossiers": {"get"}, "/francais/eleve/dossiers/{code}": {"get"}}
-        ecritures = sorted(c for c, m in chemins.items() if set(m) & {"post", "put", "patch", "delete"})
+            "/francais/eleve/dossiers": {"get"}, "/francais/eleve/dossiers/{code}": {"get"},
+            "/francais/eleve/dossiers/{code}/quiz/{rang}": {"post"}, "/francais/eleve/dossiers/{code}/corriger": {"post"},
+            "/francais/eleve/dossiers/{code}/auto-evaluation": {"put"},
+            "/francais/eleve/dossiers/{code}/reponses/{question}": {"put"},
+            "/francais/eleve/dossiers/{code}/reponses/{question}/remise": {"post"},
+        }
+        ecritures = sorted(c for c, m in chemins.items()
+                           if set(m) & {"post", "put", "patch", "delete"} and not c.startswith("/francais/eleve"))
         assert ecritures == [
-            "/francais/dossiers/{code}/classes/{classe_id}", "/francais/dossiers/{code}/refuser",
-            "/francais/dossiers/{code}/valider", "/francais/validation/{code}/refuser", "/francais/validation/{code}/valider",
+            "/francais/classes/{classe_id}/correction", "/francais/classes/{classe_id}/dossiers/{code}/correction",
+            "/francais/dossiers/{code}/brouillon", "/francais/dossiers/{code}/classes/{classe_id}",
+            "/francais/dossiers/{code}/refuser", "/francais/dossiers/{code}/soumettre", "/francais/dossiers/{code}/valider",
+            "/francais/reponses/{reponse_id}/retour", "/francais/validation/{code}/refuser",
+            "/francais/validation/{code}/valider",
         ]
 
 
@@ -490,10 +499,16 @@ class TestCircuitAligneSurLAnglais:
         client.post(f"/francais/validation/{CODE}/valider", headers=circuit["val"])
         client.put(f"/francais/dossiers/{CODE}/classes/{classe}", headers=prof)
         assert client.get("/francais/eleve/dossiers", headers=lina).json() == [
-            {"code": CODE, "titre": _brut()["titre"], "niveau": "3e", "version": 1}]
+            {"code": CODE, "titre": _brut()["titre"], "niveau": "3e", "version": 1, "nb_quiz": len(_brut()["quiz"]),
+             "score": None, "total": None, "tentatives": 0}]
         r = client.get(f"/francais/eleve/dossiers/{CODE}", headers=lina)
         assert r.status_code == 200 and r.headers["cache-control"] == "private, no-store"
-        assert set(r.json()) == {"code", "titre", "niveau", "version", "eleve"}
+        assert set(r.json()) == {"code", "titre", "niveau", "version", "eleve", "nb_quiz", "score", "total", "tentatives",
+                                 "mode_correction", "premier_score", "auto_evaluation", "saisie_ouverte", "reponses"}
+        # Quiz : ni bonne réponse ni explication avant la réponse (ARCH-4).
+        assert all(set(q) == {"question", "texte", "choix"} for q in r.json()["eleve"]["quiz"])
+        for q in _brut()["quiz"]:
+            assert q["explication"] not in r.text
         for p in _corriges():
             assert p not in r.text
         assert "corrige" not in r.text and len(r.json()["eleve"]["questions"]) == 11
