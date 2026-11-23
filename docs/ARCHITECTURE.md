@@ -178,9 +178,19 @@ empreinte du fichier source, circuit de validation des séances d'anglais. Contr
 | `GET /francais/dossiers/{code}/classes` ; `PUT`, `DELETE …/classes/{classe_id}` | Le professeur ouvre ou retire le dossier à l'une de ses classes du même domaine et niveau (#212) ; ouverture refusée (409) sans version validée ; journalisé |
 | `GET /francais/eleve/dossiers`, `GET /francais/eleve/dossiers/{code}` | Élève : partie élève de la **version validée** des dossiers ouverts à sa classe, si la classe a accès au domaine (SEC-D6) ; 403 sinon, 404 pour un dossier non ouvert ou jamais validé |
 
-Table `ouverture_dossier_francais` (migration 0048). Une révision soumise ou refusée ne remplace pas la version
-validée diffusée ; une nouvelle validation la remplace dans les classes déjà ouvertes. Aucune réponse d'élève
-enregistrée ni corrigée (retour humain uniquement) ; aucun corrigé servi à l'élève (ARCH-4).
+| `POST /francais/eleve/dossiers/{code}/quiz/{rang}`, `POST …/corriger` | Quiz (#217) : réponse enregistrée puis corrigée (mode « après chaque question »), ou correction de tout le quiz une fois chaque question répondue ; meilleur score, premier essai figé, essais |
+| `PUT /francais/eleve/dossiers/{code}/auto-evaluation` | « Je sais » à quatre niveaux (#217) |
+| `PUT /francais/eleve/dossiers/{code}/reponses/{question}`, `POST …/remise` | Réponses rédigées (#217, RGPD-2) ; 403 tant que `PKP_REDACTION_ACTIVE` est faux |
+| `GET /francais/classes`, `GET …/{classe_id}/progression`, `GET`/`PUT …/correction`, `PUT …/dossiers/{code}/correction` | Suivi de la classe (#217) : progression par dossier, mode de correction (#110) |
+| `GET /francais/classes/{classe_id}/reponses`, `PUT /francais/reponses/{id}/retour` | Réponses remises et retour, pour le seul professeur de la classe (RGPD-2) |
+| `GET /francais/dossiers/{code}/source`, `PUT …/brouillon`, `POST …/soumettre` | Édition par l'administrateur (#217) : brouillon contrôlé par le contrat d'import, puis soumission |
+
+Tables `ouverture_dossier_francais` (migration 0048), puis `progression_francais`, `reponse_quiz_francais`,
+`reponse_redigee_francais`, `mode_correction_dossier_francais`, colonnes `dossier_francais_version.quiz` et
+`classe.mode_correction` (migration 0049). Une révision soumise ou refusée ne remplace pas la version validée
+diffusée ; une nouvelle validation la remplace dans les classes déjà ouvertes. Seul le quiz est corrigé par la
+plateforme ; les questions rédigées relèvent du retour du professeur ; aucun corrigé servi à l'élève avant sa
+réponse (ARCH-4).
 
 ### Chapitres proposés et choisis
 L'enseignant **ouvre** des chapitres du programme de sa classe ; l'élève **choisit**, parmi eux, ceux qu'il travaille

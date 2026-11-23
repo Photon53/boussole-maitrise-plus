@@ -5,8 +5,10 @@ ne modifie jamais une version existante : un fichier identique ne crée rien, un
 version soumise à relecture.
 
 Garde-fous (#98) :
-- toutes les réponses sont rédigées et relèvent d'un retour humain : le contrat n'accepte ni solution automatique,
-  ni barème, ni note, et aucune réponse d'élève n'est enregistrée ni corrigée par la plateforme ;
+- les questions du dossier sont rédigées et relèvent d'un retour humain : ni solution automatique, ni barème, ni
+  note ; l'élève peut les saisir en ligne et son professeur y répond (#217, règles RGPD-2) ;
+- seul le **quiz** facultatif (#217, comme l'anglais) est corrigé par la plateforme : QCM dont la bonne réponse et
+  l'explication sont stockées à part (`version.quiz`) et ne sont rendues à l'élève qu'après sa réponse (ARCH-4) ;
 - la partie élève et la partie professeur sont stockées séparément ; un corrigé recopié côté élève est refusé ;
 - préparation réservée aux adultes habilités dans le domaine (ou à un administrateur) ;
 - diffusion (#212, même circuit que l'anglais) : un élève ne lit que la partie élève de la version **validée**, et
@@ -98,6 +100,8 @@ class PartieEleve(_Strict):
     consignes_questions: list[Texte] = []
     questions: list[Question] = Field(min_length=1)
     je_verifie: Texte | None = None
+    # Auto-évaluation (#217, comme le « I can » de l'anglais) : « Je sais… », un niveau par phrase.
+    je_sais: list[Court] = Field(default=[], max_length=10)
 
 
 class EtapeDeroulement(_Strict):
@@ -141,6 +145,24 @@ class PartieProfesseur(_Strict):
     retour_seance: Texte | None = None
 
 
+class QuestionQuiz(_Strict):
+    """Question du quiz corrigé (#217) : la bonne réponse est l'indice d'un choix, avec une explication."""
+
+    question: Texte
+    texte: Annotated[str, StringConstraints(pattern=r"^[A-Z0-9-]{1,20}$")] | None = None  # texte support cité
+    choix: list[Court] = Field(min_length=2, max_length=6)
+    reponse: Annotated[int, Field(ge=0)]
+    explication: Texte
+
+    @model_validator(mode="after")
+    def _choix(self):
+        if self.reponse >= len(self.choix):
+            raise ValueError("la bonne réponse doit désigner un des choix")
+        if len({c.strip().casefold() for c in self.choix}) != len(self.choix):
+            raise ValueError("deux choix identiques")
+        return self
+
+
 class FichierDossier(_Strict):
     format: Literal["boussole-francais-dossier/1"]
     code: Annotated[str, StringConstraints(pattern=r"^FR[0-9A-Z-]{2,28}$")]
@@ -153,6 +175,7 @@ class FichierDossier(_Strict):
     registre: Registre
     eleve: PartieEleve
     professeur: PartieProfesseur
+    quiz: list[QuestionQuiz] = Field(default=[], max_length=30)
 
     @model_validator(mode="after")
     def _coherence(self):
@@ -168,6 +191,8 @@ class FichierDossier(_Strict):
                 raise ValueError(f"code de {nom} en double : {', '.join(doublons)}")
         if inconnus := sorted({q.texte for q in self.eleve.questions} - set(codes_textes)):
             raise ValueError(f"texte inconnu cité par une question : {', '.join(inconnus)}")
+        if inconnus := sorted({q.texte for q in self.quiz if q.texte} - set(codes_textes)):
+            raise ValueError(f"texte inconnu cité par le quiz : {', '.join(inconnus)}")
         corriges = [c.question for c in self.professeur.corriges]
         if doublons := sorted({c for c in corriges if corriges.count(c) > 1}):
             raise ValueError(f"corrigé en double : {', '.join(doublons)}")
@@ -201,7 +226,14 @@ class DossierInvalide(ValueError):
 
 
 def empreinte(donnees: dict) -> str:
-    """SHA-256 du contenu normalisé : l'ordre des clés et l'indentation du fichier n'en changent pas la valeur."""
+    """SHA-256 du contenu normalisé : l'ordre des clés et l'indentation du fichier n'en changent pas la valeur.
+
+    Un quiz vide n'entre pas dans l'empreinte : les dossiers importés avant #217 gardent la leur (pas de version
+    fantôme au déploiement)."""
+    if not donnees.get("quiz"):
+        donnees = {k: v for k, v in donnees.items() if k != "quiz"}
+    if isinstance(donnees.get("eleve"), dict) and not donnees["eleve"].get("je_sais"):
+        donnees = {**donnees, "eleve": {k: v for k, v in donnees["eleve"].items() if k != "je_sais"}}
     canon = json.dumps(donnees, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(canon.encode("utf-8")).hexdigest()
 
@@ -284,7 +316,7 @@ def importer(session: Session, charges: list[Charge], simulation: bool = False) 
             dossier.titre = f.titre
         numero = (dossier.versions[-1].numero + 1) if dossier.versions else 1
         dossier.versions.append(models.DossierFrancaisVersion(
-            numero=numero, eleve=donnees["eleve"], professeur=donnees["professeur"], meta=meta,
+            numero=numero, eleve=donnees["eleve"], professeur=donnees["professeur"], quiz=donnees["quiz"], meta=meta,
             empreinte=c.empreinte, statut="soumis",
         ))
     if not simulation:
@@ -357,7 +389,9 @@ def vue_eleve(version: models.DossierFrancaisVersion) -> dict:
             | {"retour": "humain"}
             for q in e["questions"]
         ],
-        "je_verifie": e.get("je_verifie"),
+        "je_verifie": e.get("je_verifie"), "je_sais": e.get("je_sais", []),
+        # Quiz (#217) : questions et choix seulement ; bonne réponse et explication après la réponse (ARCH-4).
+        "quiz": [{"question": q["question"], "texte": q.get("texte"), "choix": q["choix"]} for q in version.quiz or []],
     }
 
 
@@ -370,6 +404,7 @@ def vue_professeur(version: models.DossierFrancaisVersion) -> dict:
             {"code": q["code"], "partie": q["partie"], "consigne": q["consigne"], "corrige": corriges[q["code"]]}
             for q in version.eleve["questions"]
         ],
+        "quiz": list(version.quiz or []),
     }
 
 
@@ -380,6 +415,7 @@ def resume(dossier: models.DossierFrancais, qui: models.Enseignant | None = None
         "libelle_domaine": permissions.LIBELLES.get(dossier.domaine_code, dossier.domaine_code),
         "version": c.numero, "statut": c.statut, "motif_refus": c.motif_refus,
         "version_validee": v.numero if v else None, "nb_questions": len(c.eleve["questions"]),
+        "nb_quiz": len(c.quiz or []),
         "attribution": c.meta.get("attribution", {}), "registre": c.meta.get("registre", {}),
         "cible": c.meta.get("cible"), "competences_locales": c.meta.get("competences_locales", []),
         "auteur": c.auteur.nom if c.auteur else None, "validateur": c.validateur.nom if c.validateur else None,

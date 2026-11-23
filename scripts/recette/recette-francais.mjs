@@ -290,6 +290,35 @@ async function recette() {
         const fuite = corriges.find((p) => texte.includes(p.slice(0, 60)));
         verifier(!fuite, `corrigé visible côté élève : « ${fuite?.slice(0, 60)}… »`);
       }, { page });
+      // Issue #217 : quiz corrigé, comme l'anglais ; aucune explication visible avant la réponse (ARCH-4).
+      await etape("élève pilote", "Quiz : réponse corrigée après chaque question, puis score", async () => {
+        if (!ouvert) throw nonApplicable("mode lecture : aucun dossier ouvert");
+        const quiz = (await apiOk(`/francais/dossiers/${CODE}/professeur`, { jeton: ctx.admin })).professeur.quiz ?? [];
+        if (quiz.length === 0) throw nonApplicable("la version validée n'a pas de quiz");
+        await visible(page.getByRole("heading", { name: "Quiz" }));
+        const avant = await page.locator("body").innerText();
+        const fuite = quiz.find((q) => avant.includes(q.explication.slice(0, 50)));
+        verifier(!fuite, `explication du quiz visible avant la réponse : « ${fuite?.explication.slice(0, 50)}… »`);
+        for (let i = 0; i < quiz.length; i += 1) {
+          await page.locator(`input[name="quiz-${i}"]`).first().check();
+          await visible(page.locator("fieldset").nth(i).locator("p.petit"));
+        }
+        await page.getByRole("button", { name: /Terminer le quiz|Voir la correction/ }).click();
+        await visible(page.getByText(/Score : \d+\/\d+/));
+        return `${quiz.length} questions`;
+      }, { page });
+    }
+    // Issue #217 : suivi de la classe par le professeur.
+    if (ouvert) {
+      const page = await connecterProfesseur(navigateur, "/francais", ctx.prof.email);
+      await etape("professeur", "Suivi des classes : score de l'élève pilote", async () => {
+        await page.getByRole("tab", { name: "Suivi des classes" }).click();
+        const option = page.locator("#classe-francais option", { hasText: ctx.pilote.code });
+        await option.waitFor({ state: "attached" });
+        await page.locator("#classe-francais").selectOption(await option.getAttribute("value"));
+        await visible(page.getByRole("heading", { name: "Progression" }));
+        await visible(page.getByText(/1er essai/));
+      }, { page });
     }
     {
       const page = await connecterEleve(navigateur, "Recette", ctx.horsPilote.code, ctx.horsPilote.codePersonnel).catch(() => null);
