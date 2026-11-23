@@ -70,7 +70,7 @@ L'agent ne tranche pas ces points (AGENTS.md § 0 et § 8). Recommandation entre
 
 | Rôle | Autorisé | Refus attendus |
 |---|---|---|
-| Administrateur | État des contenus, consultation, domaines, habilitations, classes pilotes | Validation sans habilitation de validateur (403) |
+| Administrateur | État des contenus, consultation, domaines, habilitations, classes pilotes ; en français, validation des dossiers (V2-D12, 23/11) | Maths et anglais : validation sans habilitation de validateur (403) ; sa propre version (409) |
 | Professeur habilité | Contenus de son domaine et niveau, ouverture à **ses** classes d'une version validée | Autre niveau ou domaine (404), classe d'un autre professeur (404), version jamais validée (409) |
 | Validateur | File de son domaine et niveau, décision motivée | Hors niveau (404), sa propre version (409), mot de passe provisoire (403) |
 | Élève pilote | Version validée des contenus ouverts à sa classe, sans corrigé | Contenu non ouvert ou non validé (404) |

@@ -92,9 +92,11 @@ def test_parcours_complet_par_role(client, recette):
     assert client.get(f"/francais/eleve/dossiers/{CODE}", headers=r_["eleve"]).status_code == 404
     assert client.put(f"/francais/dossiers/{CODE}/classes/{r_['classe_id']}", headers=r_["prof"]).status_code == 409
 
-    # Seul le validateur décide ; le professeur standard et l'administrateur sans habilitation de validateur non.
+    # Le professeur standard ne décide pas ; le validateur et l'administrateur (#217, 23/11) voient la file.
     assert client.get("/francais/validation", headers=r_["prof"]).status_code == 403
-    assert client.post(f"/francais/dossiers/{CODE}/valider", headers=r_["admin_prof"]).status_code == 403
+    assert client.post(f"/francais/dossiers/{CODE}/valider", headers=r_["prof"]).status_code == 403
+    for qui in ("admin", "admin_prof", "validateur"):
+        assert [d["code"] for d in client.get("/francais/validation", headers=r_[qui]).json()] == [CODE], qui
     assert client.post(f"/francais/validation/{CODE}/valider", headers=r_["validateur"]).status_code == 200
 
     # Ouverture par le professeur, lecture par l'élève pilote, sans corrigé.
@@ -152,6 +154,7 @@ def test_export_pdf_eleve_sans_corrige_et_professeur_complet(client, recette):
 def test_export_pdf_refuse_hors_des_adultes_habilites(client, recette):
     r_ = recette
     assert client.get(f"/francais/dossiers/{CODE}/pdf/corrige", headers=r_["prof"]).status_code == 404
-    for h in (r_["eleve"], r_["admin"], {}):
+    for h in (r_["eleve"], {}):
         assert client.get(f"/francais/dossiers/{CODE}/pdf/eleve", headers=h).status_code == 401
-    assert client.get(f"/francais/dossiers/{CODE}/pdf/eleve", headers=r_["admin_prof"]).status_code == 200
+    for qui in ("admin", "admin_prof"):
+        assert client.get(f"/francais/dossiers/{CODE}/pdf/eleve", headers=r_[qui]).status_code == 200

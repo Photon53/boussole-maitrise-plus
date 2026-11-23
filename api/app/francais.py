@@ -304,6 +304,16 @@ def peut_lire(enseignant: models.Enseignant, domaine: str, niveau: str | None) -
     )
 
 
+def peut_valider(enseignant: models.Enseignant, domaine: str, niveau: str | None) -> bool:
+    """Décision du propriétaire du 23/11/2026 (#217) : en français, l'administrateur valide aussi, comme un
+    validateur habilité dans le domaine et le niveau. L'auteur d'une version ne la valide jamais (`peut_decider`)."""
+    return enseignant.role == Role.ADMIN or permissions.peut_valider(enseignant, domaine, niveau)
+
+
+def refus_validation(enseignant: models.Enseignant, domaine: str, niveau: str | None) -> str | None:
+    return None if peut_valider(enseignant, domaine, niveau) else permissions.refus_validation(enseignant, domaine, niveau)
+
+
 def domaine_actif(session: Session, domaine: str) -> bool:
     d = session.get(models.DomainePedagogique, domaine)
     return bool(d and d.actif)
@@ -386,7 +396,7 @@ def resume(dossier: models.DossierFrancais, qui: models.Enseignant | None = None
     if qui is not None:
         ligne["peut_valider"] = (
             c.statut == "soumis" and c.auteur_id != qui.id
-            and permissions.peut_valider(qui, dossier.domaine_code, dossier.niveau)
+            and peut_valider(qui, dossier.domaine_code, dossier.niveau)
         )
         ligne["est_auteur"] = c.auteur_id is not None and c.auteur_id == qui.id
     return ligne
@@ -399,7 +409,7 @@ def a_valider(session: Session, qui: models.Enseignant) -> list[models.DossierFr
     """
     return [
         d for d in lisibles(session, qui)
-        if d.courante.statut == "soumis" and permissions.peut_valider(qui, d.domaine_code, d.niveau)
+        if d.courante.statut == "soumis" and peut_valider(qui, d.domaine_code, d.niveau)
     ]
 
 

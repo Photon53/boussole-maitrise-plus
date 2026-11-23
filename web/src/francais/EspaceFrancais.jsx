@@ -68,9 +68,18 @@ function Causes({ causes }) {
   );
 }
 
+// Issue #217 : session d'administration (30 min, second facteur) ouverte dans le même onglet, acceptée par l'API.
+const CLE_ADMIN = "pkp.admin";
+
+export function sessionAdmin() {
+  const a = lire(CLE_ADMIN);
+  return a?.jeton && a.expire_le >= Date.now() ? { jeton: a.jeton, nom: a.nom, mdp_provisoire: false, admin: true } : null;
+}
+
 /** Espace adulte du français : préparation, validation et ouverture aux classes (#98, #212, même circuit que l'anglais). */
 export default function EspaceFrancais() {
-  const [compte, setCompte] = useState(() => lire(CLE_COMPTE));
+  // La session professeur d'abord ; sinon celle de l'administration, sans nouvelle connexion (#217).
+  const [compte, setCompte] = useState(() => lire(CLE_COMPTE) ?? sessionAdmin());
 
   function connecter(nouveau) {
     ecrire(CLE_COMPTE, nouveau);
@@ -78,7 +87,7 @@ export default function EspaceFrancais() {
   }
 
   function deconnecter() {
-    ecrire(CLE_COMPTE, null);
+    ecrire(compte?.admin ? CLE_ADMIN : CLE_COMPTE, null);
     setCompte(null);
   }
 
@@ -155,7 +164,10 @@ function Dossiers({ compte, onDeconnexion }) {
     <CadreApplication
       espace="Français"
       marque={MARQUE}
-      liens={[{ vers: "/francais", libelle: "Dossiers", icone: "cours" }]}
+      liens={[
+        { vers: "/francais", libelle: "Dossiers et validation", icone: "cours" },
+        ...(compte.admin ? [{ vers: "/admin", libelle: "Retour à l'administration", icone: "bouclier" }] : []),
+      ]}
       cheminActif="/francais"
       pied={
         <>
