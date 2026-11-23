@@ -131,6 +131,8 @@ par le besoin pédagogique, et non des durées imposées par la CNIL.
 | ☐ | **Intervention d'un administrateur** sur un texte, justifiée et tracée : non prévue (aucun accès) ; à créer si le besoin est confirmé | — |
 | ☐ | **Sauvegardes** : rotation de 30 jours au plus si possible (aujourd'hui 60 jours, SEC-D4) ; réappliquer les suppressions après une restauration | `docs/exploitation/technique.md` T-04/T-05 |
 | ☐ | **Vérification effective** des accès, de l'export, de l'effacement et de la purge en DEV avant l'ouverture | recette |
+| ✅ | **Réponses rédigées aux dossiers de français** (#217) : mêmes règles (usage, accès du seul professeur de la classe aux réponses remises, aucun accès administrateur ni parent, conservation au 31 août, suppression 30 jours après l'archivage de la classe et avec l'élève, export, journaux sans texte, fermées par `PKP_REDACTION_ACTIVE`) | `models.ReponseRedigeeFrancais`, `app/routes/francais_eleves.py`, `purge.purger_redactions`, `tests/test_francais_activite.py` |
+| ✅ | **Quiz et auto-évaluation de français** (#217) : réponses au quiz par essai, scores et niveaux d'auto-évaluation, comme en anglais ; supprimés avec l'élève, inclus dans l'export | `models.ProgressionFrancais`, `models.ReponseQuizFrancais` |
 
 
 ## 9. Accueil et demandes (#172) : contacts adultes, candidatures et partenariats (#171) — à valider avant toute collecte réelle

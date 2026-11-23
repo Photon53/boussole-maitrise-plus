@@ -152,6 +152,9 @@ class Enseignant(Base):
 
 class Classe(Base):
     __tablename__ = "classe"
+    __table_args__ = (
+        CheckConstraint("mode_correction IN ('apres_chaque_question', 'fin_du_quiz')", name="mode_correction"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(String(20), unique=True)
@@ -169,9 +172,22 @@ class Classe(Base):
     motif_archivage: Mapped[str | None] = mapped_column(String(200))
     # Issue #162 (lot 3) : le professeur ouvre le diagnostic des acquis antérieurs à ses élèves ; fermé par défaut.
     diagnostic_ouvert: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    # Issue #217 : mode de correction des quiz de français de la classe (#110, mêmes valeurs que l'anglais).
+    mode_correction: Mapped[str] = mapped_column(String(25), default="apres_chaque_question",
+                                                 server_default="apres_chaque_question")
 
     enseignant: Mapped[Enseignant] = relationship(back_populates="classes")
     chapitres_proposes: Mapped[list["Chapitre"]] = relationship(secondary=chapitres_de_classe)
+    # Issue #217 : mode de correction propre à un dossier de français, pour cette classe.
+    modes_dossiers: Mapped[list["ModeCorrectionDossierFrancais"]] = relationship(
+        cascade="all, delete-orphan", passive_deletes=True
+    )
+
+    def mode_correction_de(self, code: str) -> str:
+        """Réglage du dossier, sinon de la classe, sinon le défaut (#110)."""
+        from app.correction import mode_effectif
+
+        return mode_effectif(self.mode_correction, next((m.mode for m in self.modes_dossiers if m.code == code), None))
     eleves: Mapped[list["Eleve"]] = relationship(
         back_populates="classe", cascade="all, delete-orphan", passive_deletes=True
     )
@@ -597,6 +613,9 @@ class DossierFrancaisVersion(Base):
     # Partie élève (leçon, textes, consignes) et partie professeur (corrigés, déroulement, grille) : jamais mélangées.
     eleve: Mapped[dict] = mapped_column(JSON)
     professeur: Mapped[dict] = mapped_column(JSON)
+    # Quiz corrigé automatiquement (#217, comme l'anglais) : questions, choix, bonne réponse et explication. Jamais
+    # transmis à l'élève avant sa réponse (ARCH-4) : la vue élève n'en garde que les questions et les choix.
+    quiz: Mapped[list] = mapped_column(JSON, default=list, server_default="[]")
     # Format, attribution, registre des sources, cible et codes locaux.
     meta: Mapped[dict] = mapped_column(JSON)
     empreinte: Mapped[str] = mapped_column(String(64))
@@ -630,6 +649,87 @@ class OuvertureDossierFrancais(Base):
     classe: Mapped[Classe] = relationship()
     dossier: Mapped[DossierFrancais] = relationship(back_populates="ouvertures")
     ouvert_par: Mapped["Enseignant | None"] = relationship()
+
+
+class ModeCorrectionDossierFrancais(Base):
+    """Mode de correction propre à un dossier, pour une classe (#217, #110) : remplace le mode de la classe."""
+
+    __tablename__ = "mode_correction_dossier_francais"
+    __table_args__ = (
+        UniqueConstraint("classe_id", "code", name="uq_mode_correction_dossier_francais_classe_code"),
+        CheckConstraint("mode IN ('apres_chaque_question', 'fin_du_quiz')", name="mode"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    classe_id: Mapped[int] = mapped_column(ForeignKey("classe.id", ondelete="CASCADE"), index=True)
+    code: Mapped[str] = mapped_column(String(30))
+    mode: Mapped[str] = mapped_column(String(25))
+
+
+class ProgressionFrancais(Base):
+    """Résultat d'un élève sur un dossier de français (#217, comme `ProgressionAnglais`) : quiz et auto-évaluation."""
+
+    __tablename__ = "progression_francais"
+    __table_args__ = (UniqueConstraint("eleve_id", "code", name="uq_progression_francais_eleve_code"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True)
+    code: Mapped[str] = mapped_column(String(30))
+    meilleur_score: Mapped[int] = mapped_column(Integer, default=0)
+    total: Mapped[int] = mapped_column(Integer, default=0)
+    tentatives: Mapped[int] = mapped_column(Integer, default=0)
+    premier_score: Mapped[int | None] = mapped_column(Integer)  # score du premier essai, figé (#110)
+    # Un niveau par phrase « Je sais » du dossier : non_observe, avec_aide, en_cours, autonome (comme « I can »).
+    auto_evaluation: Mapped[list] = mapped_column(JSON, default=list)
+    maj_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, onupdate=_maintenant)
+
+
+class ReponseQuizFrancais(Base):
+    """Réponse à une question du quiz d'un dossier, par essai (#217, comme `ReponseAnglais`) ; non modifiable."""
+
+    __tablename__ = "reponse_quiz_francais"
+    __table_args__ = (
+        UniqueConstraint("eleve_id", "code", "essai", "question", name="uq_reponse_quiz_francais_eleve_code_essai_question"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True)
+    code: Mapped[str] = mapped_column(String(30))
+    essai: Mapped[int] = mapped_column(Integer)
+    question: Mapped[int] = mapped_column(Integer)
+    choix: Mapped[int] = mapped_column(Integer)
+    juste: Mapped[bool] = mapped_column(Boolean)
+    repondu_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant)
+
+
+class ReponseRedigeeFrancais(Base):
+    """Réponse rédigée d'un élève à une question d'un dossier, avec le retour du professeur (#217, RGPD-2).
+
+    Mêmes règles que les rédactions (#179) : brouillon visible de l'élève seul ; remise visible du professeur de la
+    classe ; retour du professeur ; conservée jusqu'au 31 août de l'année scolaire, supprimée avec l'élève, purgée
+    30 jours après l'archivage de la classe, incluse dans l'export RGPD ; fermée tant que `PKP_REDACTION_ACTIVE` est faux.
+    """
+
+    __tablename__ = "reponse_redigee_francais"
+    __table_args__ = (
+        UniqueConstraint("eleve_id", "code", "question", name="uq_reponse_redigee_francais_eleve_code_question"),
+        CheckConstraint("statut IN ('brouillon', 'remise', 'corrigee')", name="statut"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    eleve_id: Mapped[int] = mapped_column(ForeignKey("eleve.id", ondelete="CASCADE"), index=True)
+    code: Mapped[str] = mapped_column(String(30))
+    question: Mapped[str] = mapped_column(String(10))
+    texte: Mapped[str] = mapped_column(Text, default="")
+    statut: Mapped[str] = mapped_column(String(10), default="brouillon")
+    maj_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, server_default=func.now())
+    remise_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    commentaire: Mapped[str | None] = mapped_column(Text)
+    corrigee_le: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    correcteur_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    conserver_jusqu_au: Mapped[date] = mapped_column(Date, index=True)
+
+    eleve: Mapped["Eleve"] = relationship()
 
 
 class Chapitre(Base):

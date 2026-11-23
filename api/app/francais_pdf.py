@@ -72,6 +72,11 @@ def _partie_eleve(e: dict) -> list:
             bloc.append(Paragraph("Coup de pouce : " + _inline(q["coup_de_pouce"]), DOUX))
         bloc.append(Spacer(1, 1.6 * cm))  # place pour la réponse rédigée
         flux.append(KeepTogether(bloc))
+    if e.get("quiz"):  # #217 : questions et choix seulement, jamais la bonne réponse (ARCH-4)
+        flux.append(Paragraph("Quiz", H2))
+        for i, q in enumerate(e["quiz"], 1):
+            choix = "   ".join(f"{chr(64 + j)}) {_inline(c)}" for j, c in enumerate(q["choix"], 1))
+            flux.append(KeepTogether([Paragraph(f"{i}. {_inline(q['question'])}", CORPS), Paragraph(choix, DOUX)]))
     if e.get("je_verifie"):
         flux.append(Paragraph("Je vérifie", H2))
         flux += _paragraphes(e["je_verifie"])
@@ -98,6 +103,11 @@ def _partie_professeur(p: dict) -> list:
         for para in q["corrige"]["paragraphes"]:
             bloc += _paragraphes(para)
         flux.append(KeepTogether(bloc))
+    if p.get("quiz"):  # #217 : réponses du quiz, supports professeur seulement
+        flux.append(Paragraph("Quiz : réponses", H3))
+        for i, q in enumerate(p["quiz"], 1):
+            bonne = f"{chr(65 + q['reponse'])}) {_inline(q['choix'][q['reponse']])}"
+            flux.append(Paragraph(f"{i}. {bonne} — {_inline(q['explication'])}", CORPS))
     if g := p.get("grille"):
         flux.append(Paragraph(_inline(g["titre"]), H3))
         flux += [Paragraph(f"<b>{_inline(c['critere'])}</b> ({_inline(c['questions'])}) : {_inline(c['indice'])}", CORPS)

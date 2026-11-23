@@ -230,6 +230,33 @@ def export_eleve(session: Session, eleve: models.Eleve) -> JSONResponse:
                 .order_by(models.Redaction.question_id, models.Redaction.version)
             )
         ],
+        # Issue #217 : dossiers de français (quiz, auto-évaluation, réponses rédigées avec le retour du professeur).
+        "francais": {
+            "progression": [
+                {"dossier": p.code, "meilleur_score": p.meilleur_score, "premier_score": p.premier_score,
+                 "total": p.total, "tentatives": p.tentatives, "auto_evaluation": p.auto_evaluation}
+                for p in session.scalars(select(models.ProgressionFrancais)
+                                         .where(models.ProgressionFrancais.eleve_id == eleve.id)
+                                         .order_by(models.ProgressionFrancais.code))
+            ],
+            "reponses_quiz": [
+                {"dossier": r.code, "essai": r.essai, "question": r.question, "choix": r.choix, "juste": r.juste,
+                 "repondu_le": r.repondu_le.isoformat()}
+                for r in session.scalars(select(models.ReponseQuizFrancais)
+                                         .where(models.ReponseQuizFrancais.eleve_id == eleve.id)
+                                         .order_by(models.ReponseQuizFrancais.code, models.ReponseQuizFrancais.essai,
+                                                   models.ReponseQuizFrancais.question))
+            ],
+            "reponses_redigees": [
+                {"dossier": r.code, "question": r.question, "texte": r.texte, "statut": r.statut,
+                 "commentaire": r.commentaire, "remise_le": r.remise_le.isoformat() if r.remise_le else None,
+                 "corrigee_le": r.corrigee_le.isoformat() if r.corrigee_le else None,
+                 "conserver_jusqu_au": r.conserver_jusqu_au.isoformat()}
+                for r in session.scalars(select(models.ReponseRedigeeFrancais)
+                                         .where(models.ReponseRedigeeFrancais.eleve_id == eleve.id)
+                                         .order_by(models.ReponseRedigeeFrancais.code, models.ReponseRedigeeFrancais.question))
+            ],
+        },
         "observations_diagnostic": [
             {
                 "question": o.question.enonce,

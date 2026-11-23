@@ -6,7 +6,9 @@ import { AccesReserve, CLE_COMPTE, ConnexionEnseignant, NouveauMotDePasse, PageS
 import { useApi } from "../enseignant/useApi.js";
 import { Decision, Historique as HistoriqueAnglais, STATUTS, StatutSeance as StatutAnglais } from "../anglais/ValidationAnglais.jsx";
 import { Maths } from "../maths.jsx";
+import EditionDossier from "./EditionDossier.jsx";
 import PartieEleve from "./PartieEleve.jsx";
+import SuiviFrancais from "./SuiviFrancais.jsx";
 import { ecrire, lire } from "../stockage.js";
 import { CadreApplication, EntetePage, Vide } from "../ui/Cadre.jsx";
 import Icone from "../ui/Icone.jsx";
@@ -181,26 +183,27 @@ function Dossiers({ compte, onDeconnexion }) {
       <EntetePage titre="Dossiers de français" fil="Préparation, validation et ouverture aux classes" />
       <p className="carte" role="note">
         Seule la <strong>version validée</strong> d'un dossier est lue par les élèves, et seulement dans les classes auxquelles
-        vous l'ouvrez. Une révision soumise ou refusée ne la remplace pas. Les réponses sont rédigées et relèvent d'un retour
-        du professeur ; la plateforme ne les corrige pas, ne les note pas et ne calcule aucun taux de maîtrise.
+        vous l'ouvrez. Une révision soumise ou refusée ne la remplace pas. Seul le quiz est corrigé par la plateforme ; les
+        réponses rédigées relèvent d'un retour du professeur, sans note ni taux de maîtrise.
       </p>
-      {validateur && (
-        <Onglets
-          valeur={page}
-          onChange={(p) => {
-            setPage(p);
-            setChoisi(null);
-            if (p === "dossiers") charger();
-          }}
-          options={[
-            ["dossiers", "Dossiers"],
-            ["validation", "Validation"],
-          ]}
-        />
-      )}
+      <Onglets
+        valeur={page}
+        onChange={(p) => {
+          setPage(p);
+          setChoisi(null);
+          if (p === "dossiers") charger();
+        }}
+        options={[
+          ["dossiers", "Dossiers"],
+          ["suivi", "Suivi des classes"],
+          ...(validateur ? [["validation", "Validation"]] : []),
+        ]}
+      />
       <Erreur message={erreur} />
       {page === "validation" ? (
         <ValidationFrancais appeler={appeler} />
+      ) : page === "suivi" ? (
+        <SuiviFrancais appeler={appeler} jeton={compte.jeton} />
       ) : dossiers === null ? (
         <p className="doux">Chargement…</p>
       ) : dossiers.length === 0 ? (
@@ -211,6 +214,7 @@ function Dossiers({ compte, onDeconnexion }) {
       ) : choisi ? (
         <Detail
           code={choisi}
+          admin={Boolean(compte.admin || compte.role === "admin")}
           jeton={compte.jeton}
           appeler={appeler}
           onRetour={() => {
@@ -286,11 +290,12 @@ function ExportPdf({ code, jeton }) {
   );
 }
 
-function Detail({ code, jeton, appeler, onRetour }) {
+function Detail({ code, admin, jeton, appeler, onRetour }) {
   const [onglet, setOnglet] = useState("eleve");
   const [donnees, setDonnees] = useState({});
 
   useEffect(() => {
+    if (onglet === "modifier") return;
     appeler(`/francais/dossiers/${code}/${onglet}`).then(
       (r) => setDonnees((d) => ({ ...d, [onglet]: r })),
       () => {},
@@ -313,9 +318,12 @@ function Detail({ code, jeton, appeler, onRetour }) {
           ["professeur", "Supports professeur (corrigés)"],
           ["classes", "Mes classes"],
           ["historique", "Versions et validation"],
+          ...(admin ? [["modifier", "Modifier"]] : []),
         ]}
       />
-      {!courant ? (
+      {onglet === "modifier" ? (
+        <EditionDossier code={code} appeler={appeler} onEnregistre={() => setDonnees({})} />
+      ) : !courant ? (
         <p className="doux">Chargement…</p>
       ) : onglet === "eleve" ? (
         <>
@@ -493,6 +501,18 @@ function SupportsProfesseur({ professeur }) {
           {p.deroulement.adaptations.map((l) => (
             <p key={l}>{l}</p>
           ))}
+        </section>
+      )}
+      {(p.quiz ?? []).length > 0 && (
+        <section>
+          <h3>Quiz : réponses</h3>
+          <ol>
+            {p.quiz.map((q, i) => (
+              <li key={i}>
+                {q.question} <strong>→ {q.choix[q.reponse]}</strong> <span className="doux">{q.explication}</span>
+              </li>
+            ))}
+          </ol>
         </section>
       )}
       <h3>Corrigés expliqués</h3>
