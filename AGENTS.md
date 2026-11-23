@@ -59,6 +59,7 @@ Ces points ne se négocient pas et ne demandent pas d'arbitrage : ils sont déj�
 - `scripts/tester-ihm-gcp.ps1` (Windows : SSH via IAP sur la VM DEV, lecture de l'état des conteneurs, tunnel ; peut démarrer la VM après accord) ;
 - `scripts/troubleshooter_iam.py` (peut interroger Policy Troubleshooter) ;
 - `scripts/comparer-politique-bucket.py` (comparaison locale de fichiers IAM et de plan Terraform ; exécution réservée au propriétaire dans ce périmètre).
+- `scripts/recette/recette-francais.mjs` **pointé vers une instance partagée** (`BASE_URL` autre que la pile locale) : il y crée des comptes fictifs et, en `MODE=complet`, valide et ouvre un contenu ; exécution réservée au propriétaire (#217).
 
 Un nouveau script qui touche au cloud, à la VM ou aux secrets s'ajoute à cette liste dans la même PR.
 
@@ -68,6 +69,7 @@ Un nouveau script qui touche au cloud, à la VM ou aux secrets s'ajoute à cette
 - `deploy/vm/tests/test-boussole-dev-sync.sh`, `deploy/vm/tests/test-refus-deploiement-manuel.sh` ;
 - `scripts/tests/test-controle-acces-sauvegardes.sh` ;
 - `deploy/sauvegarde/tests/test-sauvegarde-prod.sh` (faux `docker` et faux `gcloud`, vrai `age`) ;
+- `scripts/recette/pile-locale.sh` (base SQLite temporaire, API et front locaux, recette Français multi-rôles dans Chromium ; aucun accès cloud, ne touche pas `api/pkp.db`) ;
 - `bash -n <script>` sur n'importe quel script (vérification de syntaxe, rien n'est exécuté).
 
 **Autres scripts** : lire et vérifier leurs effets ; demander une décision uniquement s'ils dépassent le périmètre autorisé ou restent ambigus. Le nom seul ne permet pas de décider : `installer-dev.sh` et `deployer-dev-iap.sh` ont des effets différents. Les interdictions explicites ci-dessus restent applicables.
