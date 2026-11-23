@@ -22,9 +22,12 @@ un dossier importé n'est **pas** ouvert aux élèves.
 - Migration `0037` : deux tables vides (`dossier_francais`, `dossier_francais_version`), appliquée par
   `boussole-dev-sync` comme toute migration. Aucune donnée existante modifiée, aucun domaine activé.
 - Nouvelles routes `/api/francais/...` (adultes habilités seulement) et page `/francais`.
-- **Pas d'import automatique** : ni au démarrage, ni dans le cycle de `boussole-dev-sync` (seul
-  `python -m app.contenu importer`, maths, y est rejoué). L'empreinte de données suivie par la synchronisation ne
-  couvre pas les tables françaises.
+- **Import automatique depuis #217** : `python -m app.contenu importer`, rejoué à chaque déploiement par
+  `boussole-dev-sync` et au démarrage du `docker-compose` de production, importe aussi les dossiers de
+  `contenu/francais/` (versions « soumis » seulement, idempotent). Rien n'est validé, ouvert aux élèves ni rendu
+  public par l'import ; les domaines ne sont pas modifiés. L'empreinte de données suivie par la synchronisation ne
+  couvre pas les tables françaises. Avant #217, l'import était manuel (§ 3), ce qui laissait une base neuve ou
+  recréée sans aucun dossier : cause probable du symptôme de #212.
 - Retour arrière : après `0037`, `boussole-dev-sync --version <sha antérieur>` sera refusé (pas de migration
   descendante, règle existante). Pour « retirer » le Français, désactiver le domaine (étape 6), sans supprimer.
 
@@ -62,6 +65,9 @@ contenu inconnu du dépôt : le signaler avant d'aller plus loin.
 
 ## 3. Sur la VM : import, puis répétition
 
+Depuis #217, cette étape est faite par le déploiement (§ 0) : la sortie de `boussole-dev-sync` se termine par la
+ligne « Dossiers de français : … ». Les commandes ci-dessous restent utiles pour contrôler ou rejouer l'import.
+
 ```bash
 $DC exec -T api python -m app.francais importer --simulation
 ```
@@ -96,6 +102,33 @@ Ouvrir l'IHM DEV par le tunnel habituel (`scripts/tester-ihm-gcp.ps1`, exécuté
 3. Se connecter avec ce compte sur `/francais` : le dossier apparaît « Soumis à validation », « Non visible des
    élèves », rédaction Codex (#55), intégration Claude (#98).
 
+### 4 bis. Validation et ouverture à une classe pilote (#212, même circuit que l'anglais)
+
+1. Administration → Domaines → **Classes pilotes** : créer une classe pilote Français collège 3e pour le professeur
+   habilité (motif obligatoire), puis y inscrire un élève de test.
+2. Le validateur se connecte sur `/francais` → onglet **Validation** : relire la version soumise (partie élève,
+   supports professeur, historique), puis valider, ou refuser avec motif. Il ne peut pas valider sa propre version.
+3. Le professeur ouvre le dossier → onglet **Mes classes** → « Ouvrir à cette classe » (refusé sans version validée).
+4. L'élève de la classe pilote → **Mon cours** → « Mes dossiers » : le dossier est lu dans sa version validée, sans
+   corrigé. Un élève d'une autre classe de français, non pilote, ne le voit pas, et
+   `GET /api/francais/eleve/dossiers/FR3-DNB27-01` lui répond 403.
+5. Non-régression : un professeur d'anglais voit toujours ses séances et sa file de validation.
+
+### 4 ter. Export PDF, statut « À corriger » et simulation (#217)
+
+1. Dans un dossier : « PDF élève (sans corrigé) » et « PDF professeur (avec corrigés) »
+   (`GET /api/francais/dossiers/{code}/pdf/eleve|professeur`). Tant qu'aucune version n'est validée, chaque page
+   porte « NON VALIDÉ ». Professeur hors périmètre : 404 ; jeton élève ou d'administration : 401.
+2. Un refus du validateur affiche « À corriger » et son motif ; la version validée déjà ouverte reste servie.
+3. Simulation : espace professeur (ou Administration) → « Voir comme un élève » sur la classe pilote ; l'élève
+   fictif lit le dossier ouvert ; il n'apparaît pas dans la liste des élèves de la classe.
+4. Administrateur : Administration → « Boussole Français » ouvre l'espace avec sa session d'administration, sans
+   nouvelle connexion. Il consulte, exporte, et valide ou refuse dans l'onglet « Validation » (V2-D15,
+   décision du 23/11), jamais une version dont il est l'auteur.
+5. Professeur ou validateur depuis `/enseignant` : lien « Boussole Français : dossiers et validation » en bas du menu.
+6. Élève pilote : le dossier ouvert apparaît dans « Cours » et dans « Mon cours ». Il n'existe encore **aucun
+   exercice interactif de français** (chapitres de #177) : « S'entraîner » reste vide et le dit.
+
 ## 5. Vérifications à relever
 
 | Contrôle | Attendu |
@@ -119,7 +152,8 @@ le dossier et son historique restent en base (aucune suppression).
 
 - Relire leçon, textes, Q1–Q8, T1–T3 et corrigés selon `docs/PROTOCOLE-RELECTURE-PEDAGOGIQUE.md`, sur la
   **version 1** importée (empreinte relevée à l'étape 3) ; confirmer difficultés proposées et durées.
-- Valider ou refuser (motif) dans l'onglet « Versions et validation », par un validateur habilité distinct de l'auteur.
+- Valider ou refuser (motif) dans l'onglet « Validation », par un validateur habilité distinct de l'auteur ; puis
+  ouvrir le dossier à sa classe pilote (onglet « Mes classes »).
 - Corrections éventuelles : modifier le fichier JSON **et** les fiches Markdown par PR ; le nouvel import crée une
   version 2 à relire.
 - Essais en séance sur support imprimé ou projeté, retours agrégés sans donnée nominative.

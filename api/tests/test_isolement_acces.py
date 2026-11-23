@@ -45,7 +45,11 @@ ESPACES: list[tuple[str, set[str]]] = [
     (r"^/enseignants/mot-de-passe$", {"prof_maths", "prof_anglais"}),
     (r"^/enseignants/", {"prof_maths"}),
     (r"^/anglais/", {"prof_anglais"}),
-    (r"^/francais/", {"prof_francais"}),
+    # Élève d'une classe de français (#212) : lecture des dossiers validés ouverts à sa classe ; l'élève de démo,
+    # en maths, reçoit une liste vide et 404 (contrôle de la classe dans tests/test_francais.py).
+    (r"^/francais/eleve/", {"eleve"}),
+    # Session professeur, ou session d'administration ouverte depuis l'administration (#217).
+    (r"^/francais/", {"prof_francais", "admin"}),
     (r"^/admin/", {"admin"}),
     # Même fichier ouvert depuis trois espaces ; la visibilité fine est testée plus bas.
     (r"^/ressources/", {"eleve", "prof_maths", "admin"}),

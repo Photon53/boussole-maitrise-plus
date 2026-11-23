@@ -1,5 +1,6 @@
 // Issue #180 — Mon cours : fiches de la professeure au fil du cours (Claude)
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import EspaceEleve from "../eleve/EspaceEleve.jsx";
 import MonCours from "../eleve/MonCours.jsx";
@@ -48,6 +49,20 @@ describe("onglet « Mon cours » selon la matière (#180)", () => {
     fausseApi({});
     render(<EspaceEleve />);
     expect(await screen.findByRole("tab", { name: "Mon cours" })).toBeInTheDocument();
+    sessionStorage.clear();
+  });
+
+  it("les dossiers ouverts à la classe apparaissent aussi dans « Cours » (#217)", async () => {
+    session("francais");
+    fausseApi({
+      "GET /francais/eleve/dossiers": { json: [{ code: "FR3-DNB27-01", titre: "Comprendre un texte", niveau: "3e", version: 1 }] },
+      "GET /eleves/moi/cours": { json: [] },
+    });
+    render(<EspaceEleve />);
+    expect(await screen.findByText(/les questions de tes dossiers se trouvent dans l'onglet « Cours »/)).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("tab", { name: "Cours" }));
+    expect(await screen.findByRole("heading", { name: "Mes dossiers" })).toBeInTheDocument();
+    expect(screen.getByText(/Comprendre un texte/)).toBeInTheDocument();
     sessionStorage.clear();
   });
 

@@ -5,6 +5,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { Erreur } from "../composants.jsx";
+import DossiersFrancais from "./DossiersFrancais.jsx";
 import { Ressources } from "./Cours.jsx";
 
 export default function MonCours({ jeton, onExpire }) {
@@ -21,25 +22,28 @@ export default function MonCours({ jeton, onExpire }) {
   if (!chapitres) return <p className="doux">Chargement de ton cours…</p>;
 
   return (
-    <section className="carte" aria-labelledby="titre-mon-cours">
-      <h2 id="titre-mon-cours">Mon cours</h2>
-      <p className="doux">Les fiches et les liens de ta professeure, chapitre par chapitre, au fil du cours.</p>
-      {chapitres.length === 0 ? (
-        <p className="doux">Ta professeure n'a pas encore ouvert de chapitre.</p>
-      ) : (
-        chapitres.map((c) => (
-          <div key={c.id} className="chapitre-mon-cours">
-            {c.ressources.length ? (
-              <Ressources ressources={c.ressources} jeton={jeton} titre={c.titre} />
-            ) : (
-              <>
-                <h3>{c.titre}</h3>
-                <p className="doux petit">Pas encore de fiche pour ce chapitre.</p>
-              </>
-            )}
-          </div>
-        ))
-      )}
-    </section>
+    <>
+      <DossiersFrancais jeton={jeton} onExpire={onExpire} />
+      <section className="carte" aria-labelledby="titre-mon-cours">
+        <h2 id="titre-mon-cours">Mon cours</h2>
+        <p className="doux">Les fiches et les liens de ta professeure, chapitre par chapitre, au fil du cours.</p>
+        {chapitres.length === 0 ? (
+          <p className="doux">Ta professeure n'a pas encore ouvert de chapitre.</p>
+        ) : (
+          chapitres.map((c) => (
+            <div key={c.id} className="chapitre-mon-cours">
+              {c.ressources.length ? (
+                <Ressources ressources={c.ressources} jeton={jeton} titre={c.titre} />
+              ) : (
+                <>
+                  <h3>{c.titre}</h3>
+                  <p className="doux petit">Pas encore de fiche pour ce chapitre.</p>
+                </>
+              )}
+            </div>
+          ))
+        )}
+      </section>
+    </>
   );
 }

@@ -1,16 +1,28 @@
 // Issue #98 — Intégration du premier dossier Français 3e en DEV (Claude)
 import { useCallback, useEffect, useState } from "react";
-import { api } from "../api.js";
+import { api, telechargerFichier } from "../api.js";
 import { Erreur, Onglets } from "../composants.jsx";
 import { AccesReserve, CLE_COMPTE, ConnexionEnseignant, NouveauMotDePasse, PageSimple } from "../enseignant/EspaceEnseignant.jsx";
 import { useApi } from "../enseignant/useApi.js";
-import { Decision, Historique, StatutSeance } from "../anglais/ValidationAnglais.jsx";
+import { Decision, Historique as HistoriqueAnglais, STATUTS, StatutSeance as StatutAnglais } from "../anglais/ValidationAnglais.jsx";
 import { Maths } from "../maths.jsx";
+import PartieEleve from "./PartieEleve.jsx";
 import { ecrire, lire } from "../stockage.js";
 import { CadreApplication, EntetePage, Vide } from "../ui/Cadre.jsx";
 import Icone from "../ui/Icone.jsx";
 
 const MARQUE = "Français";
+
+// Issue #217 : une version refusée s'affiche « À corriger » ; la version validée déjà diffusée reste servie.
+export const STATUTS_FRANCAIS = { ...STATUTS, refuse: "À corriger" };
+
+function StatutSeance({ statut }) {
+  return <StatutAnglais statut={statut} libelle={STATUTS_FRANCAIS[statut]} />;
+}
+
+function Historique({ versions }) {
+  return <HistoriqueAnglais versions={versions} libelles={STATUTS_FRANCAIS} />;
+}
 const SANS_DOSSIER = "Aucun dossier de français accessible avec vos habilitations.";
 
 /**
@@ -56,9 +68,18 @@ function Causes({ causes }) {
   );
 }
 
-/** Espace de préparation du français : adultes habilités seulement ; rien n'y est ouvert aux élèves (#98). */
+// Issue #217 : session d'administration (30 min, second facteur) ouverte dans le même onglet, acceptée par l'API.
+const CLE_ADMIN = "pkp.admin";
+
+export function sessionAdmin() {
+  const a = lire(CLE_ADMIN);
+  return a?.jeton && a.expire_le >= Date.now() ? { jeton: a.jeton, nom: a.nom, mdp_provisoire: false, admin: true } : null;
+}
+
+/** Espace adulte du français : préparation, validation et ouverture aux classes (#98, #212, même circuit que l'anglais). */
 export default function EspaceFrancais() {
-  const [compte, setCompte] = useState(() => lire(CLE_COMPTE));
+  // La session professeur d'abord ; sinon celle de l'administration, sans nouvelle connexion (#217).
+  const [compte, setCompte] = useState(() => lire(CLE_COMPTE) ?? sessionAdmin());
 
   function connecter(nouveau) {
     ecrire(CLE_COMPTE, nouveau);
@@ -66,7 +87,7 @@ export default function EspaceFrancais() {
   }
 
   function deconnecter() {
-    ecrire(CLE_COMPTE, null);
+    ecrire(compte?.admin ? CLE_ADMIN : CLE_COMPTE, null);
     setCompte(null);
   }
 
@@ -93,6 +114,9 @@ function Dossiers({ compte, onDeconnexion }) {
   const [refus, setRefus] = useState(false);
   const [choisi, setChoisi] = useState(null);
   const [causes, setCauses] = useState([]);
+  const [page, setPage] = useState("dossiers");
+  // File de validation (#212, comme l'anglais) : visible des seuls validateurs ; l'API le revérifie.
+  const [validateur, setValidateur] = useState(false);
 
   // Lu sans passer par `appeler` : un refus (professeur) est attendu ici et ne doit afficher aucune erreur.
   const expliquer = useCallback(async () => {
@@ -120,6 +144,13 @@ function Dossiers({ compte, onDeconnexion }) {
     charger();
   }, [charger]);
 
+  useEffect(() => {
+    api("/francais/validation", { jeton: compte.jeton }).then(
+      () => setValidateur(true),
+      () => setValidateur(false),
+    );
+  }, [compte.jeton]);
+
   if (refus) {
     return (
       <PageSimple marque={MARQUE}>
@@ -131,9 +162,12 @@ function Dossiers({ compte, onDeconnexion }) {
 
   return (
     <CadreApplication
-      espace="Français — préparation"
+      espace="Français"
       marque={MARQUE}
-      liens={[{ vers: "/francais", libelle: "Dossiers", icone: "cours" }]}
+      liens={[
+        { vers: "/francais", libelle: "Dossiers et validation", icone: "cours" },
+        ...(compte.admin ? [{ vers: "/admin", libelle: "Retour à l'administration", icone: "bouclier" }] : []),
+      ]}
       cheminActif="/francais"
       pied={
         <>
@@ -144,13 +178,30 @@ function Dossiers({ compte, onDeconnexion }) {
         </>
       }
     >
-      <EntetePage titre="Dossiers de français" fil="Préparation par l'équipe" />
+      <EntetePage titre="Dossiers de français" fil="Préparation, validation et ouverture aux classes" />
       <p className="carte" role="note">
-        Contenus en préparation : <strong>non publiés aux élèves</strong>. Les réponses sont rédigées et relèvent d'un retour
+        Seule la <strong>version validée</strong> d'un dossier est lue par les élèves, et seulement dans les classes auxquelles
+        vous l'ouvrez. Une révision soumise ou refusée ne la remplace pas. Les réponses sont rédigées et relèvent d'un retour
         du professeur ; la plateforme ne les corrige pas, ne les note pas et ne calcule aucun taux de maîtrise.
       </p>
+      {validateur && (
+        <Onglets
+          valeur={page}
+          onChange={(p) => {
+            setPage(p);
+            setChoisi(null);
+            if (p === "dossiers") charger();
+          }}
+          options={[
+            ["dossiers", "Dossiers"],
+            ["validation", "Validation"],
+          ]}
+        />
+      )}
       <Erreur message={erreur} />
-      {dossiers === null ? (
+      {page === "validation" ? (
+        <ValidationFrancais appeler={appeler} />
+      ) : dossiers === null ? (
         <p className="doux">Chargement…</p>
       ) : dossiers.length === 0 ? (
         <>
@@ -160,6 +211,7 @@ function Dossiers({ compte, onDeconnexion }) {
       ) : choisi ? (
         <Detail
           code={choisi}
+          jeton={compte.jeton}
           appeler={appeler}
           onRetour={() => {
             setChoisi(null);
@@ -175,8 +227,13 @@ function Dossiers({ compte, onDeconnexion }) {
                 {d.code} · {d.libelle_domaine} · {d.niveau} · {d.cible} · v{d.version} · {d.nb_questions} questions
               </p>
               <p>
-                <StatutSeance statut={d.statut} /> <span className="doux petit">Non visible des élèves</span>
+                <StatutSeance statut={d.statut} />{" "}
+                <span className="doux petit">
+                  {d.version_validee ? `Version validée : v${d.version_validee}` : "Jamais validé"} ·{" "}
+                  {d.visible_eleves ? `ouvert à ${d.classes_ouvertes} classe(s)` : "Non visible des élèves"}
+                </span>
               </p>
+              {d.statut === "refuse" && d.motif_refus && <p className="petit">Motif : {d.motif_refus}</p>}
               <p className="petit">
                 Rédaction : {d.attribution.redaction} (#{d.attribution.redaction_issue}) · intégration :{" "}
                 {d.attribution.integration} (#{d.attribution.integration_issue})
@@ -190,23 +247,55 @@ function Dossiers({ compte, onDeconnexion }) {
   );
 }
 
-function Detail({ code, appeler, onRetour }) {
+/** Version affichée : la validée (celle des élèves), sinon la courante, NON VALIDÉE, comme en anglais. */
+function VersionAffichee({ donnees }) {
+  if (!donnees) return null;
+  return donnees.validee ? (
+    <p className="doux petit" role="status">
+      Version validée v{donnees.version_affichee} : celle que lisent les élèves des classes ouvertes.
+      {donnees.version !== donnees.version_affichee && ` La v${donnees.version} est en relecture (${donnees.statut}).`}
+    </p>
+  ) : (
+    <p className="avertissement petit" role="status">
+      NON VALIDÉ — version v{donnees.version_affichee}, jamais servie aux élèves tant qu'un validateur ne l'a pas validée.
+    </p>
+  );
+}
+
+/** Issue #217 : export PDF de la version affichée ; la version élève ne contient aucun corrigé (contrôlé par l'API). */
+function ExportPdf({ code, jeton }) {
+  const [erreur, setErreur] = useState(null);
+  async function exporter(public_) {
+    setErreur(null);
+    try {
+      await telechargerFichier(`/francais/dossiers/${encodeURIComponent(code)}/pdf/${public_}`, jeton, `${code}-${public_}.pdf`);
+    } catch (err) {
+      setErreur(err.message);
+    }
+  }
+  return (
+    <div className="actions">
+      <button className="secondaire" onClick={() => exporter("eleve")}>
+        PDF élève (sans corrigé)
+      </button>
+      <button className="secondaire" onClick={() => exporter("professeur")}>
+        PDF professeur (avec corrigés)
+      </button>
+      <Erreur message={erreur} />
+    </div>
+  );
+}
+
+function Detail({ code, jeton, appeler, onRetour }) {
   const [onglet, setOnglet] = useState("eleve");
   const [donnees, setDonnees] = useState({});
 
   useEffect(() => {
-    const chemin = onglet === "historique" ? "historique" : onglet;
-    appeler(`/francais/dossiers/${code}/${chemin}`).then(
+    appeler(`/francais/dossiers/${code}/${onglet}`).then(
       (r) => setDonnees((d) => ({ ...d, [onglet]: r })),
       () => {},
     );
   }, [appeler, code, onglet]);
-
-  async function decider(action, motif) {
-    const corps = motif ? { motif } : undefined;
-    await appeler(`/francais/dossiers/${code}/${action}`, { methode: "POST", corps });
-    onRetour();
-  }
 
   const courant = donnees[onglet];
   const entete = donnees.eleve ?? donnees.professeur;
@@ -215,96 +304,170 @@ function Detail({ code, appeler, onRetour }) {
       <button className="lien" onClick={onRetour}>
         ← Tous les dossiers
       </button>
+      <ExportPdf code={code} jeton={jeton} />
       <Onglets
         valeur={onglet}
         onChange={setOnglet}
         options={[
           ["eleve", "Aperçu élève"],
           ["professeur", "Supports professeur (corrigés)"],
+          ["classes", "Mes classes"],
           ["historique", "Versions et validation"],
         ]}
       />
       {!courant ? (
         <p className="doux">Chargement…</p>
       ) : onglet === "eleve" ? (
-        <ApercuEleve eleve={courant.eleve} />
+        <>
+          <VersionAffichee donnees={courant} />
+          <PartieEleve eleve={courant.eleve} apercu />
+        </>
       ) : onglet === "professeur" ? (
-        <SupportsProfesseur professeur={courant.professeur} />
+        <>
+          <VersionAffichee donnees={courant} />
+          <SupportsProfesseur professeur={courant.professeur} />
+        </>
+      ) : onglet === "classes" ? (
+        <OuvertureClasses
+          code={code}
+          classes={courant}
+          validee={entete ? entete.version_validee !== null : true}
+          appeler={appeler}
+          onChange={(r) => setDonnees((d) => ({ ...d, classes: r }))}
+        />
       ) : (
         <>
           <Historique versions={courant} />
-          {entete && (
-            <Decision
-              interdit={
-                entete.peut_valider
-                  ? null
-                  : "Validation réservée à un validateur habilité Français pour ce niveau, distinct de l'auteur, sur une version soumise."
-              }
-              onValider={() => decider("valider")}
-              onRefuser={(motif) => decider("refuser", motif)}
-            />
-          )}
+          <p className="doux petit">
+            La relecture et la décision (valider, ou refuser avec motif) se font dans l'onglet « Validation », réservé aux
+            validateurs habilités, jamais par l'auteur de la version.
+          </p>
         </>
       )}
     </section>
   );
 }
 
-function ApercuEleve({ eleve }) {
+/** Ouvrir le dossier à ses classes du même niveau : seule la version validée est servie aux élèves (#212). */
+function OuvertureClasses({ code, classes, validee, appeler, onChange }) {
+  async function basculer(c) {
+    try {
+      onChange(await appeler(`/francais/dossiers/${code}/classes/${c.id}`, { methode: c.ouvert ? "DELETE" : "PUT" }));
+    } catch {
+      // erreur déjà affichée
+    }
+  }
+  if (classes.length === 0) {
+    return <Vide>Vous n'avez aucune classe de français de ce niveau.</Vide>;
+  }
   return (
-    <article className="carte" aria-label="Aperçu de la partie élève">
-      <p className="doux petit">Aperçu réservé aux adultes : aucun élève n'accède à ce dossier.</p>
-      {eleve.presentation.map((l) => (
-        <p key={l} className="doux petit">
-          {l}
-        </p>
-      ))}
-      <h3>Objectifs</h3>
-      {eleve.objectifs.map((l) => (
-        <p key={l}>{l}</p>
-      ))}
-      {eleve.lecon.map((s) => (
-        <section key={s.titre}>
-          <h3>{s.titre}</h3>
-          <Maths texte={s.markdown} />
-        </section>
-      ))}
-      {eleve.textes.map((t) => (
-        <section key={t.code}>
-          <h3>{t.titre}</h3>
-          <ol className="texte-lignes">
-            {t.lignes.map((ligne, i) => (
-              <li key={i} value={i + 1}>
-                {ligne}
-              </li>
-            ))}
-          </ol>
-          {t.mention && <p className="doux petit">{t.mention}</p>}
-        </section>
-      ))}
-      <h3>Questions</h3>
-      {eleve.consignes_questions.map((l) => (
-        <p key={l} className="petit">
-          {l}
-        </p>
-      ))}
-      <ol className="liste-simple">
-        {eleve.questions.map((q) => (
-          <li key={q.code}>
-            <strong>{q.code}.</strong> {q.consigne}{" "}
-            {q.difficulte_proposee && <span className="doux petit">(difficulté proposée {q.difficulte_proposee})</span>}
-            {q.coup_de_pouce && <p className="doux petit">Coup de pouce : {q.coup_de_pouce}</p>}
-            <p className="doux petit">Réponse rédigée : retour du professeur.</p>
+    <div className="carte">
+      {!validee && (
+        <p className="doux">Aucune version de ce dossier n'est validée : il ne peut pas encore être ouvert aux élèves.</p>
+      )}
+      <ul className="liste-simple">
+        {classes.map((c) => (
+          <li key={c.id}>
+            <strong>{c.code}</strong> · {c.niveau} ·{" "}
+            {c.ouvert ? <span className="succes">Ouvert</span> : <span className="doux">Fermé</span>}
+            {!c.acces_eleves && <p className="doux petit">Élèves sans accès pour l'instant : {c.motif_acces}</p>}
+            <div className="actions">
+              <button className={c.ouvert ? "secondaire" : undefined} disabled={!c.ouvert && !validee} onClick={() => basculer(c)}>
+                {c.ouvert ? "Retirer à cette classe" : "Ouvrir à cette classe"}
+              </button>
+            </div>
           </li>
         ))}
-      </ol>
-      {eleve.je_verifie && (
-        <section>
-          <h3>5. Je vérifie</h3>
-          <Maths texte={eleve.je_verifie} />
-        </section>
+      </ul>
+    </div>
+  );
+}
+
+/** File de validation, comme l'anglais : versions soumises, relues en entier, validées ou refusées avec motif. */
+function ValidationFrancais({ appeler }) {
+  const [liste, setListe] = useState(null);
+  const [code, setCode] = useState(null);
+  const [dossier, setDossier] = useState(null);
+  const [message, setMessage] = useState(null);
+
+  const charger = useCallback(() => appeler("/francais/validation").then(setListe, () => {}), [appeler]);
+
+  useEffect(() => {
+    charger();
+  }, [charger]);
+
+  useEffect(() => {
+    setDossier(null);
+    if (code) appeler(`/francais/validation/${encodeURIComponent(code)}`).then(setDossier, () => {});
+  }, [appeler, code]);
+
+  async function decider(chemin, corps, texte) {
+    setMessage(null);
+    try {
+      await appeler(`/francais/validation/${code}/${chemin}`, { methode: "POST", corps });
+      setMessage(texte);
+      setCode(null);
+      await charger();
+    } catch {
+      // erreur déjà affichée
+    }
+  }
+
+  const choisi = liste?.find((d) => d.code === code);
+  return (
+    <section>
+      <div className="carte">
+        <p className="doux">
+          Dossiers soumis à relecture. Une fois validée, la version devient celle que lisent les élèves des classes auxquelles le
+          dossier est ouvert. Vous ne pouvez pas valider un contenu dont vous êtes l'auteur.
+        </p>
+        {message && (
+          <p className="succes" role="status">
+            {message}
+          </p>
+        )}
+        {liste === null && <p className="doux">Chargement…</p>}
+        {liste?.length === 0 && <p className="doux">Aucun dossier en attente de validation.</p>}
+        {liste?.length > 0 && (
+          <>
+            <label htmlFor="dossier-a-valider">Dossier à relire ({liste.length} en attente)</label>
+            <select id="dossier-a-valider" value={code ?? ""} onChange={(e) => setCode(e.target.value || null)}>
+              <option value="">Choisir…</option>
+              {liste.map((d) => (
+                <option key={d.code} value={d.code}>
+                  {d.code} · {d.titre} · v{d.version}
+                  {d.est_auteur ? " (vous en êtes l'auteur)" : ""}
+                </option>
+              ))}
+            </select>
+          </>
+        )}
+      </div>
+      {dossier && choisi && (
+        <>
+          <div className="carte">
+            <h2>
+              {dossier.code} · {dossier.titre} <StatutSeance statut={dossier.statut} />
+            </h2>
+            <p className="doux">
+              Version {dossier.version_affichee} · auteur : {dossier.auteur ?? "import du dépôt"}
+              {dossier.version_validee ? ` · version diffusée actuellement : v${dossier.version_validee}` : " · jamais validée"}
+            </p>
+            <Decision
+              interdit={choisi.est_auteur && "Vous êtes l'auteur de cette version : un autre validateur doit la valider."}
+              onValider={() => decider("valider", undefined, `${dossier.code} validé : les classes ouvertes lisent cette version.`)}
+              onRefuser={(motif) => decider("refuser", { motif }, `${dossier.code} refusé, motif enregistré.`)}
+            />
+          </div>
+          <PartieEleve eleve={dossier.eleve} apercu />
+          <SupportsProfesseur professeur={dossier.professeur} />
+          <div className="carte">
+            <h3>Historique</h3>
+            <Historique versions={dossier.historique} />
+          </div>
+        </>
       )}
-    </article>
+    </section>
   );
 }
 

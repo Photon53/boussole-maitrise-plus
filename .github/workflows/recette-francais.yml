@@ -1,0 +1,62 @@
+name: Recette automatique Francais
+
+on:
+  pull_request:
+    paths:
+      - "api/**"
+      - "engine/**"
+      - "contenu/francais/**"
+      - "web/**"
+      - ".github/workflows/recette-francais.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contrat-francais:
+    name: Contrat Francais - API et habilitations
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            api/pyproject.toml
+            engine/pyproject.toml
+      - name: Installer moteur et API
+        run: python -m pip install -e "./engine[dev]" -e "./api[dev]"
+      - name: Tester import, domaine, admin, professeur, validation, eleve et confidentialite
+        working-directory: api
+        run: |
+          mkdir -p ../rapports
+          python -m pytest -q tests/test_francais.py -W ignore::DeprecationWarning --junitxml=../rapports/francais-api.xml
+      - name: Conserver les preuves meme en cas d'echec
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recette-francais-api
+          path: rapports/francais-api.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+  front-non-regression:
+    name: Front - tests et compilation
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "^24.15.0"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npm test
+      - run: npm run build

@@ -1,7 +1,8 @@
 // Issue #98 — Intégration du premier dossier Français 3e en DEV (Claude)
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import MonCours from "../eleve/MonCours.jsx";
 import EspaceFrancais, { causesAbsence } from "../francais/EspaceFrancais.jsx";
 import { fausseApi } from "./setup.js";
 
@@ -51,7 +52,7 @@ describe("Français : préparation réservée aux adultes", () => {
       "GET /francais/dossiers/FR3-DNB27-01/professeur": { json: { ...RESUME, professeur: PROFESSEUR } },
     });
     render(<EspaceFrancais />);
-    expect(await screen.findByText(/non publiés aux élèves/)).toBeInTheDocument();
+    expect(await screen.findByText(/lue par les élèves/)).toBeInTheDocument();
     // La note est affichée avant le chargement de la liste : attendre la liste elle-même (sinon dépend du minutage).
     expect(await screen.findByText(/Non visible des élèves/)).toBeInTheDocument();
     expect(screen.getByText(/Rédaction : Codex/)).toBeInTheDocument();
@@ -122,5 +123,152 @@ describe("Français : cause d'une liste vide (#212)", () => {
     expect(causesAbsence(null)).toEqual([]);
     expect(causesAbsence({ domaines: domaines([true, 1], [false, 0]), dossiers: 1 })).toEqual([]);
     expect(causesAbsence({ domaines: domaines([false, 0], [false, 0]), dossiers: 0 })).toHaveLength(2);
+  });
+});
+
+// Issue #212 : circuit aligné sur l'anglais — file de validation, version validée diffusée, ouverture aux classes.
+describe("Français : validation et ouverture aux classes (#212)", () => {
+  it("le validateur relit la version soumise et la valide depuis la file", async () => {
+    connecte();
+    const appels = fausseApi({
+      "GET /francais/dossiers": { json: [RESUME] },
+      "GET /francais/validation": { json: [{ ...RESUME, est_auteur: false, peut_valider: true }] },
+      "GET /francais/validation/FR3-DNB27-01": {
+        json: { ...RESUME, version_affichee: 1, validee: false, eleve: ELEVE, professeur: PROFESSEUR, historique: [] },
+      },
+      "POST /francais/validation/FR3-DNB27-01/valider": { json: { ...RESUME, statut: "valide", version_validee: 1 } },
+    });
+    render(<EspaceFrancais />);
+    await userEvent.click(await screen.findByRole("tab", { name: "Validation" }));
+    await userEvent.selectOptions(await screen.findByLabelText(/Dossier à relire/), "FR3-DNB27-01");
+    expect(await screen.findByText("La porte de la salle était déjà ouverte.")).toBeInTheDocument();
+    expect(screen.getByText("Un jardin avec des bancs.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Valider cette version" }));
+    expect(await screen.findByText(/validé : les classes ouvertes lisent cette version/)).toBeInTheDocument();
+    expect(appels.some((a) => a.cle === "POST /francais/validation/FR3-DNB27-01/valider")).toBe(true);
+  });
+
+  it("l'auteur ne peut pas valider sa propre version", async () => {
+    connecte();
+    fausseApi({
+      "GET /francais/dossiers": { json: [RESUME] },
+      "GET /francais/validation": { json: [{ ...RESUME, est_auteur: true, peut_valider: false }] },
+      "GET /francais/validation/FR3-DNB27-01": {
+        json: { ...RESUME, version_affichee: 1, validee: false, eleve: ELEVE, professeur: PROFESSEUR, historique: [] },
+      },
+    });
+    render(<EspaceFrancais />);
+    await userEvent.click(await screen.findByRole("tab", { name: "Validation" }));
+    await userEvent.selectOptions(await screen.findByLabelText(/Dossier à relire/), "FR3-DNB27-01");
+    expect(await screen.findByText(/un autre validateur doit la valider/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Valider cette version" })).not.toBeInTheDocument();
+  });
+
+  it("un professeur sans habilitation de validateur ne voit pas la file", async () => {
+    connecte();
+    fausseApi({
+      "GET /francais/dossiers": { json: [RESUME] },
+      "GET /francais/validation": { status: 403, json: { detail: "Réservé aux validateurs de français." } },
+    });
+    render(<EspaceFrancais />);
+    expect(await screen.findByText(/Non visible des élèves/)).toBeInTheDocument();
+    expect(screen.queryByRole("tab", { name: "Validation" })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Réservé aux validateurs/)).not.toBeInTheDocument();
+  });
+
+  it("version non validée : mention NON VALIDÉ et ouverture impossible", async () => {
+    connecte();
+    fausseApi({
+      "GET /francais/dossiers": { json: [RESUME] },
+      "GET /francais/dossiers/FR3-DNB27-01/eleve": { json: { ...RESUME, version_affichee: 1, validee: false, eleve: ELEVE } },
+      "GET /francais/dossiers/FR3-DNB27-01/classes": {
+        json: [{ id: 7, code: "3E-FR-A", niveau: "3e", ouvert: false, acces_eleves: true, motif_acces: null }],
+      },
+    });
+    render(<EspaceFrancais />);
+    await userEvent.click(await screen.findByRole("button", { name: "Ouvrir" }));
+    expect(await screen.findByText(/NON VALIDÉ — version v1/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: "Mes classes" }));
+    expect(await screen.findByRole("button", { name: "Ouvrir à cette classe" })).toBeDisabled();
+  });
+
+  it("version validée : la professeure l'ouvre à sa classe", async () => {
+    connecte();
+    const valide = { ...RESUME, statut: "valide", version_validee: 1 };
+    const classe = { id: 7, code: "3E-FR-A", niveau: "3e", ouvert: false, acces_eleves: true, motif_acces: null };
+    const appels = fausseApi({
+      "GET /francais/dossiers": { json: [valide] },
+      "GET /francais/dossiers/FR3-DNB27-01/eleve": { json: { ...valide, version_affichee: 1, validee: true, eleve: ELEVE } },
+      "GET /francais/dossiers/FR3-DNB27-01/classes": { json: [classe] },
+      "PUT /francais/dossiers/FR3-DNB27-01/classes/7": { json: [{ ...classe, ouvert: true }] },
+    });
+    render(<EspaceFrancais />);
+    await userEvent.click(await screen.findByRole("button", { name: "Ouvrir" }));
+    expect(await screen.findByText(/Version validée v1 : celle que lisent les élèves/)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("tab", { name: "Mes classes" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Ouvrir à cette classe" }));
+    expect(await screen.findByRole("button", { name: "Retirer à cette classe" })).toBeInTheDocument();
+    expect(appels.some((a) => a.cle === "PUT /francais/dossiers/FR3-DNB27-01/classes/7")).toBe(true);
+  });
+});
+
+describe("Français : lecture par l'élève (#212)", () => {
+  it("l'élève lit la partie élève d'un dossier ouvert à sa classe, sans corrigé", async () => {
+    fausseApi({
+      "GET /cours/mon-cours": { json: [] },
+      "GET /francais/eleve/dossiers": { json: [{ code: "FR3-DNB27-01", titre: RESUME.titre, niveau: "3e", version: 1 }] },
+      "GET /francais/eleve/dossiers/FR3-DNB27-01": {
+        json: { code: "FR3-DNB27-01", titre: RESUME.titre, niveau: "3e", version: 1, eleve: ELEVE },
+      },
+    });
+    render(<MonCours jeton="j" onExpire={() => {}} />);
+    await userEvent.click(await screen.findByRole("button", { name: RESUME.titre }));
+    expect(await screen.findByText("La porte de la salle était déjà ouverte.")).toBeInTheDocument();
+    expect(screen.getByText("Rédige ta réponse : ton professeur la relira.")).toBeInTheDocument();
+    expect(screen.queryByText(/Aperçu réservé aux adultes/)).not.toBeInTheDocument();
+    expect(screen.queryByText("Un jardin avec des bancs.")).not.toBeInTheDocument();
+  });
+
+  it("aucun dossier ouvert : rien n'apparaît", async () => {
+    fausseApi({ "GET /cours/mon-cours": { json: [] }, "GET /francais/eleve/dossiers": { json: [] } });
+    render(<MonCours jeton="j" onExpire={() => {}} />);
+    expect(await screen.findByText("Ta professeure n'a pas encore ouvert de chapitre.")).toBeInTheDocument();
+    expect(screen.queryByText("Mes dossiers")).not.toBeInTheDocument();
+  });
+});
+
+describe("Français : statut « À corriger » et export PDF (#217)", () => {
+  it("une version refusée s'affiche « À corriger » avec son motif", async () => {
+    connecte();
+    fausseApi({
+      "GET /francais/dossiers": { json: [{ ...RESUME, statut: "refuse", motif_refus: "Q4 : consigne ambiguë." }] },
+      "GET /francais/validation": { status: 403, json: { detail: "Réservé" } },
+    });
+    render(<EspaceFrancais />);
+    expect(await screen.findByText("À corriger")).toBeInTheDocument();
+    expect(screen.getByText("Motif : Q4 : consigne ambiguë.")).toBeInTheDocument();
+    expect(screen.queryByText("Refusé")).not.toBeInTheDocument();
+  });
+
+  it("le professeur exporte le PDF élève et le PDF professeur du dossier", async () => {
+    connecte();
+    const appels = fausseApi({
+      "GET /francais/dossiers": { json: [RESUME] },
+      "GET /francais/validation": { status: 403, json: { detail: "Réservé" } },
+      "GET /francais/dossiers/FR3-DNB27-01/eleve": { json: { ...RESUME, eleve: ELEVE } },
+      "GET /francais/dossiers/FR3-DNB27-01/pdf/eleve": { json: {} },
+      "GET /francais/dossiers/FR3-DNB27-01/pdf/professeur": { json: {} },
+    });
+    URL.createObjectURL = vi.fn(() => "blob:x");
+    URL.revokeObjectURL = vi.fn();
+    const clic = vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => {});
+    render(<EspaceFrancais />);
+    await userEvent.click(await screen.findByRole("button", { name: "Ouvrir" }));
+    await userEvent.click(await screen.findByRole("button", { name: "PDF élève (sans corrigé)" }));
+    await userEvent.click(screen.getByRole("button", { name: "PDF professeur (avec corrigés)" }));
+    await vi.waitFor(() => expect(clic).toHaveBeenCalledTimes(2));
+    expect(clic.mock.contexts.map((a) => a.download)).toEqual(["FR3-DNB27-01-eleve.pdf", "FR3-DNB27-01-professeur.pdf"]);
+    expect(appels.map((a) => a.cle)).toContain("GET /francais/dossiers/FR3-DNB27-01/pdf/professeur");
+    clic.mockRestore();
   });
 });

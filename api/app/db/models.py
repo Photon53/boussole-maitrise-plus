@@ -548,8 +548,8 @@ STATUTS_DOSSIER_FRANCAIS = ("brouillon", "soumis", "valide", "refuse", "archive"
 class DossierFrancais(Base):
     """Dossier de français (leçon, textes, questions et supports professeur), importé de contenu/francais (#98).
 
-    Même circuit que les séances d'anglais : version courante = la dernière ; version validée = la dernière validée.
-    Aucun élève n'y accède : il n'existe pas de route élève pour le français (V2-D12 en attente).
+    Même circuit que les séances d'anglais : version courante = la dernière ; version validée = la dernière validée,
+    seule servie aux élèves, et seulement dans les classes auxquelles le professeur l'a ouvert (#212, SEC-D6).
     """
 
     __tablename__ = "dossier_francais"
@@ -563,6 +563,10 @@ class DossierFrancais(Base):
     versions: Mapped[list["DossierFrancaisVersion"]] = relationship(
         back_populates="dossier", cascade="all, delete-orphan", passive_deletes=True,
         order_by="DossierFrancaisVersion.numero",
+    )
+    # Classes auxquelles un professeur l'a ouvert (#212) ; seule la version validée leur est servie.
+    ouvertures: Mapped[list["OuvertureDossierFrancais"]] = relationship(
+        back_populates="dossier", cascade="all, delete-orphan", passive_deletes=True,
     )
 
     @property
@@ -607,6 +611,25 @@ class DossierFrancaisVersion(Base):
     dossier: Mapped[DossierFrancais] = relationship(back_populates="versions")
     auteur: Mapped["Enseignant | None"] = relationship(foreign_keys=[auteur_id])
     validateur: Mapped["Enseignant | None"] = relationship(foreign_keys=[validateur_id])
+
+
+class OuvertureDossierFrancais(Base):
+    """Dossier de français ouvert par le professeur à l'une de ses classes (#212, même circuit que l'anglais).
+
+    Seule la version validée du dossier est servie aux élèves, et seulement si la classe y a accès (classe pilote
+    d'un domaine fermé, SEC-D6). Une révision soumise ou refusée ne remplace pas la version validée diffusée.
+    """
+
+    __tablename__ = "ouverture_dossier_francais"
+
+    classe_id: Mapped[int] = mapped_column(ForeignKey("classe.id", ondelete="CASCADE"), primary_key=True)
+    dossier_id: Mapped[int] = mapped_column(ForeignKey("dossier_francais.id", ondelete="CASCADE"), primary_key=True, index=True)
+    ouvert_par_id: Mapped[int | None] = mapped_column(ForeignKey("enseignant.id", ondelete="SET NULL"))
+    ouvert_le: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_maintenant, server_default=func.now())
+
+    classe: Mapped[Classe] = relationship()
+    dossier: Mapped[DossierFrancais] = relationship(back_populates="ouvertures")
+    ouvert_par: Mapped["Enseignant | None"] = relationship()
 
 
 class Chapitre(Base):
