@@ -304,14 +304,9 @@ def peut_lire(enseignant: models.Enseignant, domaine: str, niveau: str | None) -
     )
 
 
-def peut_valider(enseignant: models.Enseignant, domaine: str, niveau: str | None) -> bool:
-    """Décision du propriétaire du 23/11/2026 (#217) : en français, l'administrateur valide aussi, comme un
-    validateur habilité dans le domaine et le niveau. L'auteur d'une version ne la valide jamais (`peut_decider`)."""
-    return enseignant.role == Role.ADMIN or permissions.peut_valider(enseignant, domaine, niveau)
-
-
-def refus_validation(enseignant: models.Enseignant, domaine: str, niveau: str | None) -> str | None:
-    return None if peut_valider(enseignant, domaine, niveau) else permissions.refus_validation(enseignant, domaine, niveau)
+# Administrateur compris (V2-D15) ; l'auteur d'une version ne la valide jamais (`peut_decider`).
+peut_valider = permissions.peut_valider
+refus_validation = permissions.refus_validation
 
 
 def domaine_actif(session: Session, domaine: str) -> bool:

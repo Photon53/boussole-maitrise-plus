@@ -123,8 +123,8 @@ Ouvrir l'IHM DEV par le tunnel habituel (`scripts/tester-ihm-gcp.ps1`, exécuté
 3. Simulation : espace professeur (ou Administration) → « Voir comme un élève » sur la classe pilote ; l'élève
    fictif lit le dossier ouvert ; il n'apparaît pas dans la liste des élèves de la classe.
 4. Administrateur : Administration → « Boussole Français » ouvre l'espace avec sa session d'administration, sans
-   nouvelle connexion. Il consulte, exporte, et valide ou refuse dans l'onglet « Validation » (décision du 23/11,
-   V2-D12), jamais une version dont il est l'auteur.
+   nouvelle connexion. Il consulte, exporte, et valide ou refuse dans l'onglet « Validation » (V2-D15,
+   décision du 23/11), jamais une version dont il est l'auteur.
 5. Professeur ou validateur depuis `/enseignant` : lien « Boussole Français : dossiers et validation » en bas du menu.
 6. Élève pilote : le dossier ouvert apparaît dans « Cours » et dans « Mon cours ». Il n'existe encore **aucun
    exercice interactif de français** (chapitres de #177) : « S'entraîner » reste vide et le dit.

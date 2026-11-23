@@ -3,7 +3,7 @@
 Même circuit que l'anglais (#212) :
 - consultation : la version validée si elle existe, sinon la version courante, montrée NON VALIDÉE ;
 - file de validation (`/francais/validation`) : versions soumises, relues puis validées ou refusées avec motif par un
-  validateur habilité dans le domaine et le niveau ou par un administrateur (#217), jamais par leur auteur ; chaque décision est journalisée ;
+  validateur habilité dans le domaine et le niveau ou par un administrateur (V2-D15), jamais par leur auteur ; chaque décision est journalisée ;
 - ouverture : le professeur ouvre à sa classe un dossier dont une version est validée ; ses élèves n'en lisent que
   la partie élève validée (`app.routes.francais_eleves`), si la classe a accès au domaine (SEC-D6).
 
@@ -169,11 +169,11 @@ def refuser(code: str, corps: Refus, qui: MembreFrancais, session: SessionDB):
 # --- File de validation, comme l'anglais (#212) ------------------------------------------------------------------
 
 def validateur_francais(enseignant: AdulteAuthentifie, session: SessionDB) -> models.Enseignant:
-    """Validateur d'un domaine de français actif, qu'il y enseigne ou non (EX.9-bis), ou administrateur (#217)."""
+    """Validateur d'un domaine de français actif, qu'il y enseigne ou non (EX.9-bis), ou administrateur (V2-D15)."""
     if enseignant.mdp_provisoire:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Choisissez d'abord un nouveau mot de passe.")
-    domaines = francais.DOMAINES_FRANCAIS if enseignant.role == Role.ADMIN else permissions.domaines_valides(enseignant)
-    if not any(d in francais.DOMAINES_FRANCAIS and francais.domaine_actif(session, d) for d in domaines):
+    if not any(d in francais.DOMAINES_FRANCAIS and francais.domaine_actif(session, d)
+               for d in permissions.domaines_valides(enseignant)):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Réservé aux validateurs de français.")
     return enseignant
 

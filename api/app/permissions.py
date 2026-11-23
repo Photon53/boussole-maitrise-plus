@@ -164,6 +164,11 @@ def appliquer(session: Session, enseignant: models.Enseignant, voulues: list[Por
 
 
 def peut_valider(enseignant: models.Enseignant, domaine: str, niveau: str | None) -> bool:
+    """Validateur habilité dans ce domaine (et ce niveau), ou administrateur, dans toutes les matières (V2-D15,
+    décision du propriétaire du 23/11/2026, #217). Personne ne valide un contenu dont il est l'auteur : ce contrôle
+    est fait par chaque circuit (`circuit_validation.peut_decider`, règle E0.2 des maths)."""
+    if enseignant.role == Role.ADMIN:
+        return True
     return any(
         h.role == VALIDATEUR and h.domaine_code == domaine and (h.niveau is None or h.niveau == niveau)
         for h in enseignant.habilitations
@@ -179,6 +184,8 @@ def refus_validation(enseignant: models.Enseignant, domaine: str, niveau: str | 
 
 
 def domaines_valides(enseignant: models.Enseignant) -> set[str]:
+    if enseignant.role == Role.ADMIN:  # V2-D15 : l'administrateur valide dans tous les domaines
+        return set(LIBELLES)
     return {h.domaine_code for h in enseignant.habilitations if h.role == VALIDATEUR}
 
 
@@ -214,8 +221,9 @@ def refus_acces_classe(session: Session, classe: models.Classe) -> str | None:
 
 
 # --- Permissions (CDC V2, EX.7) ------------------------------------------------------------------
-# Table de correspondance dans le code, pas un moteur configurable en base. L'admin a toutes les permissions
-# sauf `contenu.valider`, qui vient d'une habilitation de validateur, domaine par domaine (EX.9-bis).
+# Table de correspondance dans le code, pas un moteur configurable en base. L'admin a toutes les permissions,
+# `contenu.valider` compris depuis V2-D15 (23/11/2026, remplace EX.9-bis pour lui) ; pour les autres comptes, elle
+# vient d'une habilitation de validateur, domaine par domaine.
 # `prevalidation.ia` (ticket #48) n'appartient qu'aux administrateurs : aucune habilitation ne la donne.
 
 PERMISSIONS = (
@@ -233,7 +241,7 @@ def permissions_de(enseignant: models.Enseignant, domaine: str | None = None) ->
     """Permissions d'un compte, dans un domaine donné ou dans au moins un domaine (`domaine` vide)."""
     accordees: set[str] = set()
     if enseignant.role == Role.ADMIN:
-        accordees.update(p for p in PERMISSIONS if p != "contenu.valider")
+        accordees.update(PERMISSIONS)
     for h in enseignant.habilitations:
         if domaine is None or h.domaine_code == domaine:
             accordees.update(PAR_ROLE[h.role])

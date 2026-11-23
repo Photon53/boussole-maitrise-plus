@@ -160,9 +160,9 @@ def test_l_administrateur_edite_et_un_autre_valide(client):
     assert (r.json()["version"], r.json()["statut"], r.json()["version_publiee"]) == (2, "brouillon", 1)
     assert client.get("/anglais/seances/4E-02", headers=h).json()["titre"] != "Weekend plans (révisé)"
     assert client.post("/admin/anglais/seances/4E-02/soumettre", headers=admin).json()["statut"] == "soumis"
-    # Administrateur sans qualification d'Anglais collège : il ne valide pas (EX.9-bis), même ce qu'il n'a pas écrit.
+    # V2-D15 : l'administrateur valide dans toutes les matières, mais jamais la version dont il est l'auteur.
     r = client.post("/admin/anglais/seances/4E-02/valider", headers=admin)
-    assert r.status_code == 403 and "validateur pour Anglais collège" in r.json()["detail"]
+    assert r.status_code == 409
     # Un référent le refuse avec un motif, puis le valide.
     r = client.post("/anglais/validation/4E-02/refuser", headers=h, json={"motif": "Titre en français"})
     assert r.json()["statut"] == "refuse" and r.json()["motif_refus"] == "Titre en français"
