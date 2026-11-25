@@ -334,3 +334,8 @@ options et la recommandation. Le propriétaire tranche.
 <sub>🤖 Version initiale rédigée par **DeepSeek** (DeepSeek Harness) pour l'issue #83, 13/11/2026 (PR #84).
 Correctifs de relecture et transcription de RGPD-1 : **Claude** (Claude Code), PR #86.
 Consolidation documentaire : **Codex**, intégrée dans la PR #86, issue #83, 13/11/2026.</sub>
+
+
+## Politique de versionnement et livraison multi-produits
+
+Tout agent IA doit lire et appliquer `docs/VERSIONNING.md` avant toute modification affectant une release, un tag, une migration ou un déploiement. Cette politique concerne toutes les composantes (API, web, moteur, contenus, base de données et CI/CD) et distingue strictement `pkp-v*` de `boussole-v*`. Aucun agent ne peut autoriser seul un GO de production, créer une release de production ou déployer sans approbation humaine explicite. Le circuit PKP exclut paiement, abonnements, prix et secrets commerciaux. Si la politique n'est pas encore techniquement imposée par CI, signaler le contrôle manquant et ne jamais prétendre qu'il est automatisé.
