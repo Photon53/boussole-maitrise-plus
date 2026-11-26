@@ -119,8 +119,9 @@ Les exemples sont des illustrations de forme, entièrement originaux.
 - **À ajouter** : un **quiz de 9 QCM** (accords du participe passé, de l'adjectif, du verbe avec un sujet éloigné),
   3 faciles, 3 moyens, 3 difficiles, et des phrases « Je sais ».
 - **Point à trancher** : le quiz d'un dossier est corrigé par la plateforme mais **n'alimente pas la maîtrise**
-  (ARCH-5 ne porte que sur les chapitres). Si le professeur souhaite un taux de maîtrise sur les accords, un
-  chapitre YAML de grammaire peut accompagner le dossier, sans dupliquer ses questions.
+  (ARCH-5 ne porte que sur les chapitres). Si le professeur souhaite un taux de maîtrise sur les accords, les
+  questions de compétence transférable peuvent être placées dans un chapitre YAML de grammaire associé au dossier,
+  sans être dupliquées dans le quiz (option M1, [`PREPARATION-175.md`](PREPARATION-175.md) § 10).
 
 ### C8 — 3e — Comprendre un texte, brevet (dossier)
 

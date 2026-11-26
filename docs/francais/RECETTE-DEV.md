@@ -12,7 +12,7 @@ qui font foi en cas d'écart.
 | Élément | Vérification |
 |---|---|
 | Poste avec le dépôt à jour sur le SHA à recetter | `git fetch && git checkout <SHA>` ; `git rev-parse --short HEAD` |
-| Node.js 20 | `node --version` |
+| Node.js 24.15, version de la CI et de l'image web | `node --version` (`v24.15` ou plus récent en 24.x) |
 | Playwright avec Chromium, sur le poste | `npm install -g playwright && npx playwright install chromium` ; `node -e "require('playwright')"` sans erreur |
 | SDK Google Cloud, compte avec IAP et OS Login sur `mer-boussole-dev` | `gcloud auth list` ; rôles `roles/iap.tunnelResourceAccessor` et `roles/compute.osLogin` |
 | Compte administrateur de l'instance DEV (TOTP compris) | Connexion manuelle à l'écran réussie |
