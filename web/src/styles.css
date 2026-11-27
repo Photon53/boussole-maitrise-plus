@@ -5,6 +5,8 @@
 @import "./styles/base.css";
 @import "./styles/exercices.css";
 @import "./styles/francais-validation.css";
+@import "./styles/francais-progression.css";
+@import "./styles/francais-correction.css";
 @import "./styles/francais-redaction.css";
 @import "./styles/classes-cours.css";
 @import "./styles/accueil-public.css";
