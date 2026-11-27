@@ -17,7 +17,7 @@ from app.auth import ADMIN, AdminCourant, FiltreDomaine, SessionDB
 from app.config import settings
 from app.db import models
 from app.progression import export_eleve
-from app.referentiel import Role
+from app.referentiel import Role, StatutValidation
 from app.routes import anglais
 from app.routes.enseignants import _attribuer_code, verifier_identifiants
 from app.schemas import CodeEleve, ConnexionEnseignant, ParentCree, ParentVue
@@ -822,12 +822,18 @@ def pdf_seance_anglais(code: str, public: str, _: AdminCourant, session: Session
 
 def contenus_par_domaine(session: SessionDB) -> dict[str, int]:
     """Contenu prêt pour les élèves, par domaine (V3, Lot 3) : questions de maths en service dans des
-    chapitres visibles, séances d'anglais ayant une version validée. Un domaine à 0 ne peut pas ouvrir."""
+    chapitres visibles, séances d'anglais ayant une version validée. Un domaine à 0 ne peut pas ouvrir.
+
+    Français (#177) : seules les questions **validées** comptent, comme les séances d'anglais. Une question de
+    chapitre importée « à valider » ne rend jamais le domaine ouvrable au public (V2-D12, V2-D15)."""
+    francais = [d.code for d in permissions.DOMAINES if d.matiere == "francais"]
     maths = session.execute(
         select(models.Chapitre.domaine_code, func.count(models.Question.id))
         .join(models.Competence, models.Competence.chapitre_id == models.Chapitre.id)
         .join(models.Question, models.Question.competence_id == models.Competence.id)
-        .where(models.Question.archivee.is_(False), models.Chapitre.masque.is_(False))
+        .where(models.Question.archivee.is_(False), models.Chapitre.masque.is_(False),
+               or_(models.Chapitre.domaine_code.not_in(francais),
+                   models.Question.statut_validation == StatutValidation.VALIDEE))
         .group_by(models.Chapitre.domaine_code)
     ).all()
     anglais_valides = session.execute(
