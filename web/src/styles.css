@@ -920,6 +920,7 @@ h1, h2, .accueil h3, .profil h3, .app-entete h1, .logo, .chiffres-cles strong {
 .fr-niveau.n { color: var(--texte-doux); font-weight: 500; }
 .fr-niveau.n::before { content: "–"; width: auto; height: auto; background: none; border-radius: 0; }
 .fr-valeur-alerte { color: var(--alerte); }
+.fr-valeur-petite { font-size: var(--t-l) !important; }
 @media (max-width: 640px) { .fr-prof-barre .fr-actions { margin-left: 0; } }
 .fr-deux { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; align-items: start; }
 .fr-prof .kpis, .fr-admin .kpis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
