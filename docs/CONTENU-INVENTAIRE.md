@@ -520,32 +520,29 @@ Nombre de questions actives par difficulté (1 = application directe … 5 = niv
 
 | Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| 3. Rédaction : raconter une aventure au présent | `FR6-RED-AVENTURE-RECIT` Raconter une aventure fictive cohérente au présent | ✓ | ⚠ 0 | 1 | ⚠ 0 | ⚠ 0 | ⚠ 0 | 1 | 1 |
+| 3. Rédaction : raconter une aventure au présent | `FR6-RED-AVENTURE-RECIT` Raconter une aventure fictive cohérente au présent | ✓ | — | 1 | — | — | — | 1 | 1 |
 
 ### 5e — Tronc commun
 
 | Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| 3. Rédaction : raconter un événement passé | `FR5-RED-EVENEMENT-RECIT` Raconter un événement fictif à l’imparfait et au passé simple | ✓ | ⚠ 0 | ⚠ 0 | 1 | ⚠ 0 | ⚠ 0 | 1 | 1 |
+| 3. Rédaction : raconter un événement passé | `FR5-RED-EVENEMENT-RECIT` Raconter un événement fictif à l’imparfait et au passé simple | ✓ | — | — | 1 | — | — | 1 | 1 |
 
 ### 4e — Tronc commun
 
 | Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| 3. Rédaction : défendre son opinion | `FR4-RED-OPINION-ARGUMENTER` Défendre une opinion par des arguments illustrés d’exemples | ✓ | ⚠ 0 | ⚠ 0 | 1 | ⚠ 0 | ⚠ 0 | 1 | 1 |
+| 3. Rédaction : défendre son opinion | `FR4-RED-OPINION-ARGUMENTER` Défendre une opinion par des arguments illustrés d’exemples | ✓ | — | — | 1 | — | — | 1 | 1 |
 
 ### 3e — Tronc commun
 
 | Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| 3. Rédaction : sujet de réflexion dans l’esprit du brevet | `FR3-RED-REFLEXION-DEVELOPPEMENT` Construire un développement argumenté et organisé à partir d’une question | ✓ | ⚠ 0 | ⚠ 0 | ⚠ 0 | 1 | ⚠ 0 | 1 | 1 |
+| 3. Rédaction : sujet de réflexion dans l’esprit du brevet | `FR3-RED-REFLEXION-DEVELOPPEMENT` Construire un développement argumenté et organisé à partir d’une question | ✓ | — | — | — | 1 | — | 1 | 1 |
 
 ## Trous à combler
 
-- `FR6-RED-AVENTURE-RECIT` (Raconter une aventure fictive cohérente au présent) : aucune question de difficulté 1, 3, 4, 5
-- `FR5-RED-EVENEMENT-RECIT` (Raconter un événement fictif à l’imparfait et au passé simple) : aucune question de difficulté 1, 2, 4, 5
-- `FR4-RED-OPINION-ARGUMENTER` (Défendre une opinion par des arguments illustrés d’exemples) : aucune question de difficulté 1, 2, 4, 5
-- `FR3-RED-REFLEXION-DEVELOPPEMENT` (Construire un développement argumenté et organisé à partir d’une question) : aucune question de difficulté 1, 2, 3, 5
+Aucun.
 
 ## Registre des sources
 
