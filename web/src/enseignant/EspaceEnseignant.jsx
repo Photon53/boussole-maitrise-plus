@@ -15,6 +15,7 @@ import RessourcesEnseignant from "./RessourcesEnseignant.jsx";
 import Remarques from "../ui/Remarques.jsx";
 import VueEleve from "../ui/VueEleve.jsx";
 import Validation from "./Validation.jsx";
+import TableauFrancais from "../francais/TableauFrancais.jsx";
 
 // Session partagée avec l'espace PKP Anglais : un professeur des deux disciplines ne se connecte qu'une fois.
 export const CLE_COMPTE = "pkp.enseignant";
@@ -34,6 +35,36 @@ const PAGES = [
 const VALIDATION = { vers: "/enseignant/validation", libelle: "Validation", icone: "bouclier" };
 // Issue #179 : rédactions remises par les élèves des classes de français.
 const REDACTIONS = { vers: "/enseignant/redactions", libelle: "Rédactions", icone: "crayon" };
+
+/** Issue #231 : un professeur de français a son propre espace, rangé par groupes, à la marque « Boussole Français ».
+ * Professeur de français seulement : le tableau de bord est l'accueil et les pages propres aux maths disparaissent.
+ * Professeur des deux matières : les pages des maths restent, le groupe « Français » s'ajoute. */
+function pagesFrancais({ seul, validateur }) {
+  const fr = (p) => ({ ...p, groupe: "Français" });
+  const outils = (p) => ({ ...p, groupe: "Outils" });
+  const parVers = Object.fromEntries(PAGES.map((p) => [p.vers, p]));
+  const tableau = fr({ vers: seul ? "/enseignant" : "/enseignant/francais", libelle: "Tableau de bord", icone: "tableau" });
+  const francais = [
+    tableau,
+    ...(seul ? [fr({ ...parVers["/enseignant"], vers: "/enseignant/classes", libelle: "Mes classes" })] : []),
+    ...(seul ? [fr(parVers["/enseignant/cours"])] : []),
+    // L'espace des dossiers (#212, #217) garde sa page ; il s'ouvre avec la même session.
+    fr({ vers: "/francais", libelle: "Dossiers et PDF", icone: "pdf" }),
+    fr(REDACTIONS),
+    ...(seul ? [fr(parVers["/enseignant/ressources"])] : []),
+  ];
+  if (!seul) {
+    const maths = PAGES.map((p) => ({ ...p, groupe: "Maths" }));
+    return [...maths, ...francais, ...(validateur ? [outils(VALIDATION)] : [])];
+  }
+  return [
+    ...francais,
+    outils(parVers["/enseignant/seance"]),
+    outils(parVers["/enseignant/vue-eleve"]),
+    ...(validateur ? [outils(VALIDATION)] : []),
+    outils(parVers["/enseignant/remarques"]),
+  ];
+}
 
 export default function EspaceEnseignant({ chemin = "/enseignant" }) {
   const [compte, setCompte] = useState(() => lire(CLE_COMPTE));
@@ -82,8 +113,14 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
   }
 
   // Un validateur qui n'enseigne pas les maths n'a que la page Validation (l'API refuse le reste).
-  const base = compte.enseigne_francais ? [...PAGES, REDACTIONS] : PAGES;
-  const pages = !enseigne ? [VALIDATION] : compte.validateur_maths ? [...base, VALIDATION] : base;
+  const francais = Boolean(compte.enseigne_francais);
+  const francaisSeul = francais && compte.enseigne_maths === false;
+  const validateur = Boolean(compte.validateur_maths);
+  const pages = !enseigne
+    ? [VALIDATION]
+    : francais
+      ? pagesFrancais({ seul: francaisSeul, validateur })
+      : validateur ? [...PAGES, VALIDATION] : PAGES;
   const page = pages.filter((p) => chemin === p.vers || chemin.startsWith(`${p.vers}/`)).sort(
     (a, b) => b.vers.length - a.vers.length,
   )[0] ?? pages[0];
@@ -92,7 +129,7 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
   return (
     <CadreApplication
       espace="Espace professeur"
-      marque="Maths"
+      marque={francaisSeul ? "Français" : "Maths"}
       liens={pages}
       cheminActif={chemin}
       pied={
@@ -108,20 +145,15 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
               <Icone nom="cours" /> Boussole Anglais
             </a>
           )}
-          {/* Issue #217 : dossiers, validation et ouverture aux classes du français (même session). */}
-          {compte.enseigne_francais && (
-            <a href="/francais">
-              <Icone nom="cours" /> Boussole Français : dossiers et validation
-            </a>
-          )}
           <button className="nav" onClick={deconnecter}>
             <Icone nom="sortie" /> Se déconnecter
           </button>
         </>
       }
     >
-      <EntetePage titre={page.libelle} fil="Espace professeur" />
-      {page.vers === "/enseignant" && (
+      <EntetePage titre={page.libelle} fil={page.groupe === "Français" ? "Espace professeur · Français" : "Espace professeur"} />
+      {page.libelle === "Tableau de bord" && <TableauFrancais {...props} validateur={validateur} />}
+      {(page.vers === "/enseignant/classes" || (page.vers === "/enseignant" && page.libelle !== "Tableau de bord")) && (
         <Classes {...props} maths={compte.enseigne_maths !== false} francais={Boolean(compte.enseigne_francais)} />
       )}
       {page.vers === "/enseignant/seance" && <EnDirect {...props} />}

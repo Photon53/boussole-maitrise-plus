@@ -88,9 +88,10 @@ describe("navigation vers le Français en préparation", () => {
   it("l'espace professeur mène à la validation du français (#217)", async () => {
     window.history.replaceState(null, "", "/enseignant");
     sessionStorage.setItem("pkp.enseignant", JSON.stringify({ ...PROFESSEUR, enseigne_francais: true }));
-    fausseApi({ "GET /enseignants/classes": { json: [] } });
+    fausseApi({ "GET /enseignants/classes": { json: [] }, "GET /francais/classes": { json: [] } });
     render(<App />);
-    const liens = await screen.findAllByRole("link", { name: /Boussole Français : dossiers et validation/ });
-    expect(liens[0]).toHaveAttribute("href", "/francais");
+    // Issue #231 : les dossiers sont une entrée du groupe « Français » de l'espace professeur.
+    const navigation = await screen.findByRole("navigation", { name: "Navigation Espace professeur" });
+    expect(within(navigation).getByRole("link", { name: "Dossiers et PDF" })).toHaveAttribute("href", "/francais");
   });
 });
