@@ -148,14 +148,17 @@ await essai("validateur", async () => {
   await page.goto(`${BASE}/enseignant/validation`); await page.waitForTimeout(1500);
   await capture(page, "validateur-ordinateur-validation-questions");
 });
-await essai("administrateur", async () => {
-  const page = await contexte("ordinateur");
-  await connexionAdulte(page, "/admin", "admin@pkp.test", "demo-pkp-2026");
-  await capture(page, "administrateur-ordinateur-accueil");
-  await page.getByRole("link", { name: "Boussole Français (préparation)" }).first().click();
-  await page.waitForTimeout(1200);
-  await capture(page, "administrateur-ordinateur-francais");
-});
+for (const taille of ["ordinateur", "tablette", "mobile"]) {
+  await essai(`administrateur ${taille}`, async () => {
+    const page = await contexte(taille);
+    await connexionAdulte(page, "/admin", "admin@pkp.test", "demo-pkp-2026");
+    if (taille === "ordinateur") await capture(page, "administrateur-ordinateur-accueil");
+    // Issue #231 : page « Boussole Français » de l'administration (avant : lien vers l'espace des dossiers).
+    await page.goto(`${BASE}/admin/francais`);
+    await page.getByRole("heading", { name: "À traiter" }).waitFor({ timeout: 15000 });
+    await capture(page, `administrateur-${taille}-francais`);
+  });
+}
 // Non-régression visuelle : Maths (Lina démo) et Anglais
 await essai("maths", async () => {
   const page = await contexte("ordinateur");

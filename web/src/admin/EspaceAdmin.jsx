@@ -12,6 +12,7 @@ import Contenu from "./Contenu.jsx";
 import Eleves from "./Eleves.jsx";
 import Exercices from "./Exercices.jsx";
 import Familles from "./Familles.jsx";
+import FrancaisAdmin from "./FrancaisAdmin.jsx";
 import Journal from "./Journal.jsx";
 import RemarquesAdmin from "./RemarquesAdmin.jsx";
 import PrevalidationIA from "./PrevalidationIA.jsx";
@@ -52,8 +53,9 @@ const PAGES = [
   { groupe: "Pédagogie", vers: "/admin/prevalidation-ia", libelle: "Prévalidation IA", icone: "bouclier", Page: PrevalidationIA, permission: "prevalidation.ia", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/pkp-math", libelle: "Boussole Maths", icone: "pdf", Page: PkpMathAdmin, permission: "contenu.lire", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/anglais", libelle: "Boussole Anglais", icone: "eleve", Page: AnglaisAdmin, permission: "contenu.modifier", matiere: "anglais" },
-  // L'espace Français reprend la session d'administration de l'onglet (#217) : consultation, validation, PDF.
-  { groupe: "Pédagogie", vers: "/francais", libelle: "Boussole Français (préparation)", icone: "cours", permission: "contenu.lire", externe: true },
+  // Issue #231 : synthèse du français (cours, validation, classes pilotes, équipe) ; les dossiers, leur validation
+  // et leurs PDF restent dans l'espace Français, ouvert depuis cette page avec la session d'administration (#217).
+  { groupe: "Pédagogie", vers: "/admin/francais", libelle: "Boussole Français", icone: "cours", Page: FrancaisAdmin, permission: "contenu.lire" },
   { groupe: "Configuration", vers: "/admin/configuration", libelle: "Domaines", icone: "bouclier", Page: Configuration, permission: "configuration" },
 ];
 
@@ -157,6 +159,7 @@ export default function EspaceAdmin({ chemin = "/admin" }) {
             chemin={chemin}
             domaine={domaine}
             domaines={domaines}
+            onDomaine={choisirDomaine}
           />
         </>
       ) : (

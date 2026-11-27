@@ -3,7 +3,12 @@
 
 Issue #231 (sous-ticket de #175), renforcée par le propriétaire le 27/11/2026. Rédigé par Claude (Claude Code), 27/11/2026.
 
-**Statut : maquettes à valider. Aucun développement avant la décision du propriétaire.** Ce dossier ne modifie ni le
+**Statut au 27/11/2026, fin de journée** : le propriétaire a délégué les arbitrages D1 à D6 (appliqués, voir
+`DECISIONS.md`, FR-UI-D1 à D6) et demandé de commencer par l'administration. **Livré : la page « Boussole
+Français » de l'administration** (§ 8, PR 4a), captures réelles dans [`apres/`](apres/). Les autres écrans suivent
+le découpage du § 8.
+
+Statut initial : maquettes à valider. Ce dossier ne modifie ni le
 code, ni les contenus, ni les règles de maîtrise, de sécurité, d'habilitation ou de validation pédagogique.
 `PKP_REDACTION_ACTIVE` et `PKP_PDF_FRANCAIS_OUVERT` restent faux.
 
@@ -253,6 +258,7 @@ captures « après » faites avec [`outils/captures-audit.mjs`](outils/captures-
 | **2** | **Fondations et accueil élève** : jetons et police (D4), `NavigationMatiere`, `CarteReprise`, `CarteRubrique`, `CarteCours` ; accueil et catalogue | `theme.css`, `styles.css`, nouveaux composants `web/src/ui/`, `EspaceEleve.jsx` (branche français) | Vitest ; onglets Maths et Anglais inchangés (test) ; recette navigateur : accueil → rubrique → cours | D1, D5 |
 | **3a** | **Écran de cours en sept étapes** : rail, leçon, exercices de grammaire et de conjugaison, correction expliquée, bilan | `Cours.jsx`, `Exercice.jsx` (présentation), `Etapes`, `ZoneLecture`, `CorrectionExpliquee` | Vitest ; aucune solution dans le DOM avant réponse (ARCH-4) ; recette : leçon → exercice → correction → bilan | D2, D3, PR 2 |
 | **3b** | **Compréhension et rédaction** : `TexteNumerote`, texte et questions côte à côte, rédaction avec état fermé | `DossiersFrancais.jsx`, `Redaction.jsx` | Vitest ; drapeaux inchangés ; recette : dossier ouvert, quiz, état fermé | PR 3a |
+| **4a ✔** | **Administration** (fait le 27/11) : page « Boussole Français » : « À traiter » (alertes avec l'écran qui les règle), cours prêts, questions validées, classes pilotes, tableau par niveau (validateurs, classes pilotes), chapitres et dossiers ensemble par niveau et rubrique, fonctions sensibles en lecture seule. Remplace le lien « Boussole Français (préparation) » | `api/app/routes/admin_francais.py` (`GET /admin/francais/synthese`, lecture seule), `web/src/admin/FrancaisAdmin.jsx`, `EspaceAdmin.jsx`, `Exercices.jsx` (filtre `?statut=`), `styles.css` | 5 tests API, 4 tests Vitest, navigation mise à jour, recette #217 adaptée | — |
 | **4** | **Adultes** : espace professeur Français (marque, tableau de bord, présentation de #111 en lecture), file de validation, page Français de l'administration | `EspaceEnseignant`, `SuiviFrancais.jsx`, `Validation.jsx`, `EspaceFrancais.jsx`, `admin/` | Vitest ; refus d'auto-validation inchangé (test API existant) ; recette validateur et administrateur | Maquettes 10–12 |
 | **5** | **Passe finale responsive et accessibilité** (#154) : 3 tailles, clavier, zoom 200 %, contraste, lecteur d'écran sur les parcours clés | tous les écrans modifiés | axe sur les écrans clés ; captures avant/après des cinq rôles | PR 1 à 4 |
 
