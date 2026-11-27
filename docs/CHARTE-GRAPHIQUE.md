@@ -5,7 +5,7 @@ Direction validée par le propriétaire le 16/11/2026 (issue #149). Le **cadre e
 accueil public, navigation des adultes) et le **travail reste clair** (cours, exercices, corrections, tableaux).
 La refonte ne touche que la présentation : aucun élément, libellé, droit ni comportement n'a changé.
 
-Jetons : `web/src/theme.css`. Composants : `web/src/styles.css`, section « Refonte « instrument de précision » (#149) ».
+Jetons : `web/src/theme.css`. Composants : `web/src/styles/*.css`, importés dans l'ordre par `web/src/styles.css` ; refonte « instrument de précision » (#149) : `web/src/styles/instrument.css`.
 Maquette de conception : liée dans l'issue #149.
 
 ## Couleurs

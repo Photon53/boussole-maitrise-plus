@@ -1,0 +1,156 @@
+/* Issue #252 — Base : éléments, en-tête, cartes, formulaires, onglets, badges (Claude) */
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  font: var(--t-m) / 1.5 var(--police);
+  font-feature-settings: "cv11", "ss01";
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--action); text-underline-offset: 2px; }
+a:hover { color: var(--action-survol); }
+code { font-family: var(--police-mono); font-size: 0.95em; }
+img, svg { vertical-align: middle; }
+
+h1 { font-size: var(--t-xl); line-height: 1.25; margin: 0 0 8px; color: var(--primaire); letter-spacing: -0.01em; }
+h2 { font-size: var(--t-l); line-height: 1.3; margin: 24px 0 12px; letter-spacing: -0.005em; }
+h3 { font-size: var(--t-m); margin: 16px 0 8px; color: var(--texte-doux); }
+.doux { color: var(--texte-doux); }
+.petit { font-size: var(--t-s); }
+.chiffres { font-variant-numeric: tabular-nums; }
+
+:focus-visible { outline: 3px solid var(--action); outline-offset: 2px; }
+
+/* --- En-tête et pied de page --------------------------------------------------------- */
+
+.page { max-width: var(--largeur-eleve); margin: 0 auto; padding: 0 16px 48px; }
+
+.entete {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 14px 0; margin-bottom: 20px; border-bottom: 1px solid var(--bordure);
+}
+.logo {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-weight: 700; font-size: 1.1rem; color: var(--primaire); text-decoration: none; letter-spacing: -0.01em;
+}
+.logo em { font-style: normal; color: var(--action); }
+.logo:hover { color: var(--primaire); }
+.logo .monogramme { flex: none; }
+.entete nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px 16px; align-items: center; font-size: var(--t-s); }
+
+.pied {
+  border-top: 1px solid var(--bordure); margin-top: 48px; padding: 20px 0;
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px;
+  color: var(--texte-doux); font-size: var(--t-s);
+}
+.pied a { color: var(--texte-doux); }
+
+/* --- Cartes, formulaires, boutons -------------------------------------------------------- */
+
+.carte {
+  background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon);
+  box-shadow: var(--ombre); padding: 20px; margin-bottom: 16px;
+}
+.carte > h2:first-child, .carte > h3:first-child { margin-top: 0; }
+.carte-etroite { max-width: 420px; margin: 32px auto; }
+.carte-titre { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+.carte-titre h2 { margin: 0; }
+
+label { display: block; font-weight: 600; font-size: var(--t-s); margin: 14px 0 6px; }
+input, select, textarea {
+  width: 100%; padding: 10px 12px; font: inherit; color: var(--texte);
+  background: var(--surface); border: 1px solid var(--bordure-forte); border-radius: var(--rayon-petit);
+}
+input:focus, select:focus, textarea:focus {
+  outline: 3px solid var(--action-doux); outline-offset: 0; border-color: var(--action);
+}
+textarea { resize: vertical; }
+.aide { font-size: var(--t-s); color: var(--texte-doux); margin: 4px 0 0; }
+
+button, .bouton {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  font: inherit; font-weight: 600; font-size: 0.95rem; cursor: pointer; border-radius: var(--rayon-petit);
+  padding: 9px 16px; border: 1px solid var(--action); background: var(--action); color: var(--action-texte);
+  text-decoration: none; line-height: 1.4; transition: background 0.15s, border-color 0.15s; white-space: nowrap;
+  max-width: 100%;
+}
+/* Libellés longs (choix de QCM, liens, actions des cartes) : ils passent à la ligne au lieu de sortir du cadre.
+   Les boutons courts des tableaux, onglets et petits boutons restent sur une ligne. */
+.carte button, .options button, button.lien, .modale button { white-space: normal; overflow-wrap: anywhere; text-align: center; }
+td button, .onglets button, button.petit, button.icone { white-space: nowrap; }
+button:hover:not(:disabled), .bouton:hover { background: var(--action-survol); border-color: var(--action-survol); color: var(--action-texte); }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+button.secondaire, .bouton.secondaire { background: var(--surface); color: var(--action); border-color: var(--bordure-forte); }
+button.secondaire:hover:not(:disabled), .bouton.secondaire:hover { background: var(--action-doux); color: var(--action); border-color: var(--action); }
+button.danger { background: var(--surface); color: var(--ko); border-color: var(--ko); }
+button.danger:hover:not(:disabled) { background: var(--ko-doux); color: var(--ko); border-color: var(--ko); }
+button.lien {
+  background: none; border: none; color: var(--action); padding: 4px; text-decoration: underline;
+  text-underline-offset: 2px; font-weight: 500; text-align: left;
+}
+button.lien:hover:not(:disabled) { background: none; color: var(--action-survol); }
+button.petit, .bouton.petit { padding: 4px 10px; font-size: var(--t-s); }
+button.icone { padding: 6px; background: transparent; border-color: transparent; color: var(--texte-doux); }
+button.icone:hover:not(:disabled) { background: var(--surface-2); color: var(--texte); border-color: transparent; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; align-items: center; }
+
+.erreur, .succes, .info {
+  padding: 10px 12px; border-radius: var(--rayon-petit); margin: 12px 0; display: flex; gap: 8px; align-items: flex-start;
+}
+.erreur { background: var(--ko-doux); color: var(--ko); }
+.succes { background: var(--ok-doux); color: var(--ok); }
+.info { background: var(--action-doux); color: var(--texte); }
+.avertissement { background: var(--alerte-doux); color: var(--alerte); padding: 10px 12px; border-radius: var(--rayon-petit); margin: 12px 0; }
+
+/* Issue #184 : vue élève simulée, toujours visible en haut de l'espace élève. */
+.bandeau-simulation {
+  position: sticky; top: 0; z-index: 5; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 8px 16px; padding: 10px 12px; margin: 0 0 12px; border-radius: var(--rayon-petit);
+  background: var(--alerte-doux); color: var(--texte); border: 2px solid var(--alerte);
+}
+.bandeau-simulation p { margin: 0; }
+.bandeau-simulation .actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; }
+
+.barre-session { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+
+/* --- Onglets ------------------------------------------------------------------------------ */
+
+.onglets { display: flex; gap: 4px; border-bottom: 1px solid var(--bordure); margin: 16px 0; overflow-x: auto; }
+.onglet {
+  background: none; color: var(--texte-doux); border: none; border-bottom: 3px solid transparent;
+  border-radius: 0; padding: 10px 14px; white-space: nowrap;
+}
+.onglet:hover:not(:disabled) { background: none; color: var(--texte); border-color: transparent; border-bottom-color: var(--bordure-forte); }
+.onglet.actif, .onglet.actif:hover:not(:disabled) { color: var(--action); border-bottom-color: var(--action); }
+/* Téléphone : les onglets passent à la ligne au lieu d'être coupés au bord de l'écran. */
+@media (max-width: 560px) {
+  .onglets { flex-wrap: wrap; overflow-x: visible; }
+  .onglet { padding: 8px 10px; }
+}
+
+/* --- Badges, pastilles, statuts -------------------------------------------------------------- */
+
+.meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.badge {
+  display: inline-block; font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  background: var(--action-doux); color: var(--action); padding: 2px 8px; border-radius: 99px;
+  max-width: 100%; overflow-wrap: anywhere; vertical-align: middle; /* un badge long passe à la ligne, il reste lisible */
+}
+/* Liste de statuts dans une cellule de tableau : la colonne garde une largeur lisible et les badges
+   passent à la ligne entre les mots, jamais au milieu d'un mot. */
+.badges { display: flex; flex-wrap: wrap; gap: 4px; min-width: 12rem; max-width: 22rem; }
+.badges .badge { overflow-wrap: normal; }
+.badge.ok { background: var(--ok-doux); color: var(--ok-texte); }
+.badge.alerte { background: var(--alerte-doux); color: var(--alerte-texte); }
+.badge.ko { background: var(--ko-doux); color: var(--ko); }
+.badge.neutre { background: var(--surface-2); color: var(--texte-doux); }
+.badge.accent { background: var(--accent-doux); color: var(--accent-texte); }
+.difficulte { color: var(--action); letter-spacing: 2px; font-size: 0.8rem; white-space: nowrap; }
+.difficulte .eteint { color: var(--bordure-forte); }
+.pastille { font-size: var(--t-xs); font-weight: 700; padding: 1px 8px; border-radius: 99px; margin-left: 8px; }
+.pastille.ok { background: var(--ok-doux); color: var(--ok-texte); }
+.pastille.archivee { background: var(--fond); color: var(--texte-doux); border: 1px solid var(--bordure); }

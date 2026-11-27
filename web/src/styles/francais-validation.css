@@ -1,0 +1,50 @@
+/* Issue #252 — File de validation du français (Claude) */
+
+/* Issue #231 — File de validation du français (maquette 11) */
+.file-validation { display: grid; gap: 16px; }
+.file-entete h2 { margin: 0 0 4px; }
+.file-entete .doux { margin: 0 0 12px; }
+.file-statuts { display: flex; flex-wrap: wrap; gap: 8px; }
+.file-statut {
+  border-radius: 999px; padding: 6px 14px; background: var(--surface); color: var(--texte);
+  border: 1px solid var(--bordure-forte); font-weight: 600;
+}
+.file-statut.active { background: var(--francais); border-color: var(--francais); color: var(--surface); }
+.file-statut .compte { font-variant-numeric: tabular-nums; margin-left: 4px; opacity: 0.85; font-weight: 500; }
+.file-grille { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .file-grille { grid-template-columns: minmax(0, 1fr); } }
+.file-liste ul { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 10px; }
+.file-chapitre {
+  display: grid; justify-items: start; align-items: start; gap: 4px; width: 100%; text-align: left; padding: 12px 14px; background: var(--surface);
+  color: var(--texte); border: 1px solid var(--bordure); border-left: 4px solid transparent;
+  border-radius: var(--rayon-petit); font-weight: 400; white-space: normal; overflow-wrap: anywhere;
+}
+.file-liste { min-width: 0; }
+.file-chapitre:hover:not(:disabled) { background: var(--surface-2); color: var(--texte); border-color: var(--bordure-forte); }
+.file-chapitre.actif { border-color: var(--action); border-left-color: var(--action); background: var(--action-doux); }
+.file-tag { justify-self: start; font-size: 0.75rem; font-weight: 600; padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--texte-doux); }
+.file-detail { display: grid; gap: 14px; min-width: 0; }
+.file-detail-entete { display: flex; flex-wrap: wrap; gap: 8px; justify-content: space-between; align-items: baseline; }
+.file-detail-entete h3 { margin: 0; }
+.file-detail > .doux.petit { margin: -8px 0 0; }
+.surtitre-file { margin: 0 0 8px; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--texte-doux); }
+.apercu-eleve { padding: 14px 16px; border: 1px dashed var(--bordure-forte); border-radius: var(--rayon-petit); min-width: 0; }
+.apercu-eleve .enonce-francais { margin: 0 0 12px; }
+.apercu-options { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.apercu-options li {
+  display: flex; gap: 12px; align-items: center; padding: 10px 14px; border: 1px solid var(--bordure);
+  border-radius: var(--rayon-petit); background: var(--surface); overflow-wrap: anywhere;
+}
+.apercu-options .lettre {
+  flex: none; width: 28px; height: 28px; display: inline-grid; place-items: center; border-radius: 6px;
+  background: var(--surface-2); font-weight: 700;
+}
+.apercu-saisie { padding: 12px 14px; border: 1px solid var(--bordure); border-radius: var(--rayon-petit); color: var(--texte-doux); background: var(--surface); }
+.corrige-file { padding: 14px 16px; border: 1px solid var(--alerte); border-radius: var(--rayon-petit); background: var(--alerte-doux); overflow-wrap: anywhere; }
+.corrige-file p { margin: 0 0 8px; }
+.corrige-file p:last-child, .corrige-file ol:last-child { margin-bottom: 0; }
+.decision-file { display: grid; gap: 6px; }
+.decision-file textarea { width: 100%; }
+.decision-actions { justify-content: flex-end; }
+.decision-actions button.valider { background: var(--ok-texte); border-color: var(--ok-texte); }
+.file-navigation { justify-content: space-between; border-top: 1px solid var(--bordure); padding-top: 12px; }
