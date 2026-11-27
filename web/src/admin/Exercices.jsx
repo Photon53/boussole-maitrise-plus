@@ -31,8 +31,11 @@ export default function Exercices({ jeton, onExpire, domaine = "", base = "/admi
   // Retour de la dernière action, affiché sur la ligne de la question (jamais hors de l'écran).
   const [retour, setRetour] = useState(null);
   const [filtres, setFiltres] = useState(() => ({
-    niveau: "", type: "", statut: "", archivees: false,
+    niveau: "", type: "", archivees: false,
     q: new URLSearchParams(window.location.search).get("q") ?? "",
+    // Issue #231 : la page Français de l'administration ouvre la file « à valider » directement.
+    statut: ["a-valider", "validee", "a-corriger"].includes(new URLSearchParams(window.location.search).get("statut"))
+      ? new URLSearchParams(window.location.search).get("statut") : "",
   }));
   const [page, setPage] = useState(1);
   const [donnees, setDonnees] = useState(null);
