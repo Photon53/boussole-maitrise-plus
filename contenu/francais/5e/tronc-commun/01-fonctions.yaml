@@ -15,11 +15,11 @@ competences:
       - Distinguer le complément d’objet direct (COD) et le complément d’objet indirect (COI), y compris quand ce sont des pronoms.
       - Distinguer un COI d’un complément du nom, tous deux introduits par une préposition comme « de ».
     resume: |
-      - **Sujet** : il répond à « qui est-ce qui ? » posé devant le verbe ; on peut l’encadrer par « c’est … qui ».
+      - **Sujet** : il répond à « qui est-ce qui ? » posé devant le verbe ; on peut l’encadrer par « c’est … qui » (« ce sont … qui » au pluriel).
       - **COD** : il complète le verbe sans préposition ; il répond à « qui ? » ou « quoi ? » posé après le verbe. Pronoms COD : *le, la, les, l’, me, te, nous, vous*.
-      - **COI** : il complète le verbe avec une préposition (*à, de*) ; il répond à « à qui ? », « à quoi ? », « de qui ? », « de quoi ? ». Pronoms COI : *lui, leur, en, y*.
+      - **COI** : il complète le verbe avec une préposition (*à, de*) ; il répond à « à qui ? », « à quoi ? », « de qui ? », « de quoi ? ». Pronoms COI : *lui, leur, en, y*, mais aussi *me, te, nous, vous* (*il me parle*).
       - **Complément du nom** : il complète un **nom** (et non le verbe) ; il fait partie du groupe nominal. *Le récit **de son voyage**.*
-      - Test décisif : un complément du verbe peut être pronominalisé avec le verbe (*il en parle*) ; un complément du nom se déplace avec son nom.
+      - Test décisif : on remplace le nom et le groupe qui le suit par un pronom. Si le groupe disparaît avec le nom (*Le récit de son voyage passionne la classe → Il passionne la classe*), c’est un complément du nom ; s’il dépend du verbe (*Il parle de son voyage → Il en parle*), c’est un COI.
     cours: |
       ## 1. Découvrir
       **Objectif** : savoir à quoi sert chaque groupe de la phrase. **Durée indicative** : trois séances de 45 minutes.
@@ -37,7 +37,7 @@ competences:
       |---|---|---|---|
       | COD | le verbe | non | le, la, les |
       | COI | le verbe | oui (à, de) | lui, leur, en, y |
-      | Complément du nom | un nom | oui le plus souvent | aucun seul : il suit son nom |
+      | Complément du nom | un nom | oui le plus souvent | remplacé avec son nom (le récit de son voyage → il) |
 
       ## 3. Appliquer et s’entraîner
       Les premiers exercices demandent la fonction d’un groupe souligné ; les suivants demandent de recopier le COI ou le sujet.
@@ -52,22 +52,22 @@ competences:
         quand: Un groupe introduit par « de » ou « à » suit un verbe et un nom.
         etapes:
           - "Chercher le mot que le groupe complète : le verbe ou un nom."
-          - Essayer de remplacer le groupe par un pronom placé devant le verbe (en, y, lui).
-          - Si le remplacement fonctionne avec le verbe, c’est un COI ; si le groupe reste attaché au nom, c’est un complément du nom.
+          - "Remplacer le nom et le groupe qui le suit par un pronom : si le groupe disparaît avec le nom, c’est un complément du nom."
+          - Si le groupe dépend du verbe et se remplace par « en », « y » ou « lui » placé devant lui (il en parle, il y pense), c’est un COI.
         exemple:
-          enonce: Quelle est la fonction de « de ses amis » dans « Elle se souvient de ses amis » ?
+          enonce: Quelle est la fonction de « de ses vacances » dans « Elle se souvient de ses vacances » ?
           resolution:
-            - Le groupe complète le verbe « se souvient » (se souvenir de quelqu’un).
+            - Le groupe complète le verbe « se souvient » (se souvenir de quelque chose).
             - On peut dire « Elle s’en souvient ».
             - C’est donc un COI.
           resultat: COI
     erreurs_frequentes:
       - erreur: Prendre le premier groupe nominal de la phrase pour le sujet.
-        explication: Le sujet peut être placé après le verbe ; on le vérifie par « c’est … qui ».
+        explication: Le sujet peut être placé après le verbe ; on le vérifie par « c’est … qui » (« ce sont … qui » au pluriel).
       - erreur: Confondre COI et complément du nom parce que tous deux commencent par « de ».
         explication: Le COI complète le verbe, le complément du nom complète un nom.
       - erreur: Prendre « lui » pour un COD.
-        explication: "« Lui » remplace un groupe introduit par « à » : c’est un COI."
+        explication: "Placé devant le verbe, « lui » remplace un groupe introduit par « à » : c’est un COI."
     questions:
       - code: FR5-FONCTIONS-ID-01
         difficulte: 1
@@ -92,7 +92,7 @@ competences:
           methode: Poser la question « qui est-ce qui ? » devant le verbe.
           etapes:
             - Qui est-ce qui arrive ? Mes cousins.
-            - "C’est mes cousins qui arrivent : le groupe est sujet."
+            - "Ce sont mes cousins qui arrivent : le groupe est sujet."
           resultat: A
       - code: FR5-FONCTIONS-ID-03
         difficulte: 2
@@ -145,7 +145,7 @@ competences:
         correction:
           methode: Remplacer le pronom par un groupe nominal.
           etapes:
-            - « Je la regarde » correspond à « Je regarde la mer ».
+            - « Je la regarde » correspond, par exemple, à « Je regarde la mer ».
             - "« La mer » complète le verbe sans préposition : c’est un COD."
             - Le pronom « la » est donc COD.
           resultat: B
@@ -195,4 +195,4 @@ competences:
             - « Sur la table du salon » indique le lieu ; « du salon » y est complément du nom « table ».
           resultat: les bougies
           erreurs_frequentes:
-            - Recopier « la table » ou « le salon », placés avant le verbe.
+            - Recopier « la table » ou « du salon », placés avant le verbe.

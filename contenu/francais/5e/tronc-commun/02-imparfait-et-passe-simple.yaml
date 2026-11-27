@@ -14,7 +14,7 @@ competences:
       - Conjuguer à l’imparfait tous les verbes, et au passé simple les verbes des 1er et 2e groupes et les verbes fréquents du 3e groupe.
       - Choisir entre imparfait (arrière-plan, description, habitude) et passé simple (action de premier plan, soudaine ou unique).
     resume: |
-      - **Imparfait** : radical de « nous » au présent + -ais, -ais, -ait, -ions, -iez, -aient. *Nous jouons → je jouais.*
+      - **Imparfait** : radical de « nous » au présent (sauf être : j’étais) + -ais, -ais, -ait, -ions, -iez, -aient. *Nous jouons → je jouais.*
       - **Passé simple, 1er groupe** : -ai, -as, -a, -âmes, -âtes, -èrent. *Il cria, ils crièrent.*
       - **Passé simple, 2e groupe et beaucoup de verbes du 3e** : -is, -is, -it, -îmes, -îtes, -irent. *Elles finirent, il prit.*
       - **D’autres verbes du 3e groupe** : -us, -us, -ut… (*il voulut*) ou -ins… (*ils vinrent*).
@@ -26,7 +26,7 @@ competences:
 
       ## 2. Comprendre
       « Il **faisait** nuit. Le vent **soufflait**. Soudain, la porte **claqua**. »
-      - « faisait », « soufflait » : imparfait, le **décor** (actions longues, sans limite précise).
+      - « faisait », « soufflait » : imparfait, le **décor** (états ou actions vus dans leur durée, sans limite précise).
       - « claqua » : passé simple, une **action de premier plan**, soudaine, qui fait avancer le récit.
 
       | Personne | Jouer (imparfait) | Crier (passé simple) | Finir (passé simple) | Venir (passé simple) |
@@ -141,14 +141,14 @@ competences:
       - code: FR5-RECIT-TEMPS-06
         difficulte: 3
         type: qcm
-        enonce: "Quel verbe complète correctement le récit ? « Il faisait nuit quand le loup … de la forêt. » A) sortait  B) sortit  C) sort"
+        enonce: "Quel verbe complète correctement le récit ? « Il faisait nuit. Soudain, le loup … de la forêt. » A) sortait  B) sortit  C) sort"
         solution: B
         auteur: Brouillon IA (Claude)
         correction:
           methode: Distinguer le décor de l’événement.
           etapes:
             - « Il faisait nuit » est le décor, à l’imparfait.
-            - La sortie du loup est un événement unique qui fait avancer le récit.
+            - La sortie du loup, annoncée par « soudain », est un événement unique qui fait avancer le récit.
             - "On emploie le passé simple : « sortit »."
           resultat: B
           erreurs_frequentes:
