@@ -12,8 +12,15 @@ from tests.conftest import NB_CHAPITRES, NB_COMPETENCES, NB_LECONS, NB_QUESTIONS
 
 @pytest.fixture
 def demo(session):
-    charger_demo(session)
+    """Base de démo déjà chargée : copie de `bases_modeles` (voir `db_url`), sans recharger la banque."""
     return session
+
+
+def test_chargement_de_la_demo_sur_une_base_vide(session):
+    """Le chargement lui-même, sur une base seulement migrée (une fois, pas dans chaque test)."""
+    assert compter(session, models.Enseignant) == 0
+    assert charger_demo(session) is True
+    assert compter(session, models.Enseignant) == 3 and compter(session, models.Question) == NB_QUESTIONS
 
 
 def compter(session, modele) -> int:

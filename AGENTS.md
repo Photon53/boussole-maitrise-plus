@@ -209,8 +209,10 @@ Utiliser l'environnement virtuel du projet pour ces commandes.
 ```bash
 (cd api && python -m app.contenu verifier)
 (cd engine && pytest -q)
-(cd api && pytest -q -W ignore::DeprecationWarning)
+(cd api && pytest -q -n auto -W ignore::DeprecationWarning)
 ```
+
+Les tests de l'API tournent en parallèle (`pytest-xdist`, #240) : chaque test a sa propre base SQLite ; `-n 0` (ou sans `-n`) les exécute en série, par exemple pour déboguer.
 
 Après modification de `contenu/`, régénérer l'inventaire avant les contrôles, puis inclure le diff généré :
 
