@@ -1,0 +1,206 @@
+chapitre:
+  code: FR6-NATURE
+  matiere: francais
+  rubrique: grammaire
+  niveau: 6e
+  parcours: tronc-commun
+  ordre: 1
+  titre: La nature des mots
+
+competences:
+  - code: FR6-NATURE-MOTS
+    libelle: Identifier la classe grammaticale d’un mot dans une phrase
+    objectifs:
+      - Reconnaître le nom, le déterminant, l’adjectif, le pronom, le verbe, l’adverbe, la préposition et la conjonction de coordination.
+      - Distinguer la nature d’un mot (ce qu’il est) de sa fonction (le rôle qu’il joue dans la phrase).
+      - Repérer dans un groupe nominal le nom noyau et son complément du nom, introduit par une préposition.
+    resume: |
+      - La **nature** (ou classe grammaticale) d’un mot ne dépend pas de son rôle dans la phrase : « maison » est toujours un nom. Sa **fonction**, elle, dépend de la phrase.
+      - **Mots variables** : nom, déterminant, adjectif, pronom, verbe. **Mots invariables** : adverbe, préposition, conjonction de coordination.
+      - Un même mot peut avoir deux natures : « le » est déterminant devant un nom (*le chat*), pronom devant un verbe (*je le vois*).
+      - Dans « une tasse **de thé** », « tasse » est le nom noyau ; « de thé » est son **complément du nom**, introduit par la préposition « de ». « Thé » reste un nom.
+    cours: |
+      ## 1. Découvrir
+      **Objectif** : savoir dire ce qu’est un mot, avant de dire à quoi il sert. **Durée indicative** : deux séances de 45 minutes.
+      **Ce qu’il faut déjà savoir** : repérer le verbe conjugué et son sujet.
+
+      ## 2. Comprendre
+      | Classe | À quoi la reconnaître | Exemples |
+      |---|---|---|
+      | Nom | On peut placer un déterminant devant (sauf la plupart des noms propres) | *un* château, *la* joie, Paris |
+      | Déterminant | Il introduit le nom et s’accorde avec lui | le, une, ces, mon, quelques |
+      | Adjectif | Il précise le nom et s’accorde avec lui | un ciel *gris*, des fleurs *rouges* |
+      | Pronom | Il remplace un nom ou un groupe nominal | il, elle, le, leur, celui-ci |
+      | Verbe | Il se conjugue | elle *chante*, nous *partirons* |
+      | Adverbe | Invariable, il précise un verbe, un adjectif ou un autre adverbe | vite, très, demain, bien |
+      | Préposition | Invariable, elle introduit un complément | à, de, en, pour, avec, sans |
+      | Conjonction de coordination | Invariable, elle relie deux éléments de même fonction | mais, ou, et, donc, or, ni, car |
+
+      **Nature ou fonction ?** La nature répond à la question « qu’est-ce que ce mot ? » ; la fonction, à « à quoi sert-il dans cette phrase ? ». Dans « Le chat dort », « chat » est un **nom** (nature) **sujet** du verbe (fonction).
+
+      **Le complément du nom.** Dans « un pull **en laine** », « pull » est le **nom noyau** du groupe nominal. « En laine » le complète : c’est un **complément du nom**, introduit par la préposition « en ». Le mot « laine » est un **nom**, même s’il précise le pull comme le ferait un adjectif.
+
+      ## 3. Appliquer et s’entraîner
+      Les exercices commencent par des mots soulignés dans des phrases simples, puis présentent des mots qui changent de nature selon la phrase.
+
+      ## 4. Approfondir
+      Les cas difficiles viennent des mots qui ont plusieurs natures : « le » (déterminant ou pronom), « bien » (adverbe ou nom), « leur » (déterminant ou pronom). La méthode ci-dessous permet de trancher.
+
+      ## 5. Réinvestir
+      Dans un court paragraphe de ta rédaction (sujet R1 de la rubrique Rédaction), souligne deux adjectifs, deux adverbes et un complément du nom.
+    methodes:
+      - titre: Trouver la nature d’un mot qui hésite entre deux classes
+        quand: Un mot peut appartenir à deux classes, comme « le », « leur » ou « bien ».
+        etapes:
+          - Regarder le mot qui suit ou qui précède.
+          - Dans un groupe nominal (devant un nom, ou devant un adjectif suivi d’un nom), « le », « la », « les », « leur » sont des déterminants ; devant un verbe, ce sont des pronoms.
+          - Essayer de remplacer le mot ou de le faire varier (le mettre au pluriel, ajouter un déterminant).
+          - Conclure en nommant la classe, sans confondre avec la fonction.
+        exemple:
+          enonce: Quelle est la nature de « leur » dans « Je leur écris une lettre » ?
+          resolution:
+            - « Leur » est placé devant le verbe « écris ».
+            - "Il remplace un complément introduit par « à » : « Je leur écris » équivaut à « J’écris à mes cousins »."
+            - Un mot qui remplace un groupe de mots déjà connu est un pronom.
+          resultat: pronom personnel
+    erreurs_frequentes:
+      - erreur: Dire que « laine » est un adjectif dans « un pull en laine ».
+        explication: « Laine » précise le pull, mais c’est un nom ; on peut écrire « la laine ». Le groupe « en laine » est complément du nom.
+      - erreur: Confondre nature et fonction (« chat est sujet » quand on demande sa nature).
+        explication: La nature se lit dans le tableau des classes ; la fonction dépend du rôle du mot dans la phrase.
+      - erreur: Prendre « le » pour un déterminant dans « Je le vois ».
+        explication: "Devant un verbe, « le » remplace un nom : c’est un pronom."
+    questions:
+      - code: FR6-NATURE-MOTS-01
+        difficulte: 1
+        type: qcm
+        enonce: "Dans la phrase « La chatte grise dort », quelle est la nature du mot « grise » ? A) nom  B) adjectif  C) verbe"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le nom que le mot précise et vérifier qu’il s’accorde avec lui.
+          etapes:
+            - « Grise » précise le nom « chatte ».
+            - "Il s’accorde avec lui : on écrirait « le chat gris »."
+            - Un mot qui précise un nom et s’accorde avec lui est un adjectif.
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « verbe » parce que le mot suit un nom, sans vérifier qu’il ne se conjugue pas.
+      - code: FR6-NATURE-MOTS-02
+        difficulte: 1
+        type: qcm
+        enonce: "Dans la phrase « Le facteur apporte une lettre », quelle est la nature du mot « apporte » ? A) nom  B) verbe  C) déterminant"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Vérifier si le mot se conjugue.
+          etapes:
+            - "On peut changer le temps de la phrase : « Le facteur apportait une lettre »."
+            - "« Apporte » change de forme : il se conjugue."
+            - Un mot qui se conjugue est un verbe.
+          resultat: B
+      - code: FR6-NATURE-MOTS-03
+        difficulte: 2
+        type: texte
+        enonce: Dans la phrase « Nous partirons demain », quelle est la nature du mot « demain » ? Réponds par un seul mot.
+        solution: adverbe
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Tester si le mot varie et ce qu’il précise.
+          etapes:
+            - "« Demain » ne change jamais de forme : il est invariable."
+            - Il précise le verbe « partirons » en indiquant quand.
+            - Un mot invariable qui précise un verbe est un adverbe.
+          resultat: adverbe
+          erreurs_frequentes:
+            - "Répondre « nom » : « demain » ne peut pas recevoir de déterminant dans cette phrase."
+      - code: FR6-NATURE-MOTS-04
+        difficulte: 3
+        type: qcm
+        enonce: "Dans la phrase « Je le vois chaque matin », quelle est la nature du mot « le » ? A) déterminant  B) pronom personnel  C) nom"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Regarder le mot qui suit « le ».
+          etapes:
+            - « Le » est suivi du verbe « vois », et non d’un nom.
+            - Il remplace un nom déjà connu (« le chien », par exemple).
+            - Devant un verbe, « le » est un pronom personnel.
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « déterminant » parce que « le » est souvent un article.
+      - code: FR6-NATURE-MOTS-05
+        difficulte: 3
+        type: texte
+        enonce: Dans la phrase « Mon frère est très grand », quelle est la nature du mot « très » ? Réponds par un seul mot.
+        solution: adverbe
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le mot que « très » modifie.
+          etapes:
+            - "« Très » modifie l’adjectif « grand » : il en précise le degré."
+            - Il est invariable.
+            - Un mot invariable qui modifie un adjectif est un adverbe.
+          resultat: adverbe
+      - code: FR6-NATURE-MOTS-06
+        difficulte: 3
+        type: texte
+        enonce: Dans la phrase « Elle marche vite et parle doucement », quelle est la nature du mot « et » ? Donne sa classe grammaticale.
+        solution: conjonction de coordination|conjonction
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Voir ce que le mot relie.
+          etapes:
+            - "« Et » relie deux groupes de même fonction : « marche vite » et « parle doucement »."
+            - Il est invariable.
+            - C’est une conjonction de coordination (mais, ou, et, donc, or, ni, car).
+          resultat: conjonction de coordination
+          erreurs_frequentes:
+            - "Répondre « préposition » : une préposition introduit un complément, elle ne relie pas deux éléments de même fonction."
+      - code: FR6-NATURE-MOTS-07
+        difficulte: 4
+        type: qcm
+        enonce: "Dans la phrase « Il veut ton bien », quelle est la nature du mot « bien » ? A) adverbe  B) nom  C) adjectif"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Vérifier si le mot est précédé d’un déterminant.
+          etapes:
+            - « Bien » est précédé du déterminant possessif « ton ».
+            - Un mot que l’on peut faire précéder d’un déterminant est un nom.
+            - Dans « Il parle bien », au contraire, « bien » serait un adverbe.
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « adverbe » par habitude, sans regarder le déterminant.
+      - code: FR6-NATURE-MOTS-08
+        difficulte: 4
+        type: qcm
+        enonce: "Dans le groupe « un pull en laine », quelle est la nature du mot « laine » ? A) adjectif  B) nom  C) préposition"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          rappel: La nature d’un mot ne dépend pas de son rôle ; la fonction, si.
+          methode: Séparer la nature du mot de la fonction du groupe.
+          etapes:
+            - « Pull » est le nom noyau du groupe nominal.
+            - "« En laine » complète ce nom : c’est un complément du nom, introduit par la préposition « en »."
+            - "Le mot « laine » peut recevoir un déterminant (« la laine ») : c’est un nom."
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « adjectif » parce que « en laine » décrit le pull comme un adjectif le ferait.
+      - code: FR6-NATURE-MOTS-09
+        difficulte: 5
+        type: texte
+        enonce: Combien d’adjectifs compte la phrase « Les vieilles maisons du port sont belles » ? Réponds par un nombre.
+        solution: 2|deux|2 adjectifs|deux adjectifs
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Passer chaque mot en revue avec le tableau des classes.
+          etapes:
+            - « Les » est un déterminant ; « maisons » et « port » sont des noms.
+            - « Du » est la forme contractée de la préposition « de » et du déterminant « le » ; « sont » est un verbe.
+            - "« Vieilles » précise « maisons » et « belles » se rapporte aussi à « maisons » : ce sont deux adjectifs."
+          resultat: '2'
+          erreurs_frequentes:
+            - "Compter « du port » comme un adjectif : c’est un complément du nom."
+            - Oublier « belles », séparé du nom par le verbe « sont ».
