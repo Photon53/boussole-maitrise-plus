@@ -192,6 +192,7 @@ button.icone:hover:not(:disabled) { background: var(--surface-2); color: var(--t
 .etat-ferme-icone { font-size: 1.3rem; line-height: 1.2; flex: none; color: var(--francais); }
 .texte-a-ecrire { font-family: var(--police-lecture); font-size: 1.05rem; line-height: 1.7; width: 100%; }
 .compteur-redaction { margin: 4px 0 8px; }
+.entete-brouillon { display: flex; flex-wrap: wrap; gap: 4px 12px; justify-content: space-between; align-items: baseline; }
 .retour-professeure { margin-top: 8px; padding: 10px 14px; border-left: 4px solid var(--francais); background: var(--surface-2); border-radius: var(--rayon-petit); }
 .retour-professeure p { margin: 4px 0 0; }
 .atelier-cote { display: grid; gap: 16px; min-width: 0; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); align-items: start; }

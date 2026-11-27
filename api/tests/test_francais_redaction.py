@@ -34,7 +34,7 @@ def test_consigne_servie_quand_la_redaction_est_fermee(client, atelier):
     assert r.status_code == 200, r.text
     assert r.headers["cache-control"] == "private, no-store"
     corps = r.json()
-    assert corps["ouverte"] is False
+    assert corps["ouverte"] is False and corps["brouillon_jours"] == 10
     assert corps["sujets"] == [{"question_id": atelier["sujet"], "enonce": corps["sujets"][0]["enonce"]}]
     assert corps["sujets"][0]["enonce"].startswith("Raconte en quinze lignes")
     # Ni solution, ni guide du professeur (ARCH-4) ; la rédaction en ligne reste fermée (RGPD-2).
@@ -47,6 +47,29 @@ def test_indique_l_ouverture(client, atelier, monkeypatch):
     monkeypatch.setattr(settings, "redaction_active", True)
     corps = client.get(f"/francais/eleve/redaction/{atelier['competence']}", headers=atelier["lina"]).json()
     assert corps["ouverte"] is True and len(corps["sujets"]) == 1
+    # Ouverte : le brouillon est sur le serveur (#179), plus sur l'appareil.
+    assert corps["brouillon_jours"] == 0
+
+
+def test_duree_du_brouillon_reglable(client, atelier, monkeypatch):
+    monkeypatch.setattr(settings, "redaction_brouillon_jours", 3)
+    corps = client.get(f"/francais/eleve/redaction/{atelier['competence']}", headers=atelier["lina"]).json()
+    assert corps["brouillon_jours"] == 3
+    monkeypatch.setattr(settings, "redaction_brouillon_jours", 0)
+    assert client.get(f"/francais/eleve/redaction/{atelier['competence']}", headers=atelier["lina"]).json()["brouillon_jours"] == 0
+
+
+def test_duree_bornee():
+    from app.config import Settings
+    from pydantic import ValidationError
+
+    assert Settings(redaction_brouillon_jours=30).redaction_brouillon_jours == 30
+    for invalide in (-1, 31):
+        try:
+            Settings(redaction_brouillon_jours=invalide)
+        except ValidationError:
+            continue
+        raise AssertionError(invalide)
 
 
 def test_rien_sans_acces_ni_pour_une_autre_competence(client, atelier):

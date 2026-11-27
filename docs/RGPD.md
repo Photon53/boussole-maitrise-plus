@@ -124,6 +124,8 @@ par le besoin pédagogique, et non des durées imposées par la CNIL.
 | ✅ | **Export** : inclus dans l'export RGPD de l'élève | `progression.export_eleve` |
 | ✅ | **Journaux** : aucun texte de rédaction ni commentaire | — |
 | ✅ | **Fermé par défaut** : `PKP_REDACTION_ACTIVE=false` ; toutes les routes répondent 403 | `app/config.py` |
+| ✅ | **Brouillon sur l'appareil** (RGPD-2 bis, décision du propriétaire du 27/11/2026) : tant que la rédaction en ligne est fermée, le brouillon de l'atelier reste dans le navigateur de l'élève, jamais envoyé au serveur ; une clé par élève et par sujet ; effacé 10 jours après sa dernière modification (`PKP_REDACTION_BROUILLON_JOURS`, 0 désactive, 30 au plus), purge à l'ouverture de l'espace élève ; effacement immédiat par l'élève ; aucun brouillon en simulation par un adulte | `web/src/eleve/brouillonLocal.js` |
+| ☐ | **Charte d'utilisation** (#183) : mentionner le brouillon gardé sur l'appareil (durée, effacement, conseil de se déconnecter sur un poste partagé) ; information donnée une fois pour toutes à la signature, pas à chaque action | #183 |
 | ☐ | **Responsable de traitement** et **base légale** à documenter (entreprise, association partenaire ou répartition des rôles) ; une case « j'accepte » ne suffit pas | propriétaire, avis spécialisé |
 | ☐ | **Information** des élèves et des parents avant l'ouverture (charte d'utilisation, #183) | #183 |
 | ☐ | **Parents** : bilan pédagogique dans l'espace parent (non fait) ; demandes d'accès aux textes traitées après vérification du lien parental | à faire |

@@ -114,12 +114,15 @@ def consignes_de_redaction(competence_id: int, eleve: EleveCourant, session: Ses
     Du **contenu** seulement, comme la leçon : mêmes règles que les sujets de rédaction (chapitre ouvert à la classe,
     accès au domaine, question validée). Servie même quand la rédaction en ligne est fermée, pour que l'élève rédige
     sur sa copie : aucun texte d'élève n'est lu ni enregistré ici, la fermeture des routes de rédaction (RGPD-2)
-    reste entière. Ni solution ni guide du professeur (ARCH-4).
+    reste entière. Ni solution ni guide du professeur (ARCH-4). `brouillon_jours` : durée du brouillon gardé sur
+    l'appareil de l'élève (réglage `PKP_REDACTION_BROUILLON_JOURS`), jamais envoyé ici.
     """
     reponse.headers["Cache-Control"] = "private, no-store"
     sujets = [q for q in sujets_de_redaction(session, eleve) if q.competence_id == competence_id]
     return {
         "ouverte": settings.redaction_active,
+        # Brouillon gardé sur l'appareil quand la rédaction est fermée : durée réglable, 0 le désactive.
+        "brouillon_jours": 0 if settings.redaction_active else settings.redaction_brouillon_jours,
         "sujets": [{"question_id": q.id, "enonce": q.enonce} for q in sujets],
     }
 

@@ -66,7 +66,7 @@ function Parties({ parties, etape }) {
 }
 
 export default function EcranCours({
-  jeton, onExpire, competenceId, etapeInitiale = null, rubrique = null, nbQuestions = null,
+  jeton, onExpire, competenceId, eleveId = null, etapeInitiale = null, rubrique = null, nbQuestions = null,
   onRetour, onEntrainer, onVoirHistorique,
 }) {
   const [lecon, setLecon] = useState(null);
@@ -111,7 +111,7 @@ export default function EcranCours({
   }
   if (!lecon) return <p className="doux">Chargement du cours…</p>;
   return (
-    <Etapes lecon={lecon} avancement={avancement} jeton={jeton} onExpire={onExpire} etapeInitiale={etapeInitiale} rubrique={rubrique} nbQuestions={nbQuestions}
+    <Etapes lecon={lecon} avancement={avancement} jeton={jeton} onExpire={onExpire} eleveId={eleveId} etapeInitiale={etapeInitiale} rubrique={rubrique} nbQuestions={nbQuestions}
       onRetour={onRetour} onEntrainer={onEntrainer} onVoirHistorique={onVoirHistorique} />
   );
 }
@@ -130,7 +130,7 @@ function Avancement({ av, niveau }) {
   );
 }
 
-function Etapes({ lecon, avancement, jeton, onExpire, etapeInitiale, rubrique, nbQuestions, onRetour, onEntrainer, onVoirHistorique }) {
+function Etapes({ lecon, avancement, jeton, onExpire, eleveId, etapeInitiale, rubrique, nbQuestions, onRetour, onEntrainer, onVoirHistorique }) {
   const parties = useMemo(() => partiesDuCours(lecon.cours), [lecon.cours]);
   const redaction = rubrique === "redaction";
   // Exercices corrigés par la plateforme : inconnu (null) quand on arrive d'ailleurs que « Mes cours » ; on les propose.
@@ -219,6 +219,7 @@ function Etapes({ lecon, avancement, jeton, onExpire, etapeInitiale, rubrique, n
             jeton={jeton}
             onExpire={onExpire}
             competenceId={lecon.competence_id}
+            eleveId={eleveId}
             criteres={parties[3]}
             relire={parties[5]}
           />
