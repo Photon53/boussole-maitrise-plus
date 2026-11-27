@@ -14,6 +14,7 @@ import Redaction from "./Redaction.jsx";
 import Progression from "./Progression.jsx";
 import EspaceEnfant, { CLE_ENFANT } from "./EspaceEnfant.jsx";
 import { AccueilFrancais, CoursFrancais, PlusFrancais } from "./FrancaisEleve.jsx";
+import EcranCours from "./EcranCours.jsx";
 import PkpMath from "../pkpmath/PkpMath.jsx";
 import Remarques from "../ui/Remarques.jsx";
 import { naviguer } from "../navigation.js";
@@ -33,6 +34,8 @@ export default function EspaceEleve() {
   const [onglet, setOnglet] = useState(() => (lire(CLE_COMPTE)?.eleve?.matiere === "francais" ? "accueil" : "exercice"));
   const [rubriqueFr, setRubriqueFr] = useState("");
   const [dossierOuvert, setDossierOuvert] = useState(null);
+  // Écran de cours en sept étapes (#231) : étape d'arrivée, rubrique et nombre d'exercices du cours ouvert.
+  const [infosCours, setInfosCours] = useState(null);
   const [leconOuverte, setLeconOuverte] = useState(null);
   const [ancreLecon, setAncreLecon] = useState(null); // section à montrer : « lecon-cours », « methode-2 »…
   // Leçon ouverte depuis un exercice : la leçon propose d'y revenir, l'exercice n'est pas perdu.
@@ -189,18 +192,19 @@ export default function EspaceEleve() {
 
   const francais = compte.eleve.matiere === "francais";
 
-  /** Ouvre un cours de français : dossier ; leçon pour découvrir ; entraînement ensuite (#231). */
-  function ouvrirCoursFrancais(c) {
+  /** Ouvre un cours de français (#231) : un dossier, ou l'écran de cours en sept étapes à l'étape où en est
+   * l'élève ; sans leçon, l'entraînement (ou la rédaction). `etape` force l'étape d'arrivée. */
+  function ouvrirCoursFrancais(c, etape = null) {
     if (c.type === "dossier") {
       setLeconOuverte(null);
       setDossierOuvert(c.code);
       setOnglet("cours");
-    } else if (c.rubrique === "redaction") {
-      if (c.a_une_lecon) voirCours(c.competence_id, { depuisLExercice: false });
-      else changerOnglet("redaction");
-    } else if ((c.etat === "pas_commence" || !c.nb_questions) && c.a_une_lecon) {
+    } else if (c.a_une_lecon) {
       setDossierOuvert(null);
+      setInfosCours({ etape: etape ?? c.etape, rubrique: c.rubrique, nbQuestions: c.nb_questions });
       voirCours(c.competence_id, { depuisLExercice: false });
+    } else if (c.rubrique === "redaction") {
+      changerOnglet("redaction");
     } else if (c.competence_id) {
       entrainer(c.competence_id, c.titre);
     }
@@ -314,10 +318,29 @@ export default function EspaceEleve() {
           rubrique={rubriqueFr}
           onRubrique={setRubriqueFr}
           onOuvrir={ouvrirCoursFrancais}
-          onLecon={(c) => voirCours(c.competence_id, { depuisLExercice: false })}
+          onLecon={(c) => ouvrirCoursFrancais(c, 2)}
         />
       ))}
-      {onglet === "cours" && (!francais || leconOuverte != null) && (
+      {onglet === "cours" && francais && leconOuverte != null && (
+        <EcranCours
+          key={`cours-${leconOuverte}`}
+          jeton={compte.jeton}
+          onExpire={deconnecter}
+          competenceId={leconOuverte}
+          // Arrivée depuis une correction (« Relire le cours ») : la leçon, étape « Comprendre ».
+          etapeInitiale={depuisExercice || ancreLecon ? 2 : infosCours?.etape}
+          rubrique={infosCours?.rubrique}
+          nbQuestions={infosCours?.nbQuestions ?? null}
+          onRetour={() => {
+            if (depuisExercice) changerOnglet("exercice");
+            else setLeconOuverte(null);
+            setInfosCours(null);
+          }}
+          onEntrainer={entrainer}
+          onVoirHistorique={voirHistorique}
+        />
+      )}
+      {onglet === "cours" && !francais && (
         <Cours
           key={compte.eleve.id}
           jeton={compte.jeton}

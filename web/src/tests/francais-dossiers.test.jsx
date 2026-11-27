@@ -223,6 +223,9 @@ describe("Français : lecture par l'élève (#212)", () => {
     });
     render(<MonCours jeton="j" onExpire={() => {}} />);
     await userEvent.click(await screen.findByRole("button", { name: RESUME.titre }));
+    // Issue #231 : le dossier s'ouvre sur « Découvrir » ; le texte est à côté des questions, étape « S'entraîner ».
+    expect(await screen.findByText("Repérer une information.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: /S'entraîner/ }));
     expect(await screen.findByText("La porte de la salle était déjà ouverte.")).toBeInTheDocument();
     expect(screen.getByText("Rédige ta réponse : ton professeur la relira.")).toBeInTheDocument();
     expect(screen.queryByText(/Aperçu réservé aux adultes/)).not.toBeInTheDocument();
