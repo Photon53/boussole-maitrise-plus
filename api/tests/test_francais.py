@@ -13,6 +13,7 @@ from sqlalchemy import func, select
 from app import francais
 from app.db import models
 from app.db.seed import EMAIL_ANGLAIS_DEMO
+from app.referentiel import StatutValidation
 from app.main import app
 from tests.conftest import connecter_admin, connecter_eleve, connecter_enseignant, entete
 from tests.test_anglais_validation import _connecter_eleve as connecter_eleve_anglais
@@ -581,6 +582,31 @@ class TestCircuitAligneSurLAnglais:
 
 # --- Non-régression maths et anglais ------------------------------------------------------------------------
 
+def test_seules_les_questions_de_francais_validees_comptent_comme_contenu(client, fabrique):
+    """#177 : une question de chapitre importée « à valider » ne rend pas le domaine ouvrable au public."""
+    admin = connecter_admin(client)
+    assert _activer(client, admin).status_code == 200
+
+    def nb_contenus() -> int:
+        return {d["code"]: d for d in client.get("/admin/domaines", headers=admin).json()}[DOMAINE]["nb_contenus"]
+
+    assert nb_contenus() == 0
+    assert _activer(client, admin, public=True).status_code == 409
+    with fabrique() as s:
+        question = s.scalar(
+            select(models.Question)
+            .join(models.Competence, models.Question.competence_id == models.Competence.id)
+            .join(models.Chapitre, models.Competence.chapitre_id == models.Chapitre.id)
+            .where(models.Chapitre.domaine_code == DOMAINE)
+            .order_by(models.Question.id)
+            .limit(1)
+        )
+        assert question is not None, "le dépôt contient des chapitres de français (#177)"
+        question.statut_validation = StatutValidation.VALIDEE
+        s.commit()
+    assert nb_contenus() == 1
+
+
 def test_maths_et_anglais_inchanges_par_le_francais(client, fabrique):
     chiffres = client.get("/domaines/chiffres").json()
     admin = connecter_admin(client)
@@ -593,6 +619,7 @@ def test_maths_et_anglais_inchanges_par_le_francais(client, fabrique):
         if d["code"] != DOMAINE:
             assert apres[d["code"]] == d
     assert apres[DOMAINE]["nb_contenus"] == 0 and apres[DOMAINE]["public"] is False
+    # Les chapitres de français de #177 sont importés « à valider » : ils ne comptent pas comme contenu prêt.
     # Les espaces existants fonctionnent toujours.
     assert client.get("/enseignants/classes", headers=connecter_enseignant(client)).status_code == 200
     assert client.get("/anglais/seances", headers=connecter_enseignant(client, email=EMAIL_ANGLAIS_DEMO)).status_code == 200

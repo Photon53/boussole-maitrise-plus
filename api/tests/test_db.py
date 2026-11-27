@@ -44,7 +44,8 @@ class TestDonneesDeDemo:
             if not pkp_engine.corrige_automatiquement(exemplaires.domaine(q, None)):
                 continue  # rédaction (#162) : corrigée par un professeur
             exemplaire = exemplaires.domaine(q, exemplaires.nouveau_tirage(q))
-            assert pkp_engine.corriger(exemplaire, exemplaire.solution), q.enonce
+            # Réponse courte : `solution` peut lister plusieurs réponses acceptées (« a | b »), comme en français.
+            assert pkp_engine.corriger(exemplaire, pkp_engine.reponse_modele(exemplaire)), q.enonce
 
     def test_reponses_corrigees_par_le_moteur(self, demo):
         lina = demo.scalar(select(models.Eleve).where(models.Eleve.prenom == "Lina"))
