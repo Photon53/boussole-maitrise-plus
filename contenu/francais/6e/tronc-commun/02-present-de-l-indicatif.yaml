@@ -19,7 +19,7 @@ competences:
       - **2e groupe** (infinitif en -ir, participe présent en -issant) : -is, -is, -it, -issons, -issez, -issent. *Je finis, ils finissent.*
       - **3e groupe** : tous les autres verbes, à apprendre. *Vous faites, vous dites, ils peuvent, ils vont.*
       - Verbes en -cer et -ger : *nous lançons, nous mangeons* (on garde le son).
-      - Pour accorder, on cherche le sujet en posant la question « qui est-ce qui ? » devant le verbe.
+      - Pour accorder, on cherche le sujet en posant la question « qui est-ce qui ? » (ou « qu’est-ce qui ? ») devant le verbe.
     cours: |
       ## 1. Découvrir
       **Objectif** : conjuguer sans erreur au présent, le temps le plus utilisé à l’écrit comme à l’oral. **Durée indicative** : deux séances de 45 minutes.
@@ -53,13 +53,13 @@ competences:
         etapes:
           - Repérer le verbe conjugué.
           - Poser la question « qui est-ce qui + verbe ? ».
-          - Encadrer le sujet par « c’est … qui » pour le vérifier.
+          - Encadrer le sujet par « c’est … qui » (« ce sont … qui » au pluriel) pour le vérifier.
           - Accorder le verbe avec le noyau du sujet, puis relire.
         exemple:
           enonce: Conjuguer « jouer » au présent dans « Dans la cour (jouer) les élèves de 6e ».
           resolution:
             - Qui est-ce qui joue ? Les élèves de 6e.
-            - "C’est **les élèves** qui jouent : le sujet est au pluriel, à la 3e personne."
+            - "Ce sont **les élèves** qui jouent : le sujet est au pluriel, à la 3e personne."
             - Le verbe prend la terminaison -ent.
           resultat: jouent
     erreurs_frequentes:
@@ -117,10 +117,10 @@ competences:
         solution: mangeons|nous mangeons
         auteur: Brouillon IA (Claude)
         correction:
-          methode: Garder le son [ʒ] du radical devant la terminaison -ons.
+          methode: Garder le son « je » du radical devant la terminaison -ons.
           etapes:
             - Manger est du 1er groupe ; avec « nous », la terminaison est -ons.
-            - "Devant o, le g se prononcerait [g] : on ajoute un e pour garder le son [ʒ]."
+            - "Devant o, le g se prononcerait « gu » : on ajoute un e pour garder le son « je »."
           resultat: mangeons
           erreurs_frequentes:
             - Écrire « mangons ».
@@ -162,7 +162,7 @@ competences:
           methode: Connaître les verbes irréguliers fréquents.
           etapes:
             - "Pouvoir est un verbe du 3e groupe : je peux, tu peux, il peut, nous pouvons, vous pouvez, ils peuvent."
-            - "Le radical change à la 3e personne du pluriel : peuv-."
+            - "Pouvoir a trois radicaux : peu- (je peux, il peut), pouv- (nous pouvons, vous pouvez), peuv- (ils peuvent)."
           resultat: peuvent
           erreurs_frequentes:
             - Écrire « pouvent » en gardant le radical de « nous pouvons ».
@@ -190,7 +190,7 @@ competences:
         correction:
           methode: Retrouver le sujet placé après le verbe.
           etapes:
-            - "Qui est-ce qui apparaît ? Les deux tours du château : le sujet est inversé et au pluriel."
+            - "Qu’est-ce qui apparaît ? Les deux tours du château : le sujet est inversé et au pluriel."
             - "Apparaître se conjugue comme connaître : ils apparaissent."
           resultat: apparaissent
           erreurs_frequentes:

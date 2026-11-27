@@ -15,7 +15,7 @@ competences:
       - Distinguer la nature d’un mot (ce qu’il est) de sa fonction (le rôle qu’il joue dans la phrase).
       - Repérer dans un groupe nominal le nom noyau et son complément du nom, introduit par une préposition.
     resume: |
-      - La **nature** (ou classe grammaticale) d’un mot ne change pas : « maison » est toujours un nom. Sa **fonction** dépend de la phrase.
+      - La **nature** (ou classe grammaticale) d’un mot ne dépend pas de son rôle dans la phrase : « maison » est toujours un nom. Sa **fonction**, elle, dépend de la phrase.
       - **Mots variables** : nom, déterminant, adjectif, pronom, verbe. **Mots invariables** : adverbe, préposition, conjonction de coordination.
       - Un même mot peut avoir deux natures : « le » est déterminant devant un nom (*le chat*), pronom devant un verbe (*je le vois*).
       - Dans « une tasse **de thé** », « tasse » est le nom noyau ; « de thé » est son **complément du nom**, introduit par la préposition « de ». « Thé » reste un nom.
@@ -27,7 +27,7 @@ competences:
       ## 2. Comprendre
       | Classe | À quoi la reconnaître | Exemples |
       |---|---|---|
-      | Nom | On peut placer un déterminant devant | *un* château, *la* joie, Paris |
+      | Nom | On peut placer un déterminant devant (sauf la plupart des noms propres) | *un* château, *la* joie, Paris |
       | Déterminant | Il introduit le nom et s’accorde avec lui | le, une, ces, mon, quelques |
       | Adjectif | Il précise le nom et s’accorde avec lui | un ciel *gris*, des fleurs *rouges* |
       | Pronom | Il remplace un nom ou un groupe nominal | il, elle, le, leur, celui-ci |
@@ -53,15 +53,15 @@ competences:
         quand: Un mot peut appartenir à deux classes, comme « le », « leur » ou « bien ».
         etapes:
           - Regarder le mot qui suit ou qui précède.
-          - Devant un nom, « le », « la », « les », « leur » sont des déterminants ; devant un verbe, ce sont des pronoms.
+          - Dans un groupe nominal (devant un nom, ou devant un adjectif suivi d’un nom), « le », « la », « les », « leur » sont des déterminants ; devant un verbe, ce sont des pronoms.
           - Essayer de remplacer le mot ou de le faire varier (le mettre au pluriel, ajouter un déterminant).
           - Conclure en nommant la classe, sans confondre avec la fonction.
         exemple:
           enonce: Quelle est la nature de « leur » dans « Je leur écris une lettre » ?
           resolution:
             - « Leur » est placé devant le verbe « écris ».
-            - Il remplace un groupe nominal (« à mes cousins », par exemple).
-            - Un mot qui remplace un groupe nominal est un pronom.
+            - "Il remplace un complément introduit par « à » : « Je leur écris » équivaut à « J’écris à mes cousins »."
+            - Un mot qui remplace un groupe de mots déjà connu est un pronom.
           resultat: pronom personnel
     erreurs_frequentes:
       - erreur: Dire que « laine » est un adjectif dans « un pull en laine ».
@@ -145,7 +145,7 @@ competences:
       - code: FR6-NATURE-MOTS-06
         difficulte: 3
         type: texte
-        enonce: Dans la phrase « Elle marche vite et parle doucement », quelle est la nature du mot « et » ? Écris la classe complète.
+        enonce: Dans la phrase « Elle marche vite et parle doucement », quelle est la nature du mot « et » ? Donne sa classe grammaticale.
         solution: conjonction de coordination|conjonction
         auteur: Brouillon IA (Claude)
         correction:
@@ -192,13 +192,13 @@ competences:
         difficulte: 5
         type: texte
         enonce: Combien d’adjectifs compte la phrase « Les vieilles maisons du port sont belles » ? Réponds par un nombre.
-        solution: 2|deux
+        solution: 2|deux|2 adjectifs|deux adjectifs
         auteur: Brouillon IA (Claude)
         correction:
           methode: Passer chaque mot en revue avec le tableau des classes.
           etapes:
             - « Les » est un déterminant ; « maisons » et « port » sont des noms.
-            - « Du » est un déterminant contracté (de + le) ; « sont » est un verbe.
+            - « Du » est la forme contractée de la préposition « de » et du déterminant « le » ; « sont » est un verbe.
             - "« Vieilles » précise « maisons » et « belles » se rapporte aussi à « maisons » : ce sont deux adjectifs."
           resultat: '2'
           erreurs_frequentes:
