@@ -2,8 +2,8 @@
 
 Fichier **généré** par `python -m app.contenu inventaire` (depuis `api/`) : ne pas modifier à la main.
 
-- Chapitres : **168** · compétences : **371** · questions actives : **1963**
-- Validation pédagogique : 0 validée(s), 1963 à valider, 0 à corriger
+- Chapitres : **170** · compétences : **373** · questions actives : **1981**
+- Validation pédagogique : 0 validée(s), 1981 à valider, 0 à corriger
 
 ## Matrice de couverture
 
@@ -530,6 +530,13 @@ Nombre de questions actives par difficulté (1 = application directe … 5 = niv
 | 1. Les fonctions : sujet, COD, COI et complément du nom | `FR5-FONCTIONS-ID` Identifier le sujet, le COD, le COI et le complément du nom | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 | 2. L’imparfait et le passé simple | `FR5-RECIT-TEMPS` Conjuguer et employer l’imparfait et le passé simple dans un récit | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 
+### 3e — Tronc commun
+
+| Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
+|---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| 1. Accords et réécriture : exercices associés au dossier brevet | `FR3-ACCORDS-REECRIRE` Contrôler les chaînes d’accord et réécrire un passage en propageant les changements | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+| 2. Les outils de la langue pour comprendre un texte : exercices associés au dossier brevet | `FR3-LANGUE-LECTURE` Utiliser les reprises, les connecteurs, la valeur des temps et la modalisation pour comprendre un texte | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+
 ## Trous à combler
 
 Aucun.
@@ -538,7 +545,7 @@ Aucun.
 
 | Source | Licence de la source | Adaptation | Questions |
 |---|---|---|:-:|
-| PKP Math | — | originale | 1920 |
+| PKP Math | — | originale | 1938 |
 | math.ma | non clarifiée | inspiree | 33 |
 | MathALÉA | CC BY-SA 4.0 | inspiree | 5 |
 | STACK | à vérifier | inspiree | 3 |
