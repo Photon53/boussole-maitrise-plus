@@ -1,6 +1,8 @@
 import "@fontsource-variable/inter";
 // Titres (#149) : Space Grotesk, licence SIL OFL 1.1, servie par le site comme Inter.
 import "@fontsource-variable/space-grotesk";
+// Textes longs du français (#231, FR-UI-D4) : Literata, licence SIL OFL 1.1, servie par le site comme Inter.
+import "@fontsource-variable/literata";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";

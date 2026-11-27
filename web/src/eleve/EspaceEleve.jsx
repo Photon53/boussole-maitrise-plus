@@ -13,12 +13,17 @@ import MonCours from "./MonCours.jsx";
 import Redaction from "./Redaction.jsx";
 import Progression from "./Progression.jsx";
 import EspaceEnfant, { CLE_ENFANT } from "./EspaceEnfant.jsx";
+import { AccueilFrancais, CoursFrancais, PlusFrancais } from "./FrancaisEleve.jsx";
+import EcranCours from "./EcranCours.jsx";
+import { purgerBrouillons } from "./brouillonLocal.js";
 import PkpMath from "../pkpmath/PkpMath.jsx";
 import Remarques from "../ui/Remarques.jsx";
 import { naviguer } from "../navigation.js";
 import { ORIGINES, viderSessionEleve } from "../simulation.js";
 
 const CLE_COMPTE = "pkp.eleve";
+// Issue #231 : pages rangées sous « Plus » dans l'espace Français (FR-UI-D5).
+const SOUS_PLUS = ["redaction", "mon-cours", "pkp", "historique", "remarques"];
 
 export default function EspaceEleve() {
   // Carte scannée (ou saisie sur la mauvaise page) : c'est peut-être un autre élève sur le même appareil,
@@ -26,7 +31,12 @@ export default function EspaceEleve() {
   const [compte, setCompte] = useState(() => (lireCarte() ? null : lire(CLE_COMPTE)));
   // Enfant d'une famille : une seule carte, puis le choix de la matière (PKP Math, Anglais, Français).
   const [enfant, setEnfant] = useState(() => (lireCarte() ? null : lire(CLE_ENFANT)));
-  const [onglet, setOnglet] = useState("exercice");
+  // Issue #231 : l'élève de français arrive sur l'accueil de la matière.
+  const [onglet, setOnglet] = useState(() => (lire(CLE_COMPTE)?.eleve?.matiere === "francais" ? "accueil" : "exercice"));
+  const [rubriqueFr, setRubriqueFr] = useState("");
+  const [dossierOuvert, setDossierOuvert] = useState(null);
+  // Écran de cours en sept étapes (#231) : étape d'arrivée, rubrique et nombre d'exercices du cours ouvert.
+  const [infosCours, setInfosCours] = useState(null);
   const [leconOuverte, setLeconOuverte] = useState(null);
   const [ancreLecon, setAncreLecon] = useState(null); // section à montrer : « lecon-cours », « methode-2 »…
   // Leçon ouverte depuis un exercice : la leçon propose d'y revenir, l'exercice n'est pas perdu.
@@ -48,6 +58,20 @@ export default function EspaceEleve() {
     if (!compte) return setMesParcours([]);
     api("/eleves/moi/parcours", { jeton: compte.jeton }).then(setMesParcours, () => setMesParcours([]));
   }, [compte]);
+
+  // Issue #231 : les brouillons de rédaction expirés sont effacés de l'appareil dès l'ouverture de l'espace élève,
+  // même si l'élève ne retourne pas à l'atelier.
+  useEffect(() => {
+    purgerBrouillons();
+  }, []);
+
+  // Issue #231 : à la connexion d'un élève de français, l'accueil de la matière remplace l'entraînement.
+  const matiereEleve = compte?.eleve?.matiere;
+  const idEleve = compte?.eleve?.id;
+  useEffect(() => {
+    if (matiereEleve === "francais") setOnglet((o) => (o === "exercice" ? "accueil" : o));
+    else setOnglet((o) => (["accueil", "plus"].includes(o) ? "exercice" : o));
+  }, [idEleve, matiereEleve]);
 
   async function changerParcours(eleveId) {
     try {
@@ -87,6 +111,11 @@ export default function EspaceEleve() {
   }
 
   function changerOnglet(nouvel) {
+    // « Mes cours » (français) revient toujours à la liste des cours.
+    if (nouvel === "cours" && compte?.eleve?.matiere === "francais") {
+      setDossierOuvert(null);
+      setLeconOuverte(null);
+    }
     if (nouvel !== "cours") setDepuisExercice(false);
     if (nouvel !== "historique") setHistoriqueDe(null);
     setOnglet(nouvel);
@@ -168,6 +197,26 @@ export default function EspaceEleve() {
     );
   if (!compte) return <ConnexionEleve onConnexion={connexionCarte} />;
 
+  const francais = compte.eleve.matiere === "francais";
+
+  /** Ouvre un cours de français (#231) : un dossier, ou l'écran de cours en sept étapes à l'étape où en est
+   * l'élève ; sans leçon, l'entraînement (ou la rédaction). `etape` force l'étape d'arrivée. */
+  function ouvrirCoursFrancais(c, etape = null) {
+    if (c.type === "dossier") {
+      setLeconOuverte(null);
+      setDossierOuvert(c.code);
+      setOnglet("cours");
+    } else if (c.a_une_lecon) {
+      setDossierOuvert(null);
+      setInfosCours({ etape: etape ?? c.etape, rubrique: c.rubrique, nbQuestions: c.nb_questions });
+      voirCours(c.competence_id, { depuisLExercice: false });
+    } else if (c.rubrique === "redaction") {
+      changerOnglet("redaction");
+    } else if (c.competence_id) {
+      entrainer(c.competence_id, c.titre);
+    }
+  }
+
   return (
     <>
       {compte.simulation && (
@@ -211,9 +260,15 @@ export default function EspaceEleve() {
       </div>
       <Erreur message={erreurParcours} />
       <Onglets
-        valeur={onglet}
+        valeur={francais && SOUS_PLUS.includes(onglet) ? "plus" : onglet}
         onChange={changerOnglet}
-        options={[
+        options={francais ? [
+          ["accueil", "Accueil"],
+          ["cours", "Mes cours"],
+          ["exercice", "S'entraîner"],
+          ["progression", "Ma progression"],
+          ["plus", "Plus"],
+        ] : [
           ...(diagnosticVisible ? [["diagnostic", "Diagnostic"]] : []),
           ["exercice", "S'entraîner"],
           ["cours", "Cours"],
@@ -229,22 +284,72 @@ export default function EspaceEleve() {
       />
       {/* Toujours monté, seulement masqué : aller au cours ne fait pas perdre la question ni sa correction. */}
       <div hidden={onglet !== "exercice"}>
-        {compte.eleve.matiere === "francais" && (
+        {francais && (
           <p className="carte doux" role="note">
-            En français, la leçon, les textes et les questions de tes dossiers se trouvent dans l'onglet « Cours ». Tu rédiges
-            tes réponses comme te l'indique ta professeure, qui les relit. Ici n'apparaissent que les exercices corrigés
-            automatiquement, quand ta professeure en ouvre.
+            Ici, les exercices des cours ouverts par ta professeure, corrigés tout de suite. Les textes, les dossiers et la
+            rédaction sont dans « Mes cours ».
           </p>
         )}
-        <Exercice key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} onVoirCours={voirCours} cible={cible} />
+        <Exercice key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} onVoirCours={voirCours} cible={cible} francais={francais} />
       </div>
-      {onglet === "mon-cours" && <MonCours key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
+      {onglet === "accueil" && francais && (
+        <AccueilFrancais
+          key={`accueil-${compte.eleve.id}`}
+          jeton={compte.jeton}
+          onExpire={deconnecter}
+          onOuvrir={ouvrirCoursFrancais}
+          onRubrique={(r) => {
+            setRubriqueFr(r);
+            changerOnglet("cours");
+          }}
+          onAller={changerOnglet}
+        />
+      )}
+      {onglet === "plus" && francais && <PlusFrancais onAller={changerOnglet} />}
+      {onglet === "mon-cours" && <MonCours key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} sansDossiers={francais} />}
       {onglet === "redaction" && <Redaction key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
       {/* Issue #217 : les dossiers de français validés et ouverts à la classe apparaissent aussi dans « Cours ». */}
-      {onglet === "cours" && compte.eleve.matiere === "francais" && (
-        <DossiersFrancais key={`dossiers-${compte.eleve.id}`} jeton={compte.jeton} onExpire={deconnecter} />
+      {onglet === "cours" && francais && leconOuverte == null && (dossierOuvert ? (
+        <DossiersFrancais
+          key={`dossier-${dossierOuvert}`}
+          jeton={compte.jeton}
+          onExpire={deconnecter}
+          codeOuvert={dossierOuvert}
+          onFermer={() => setDossierOuvert(null)}
+        />
+      ) : (
+        <CoursFrancais
+          key={`cours-${compte.eleve.id}`}
+          jeton={compte.jeton}
+          onExpire={deconnecter}
+          rubrique={rubriqueFr}
+          onRubrique={setRubriqueFr}
+          onOuvrir={ouvrirCoursFrancais}
+          onLecon={(c) => ouvrirCoursFrancais(c, 2)}
+        />
+      ))}
+      {onglet === "cours" && francais && leconOuverte != null && (
+        <EcranCours
+          key={`cours-${leconOuverte}`}
+          jeton={compte.jeton}
+          onExpire={deconnecter}
+          competenceId={leconOuverte}
+          // Brouillon de rédaction gardé sur l'appareil : pour l'élève lui-même, jamais en simulation par un adulte.
+          eleveId={compte.simulation ? null : compte.eleve.id}
+          // Arrivée depuis une correction (« Relire le cours ») : la leçon, étape « Comprendre ».
+          etapeInitiale={depuisExercice || ancreLecon ? 2 : infosCours?.etape}
+          rubrique={infosCours?.rubrique}
+          nbQuestions={infosCours?.nbQuestions ?? null}
+          onRetour={() => {
+            if (depuisExercice) changerOnglet("exercice");
+            else setLeconOuverte(null);
+            setInfosCours(null);
+          }}
+          onEntrainer={entrainer}
+          onVoirHistorique={voirHistorique}
+        />
       )}
-      {onglet === "cours" && (
+      {onglet === "cours" && !francais && (
         <Cours
           key={compte.eleve.id}
           jeton={compte.jeton}

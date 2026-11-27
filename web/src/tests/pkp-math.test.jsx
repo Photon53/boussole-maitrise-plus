@@ -185,7 +185,7 @@ describe("espace parent : enfants de la famille", () => {
     anglais: [{ groupe: "4e A", niveau: "2nde", seances_faites: 3, score_moyen: 0.8, i_can: 5 }],
   };
 
-  it("suit l'anglais, annonce le français et renouvelle l'accès de l'enfant", async () => {
+  it("suit l'anglais, indique l'absence de classe de français et renouvelle l'accès de l'enfant", async () => {
     sessionStorage.setItem("pkp.parent", JSON.stringify({ jeton: "j", email: "p@x.fr", mdp_provisoire: false }));
     const appels = fausseApi({
       "GET /parents/famille": { json: [SUIVI] },
@@ -197,7 +197,8 @@ describe("espace parent : enfants de la famille", () => {
     await userEvent.click(screen.getByRole("tab", { name: "Boussole Anglais" }));
     expect(screen.getByText("3 séances")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("tab", { name: "Boussole Français" }));
-    expect(screen.getByText(/Le français arrive bientôt/)).toBeInTheDocument();
+    // Issue #231 : plus de « Le français arrive bientôt » ; sans classe de français, on le dit.
+    expect(screen.getByText("Inès n'est encore inscrit dans aucune classe de français.")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("tab", { name: "Accès de l'enfant" }));
     await userEvent.click(screen.getByRole("button", { name: "Générer un nouveau code" }));
     expect(await screen.findByText("NEW234")).toBeInTheDocument();

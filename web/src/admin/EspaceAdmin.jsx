@@ -12,6 +12,7 @@ import Contenu from "./Contenu.jsx";
 import Eleves from "./Eleves.jsx";
 import Exercices from "./Exercices.jsx";
 import Familles from "./Familles.jsx";
+import FrancaisAdmin from "./FrancaisAdmin.jsx";
 import Journal from "./Journal.jsx";
 import RemarquesAdmin from "./RemarquesAdmin.jsx";
 import PrevalidationIA from "./PrevalidationIA.jsx";
@@ -46,21 +47,24 @@ const PAGES = [
   { groupe: "Comptes", vers: "/admin/professeurs", libelle: "Équipe", icone: "professeurs", Page: Professeurs, permission: "comptes.gerer" },
   { groupe: "Comptes", vers: "/admin/familles", libelle: "Familles", icone: "eleve", Page: Familles, permission: "parents.gerer" },
   { groupe: "Comptes", vers: "/admin/eleves", libelle: "Élèves et classes", icone: "classes", Page: Eleves, permission: "comptes.gerer" },
-  { groupe: "Pédagogie", vers: "/admin/cours", libelle: "Cours", icone: "cours", Page: Contenu, permission: "contenu.modifier", matiere: "maths" },
-  { groupe: "Pédagogie", vers: "/admin/exercices", libelle: "Exercices", icone: "exercices", Page: Exercices, permission: "contenu.modifier", matiere: "maths" },
+  { groupe: "Pédagogie", vers: "/admin/cours", libelle: "Cours", icone: "cours", Page: Contenu, permission: "contenu.modifier", matiere: ["maths", "francais"] },
+  { groupe: "Pédagogie", vers: "/admin/exercices", libelle: "Exercices", icone: "exercices", Page: Exercices, permission: "contenu.modifier", matiere: ["maths", "francais"] },
   { groupe: "Pédagogie", vers: "/admin/ressources", libelle: "Ressources", icone: "ressources", Page: RessourcesAdmin, permission: "contenu.modifier", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/prevalidation-ia", libelle: "Prévalidation IA", icone: "bouclier", Page: PrevalidationIA, permission: "prevalidation.ia", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/pkp-math", libelle: "Boussole Maths", icone: "pdf", Page: PkpMathAdmin, permission: "contenu.lire", matiere: "maths" },
   { groupe: "Pédagogie", vers: "/admin/anglais", libelle: "Boussole Anglais", icone: "eleve", Page: AnglaisAdmin, permission: "contenu.modifier", matiere: "anglais" },
-  // L'espace Français reprend la session d'administration de l'onglet (#217) : consultation, validation, PDF.
-  { groupe: "Pédagogie", vers: "/francais", libelle: "Boussole Français (préparation)", icone: "cours", permission: "contenu.lire", externe: true },
+  // Issue #231 : synthèse du français (cours, validation, classes pilotes, équipe) ; les dossiers, leur validation
+  // et leurs PDF restent dans l'espace Français, ouvert depuis cette page avec la session d'administration (#217).
+  { groupe: "Pédagogie", vers: "/admin/francais", libelle: "Boussole Français", icone: "cours", Page: FrancaisAdmin, permission: "contenu.lire" },
   { groupe: "Configuration", vers: "/admin/configuration", libelle: "Domaines", icone: "bouclier", Page: Configuration, permission: "configuration" },
 ];
 
-/** Page propre à une matière (cours de maths, PKP Anglais) consultée avec un domaine d'une autre matière. */
+/** Page propre à une matière (cours de maths, PKP Anglais) consultée avec un domaine d'une autre matière.
+ * Cours et exercices servent les chapitres YAML : maths et français (#177, #217). */
 function horsMatiere(page, domaine, domaines) {
   const choisi = domaines.find((d) => d.code === domaine);
-  return Boolean(page.matiere && choisi && choisi.matiere !== page.matiere);
+  const matieres = [page.matiere ?? []].flat();
+  return Boolean(matieres.length && choisi && !matieres.includes(choisi.matiere));
 }
 
 /** Pages permises : toutes tant que /admin/moi n'a pas répondu (l'API refuse de toute façon ce qui n'est pas permis). */
@@ -141,7 +145,9 @@ export default function EspaceAdmin({ chemin = "/admin" }) {
           {horsMatiere(page, domaine, domaines) && (
             <p className="info note-domaine">
               <span>
-                Cet écran gère le contenu {page.matiere === "maths" ? "de mathématiques" : "d'anglais"} :{" "}
+                Cet écran gère le contenu{" "}
+                {{ maths: "de mathématiques", anglais: "d'anglais", francais: "de français" }[[page.matiere].flat()[0]]}
+                {[page.matiere].flat().includes("francais") ? " et de français" : ""} :{" "}
                 {libelleDomaine(domaines, domaine)} n'y a rien. Choisissez « Tous les domaines » pour tout revoir.
               </span>
             </p>
@@ -153,6 +159,7 @@ export default function EspaceAdmin({ chemin = "/admin" }) {
             chemin={chemin}
             domaine={domaine}
             domaines={domaines}
+            onDomaine={choisirDomaine}
           />
         </>
       ) : (

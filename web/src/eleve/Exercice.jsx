@@ -7,6 +7,7 @@ import { Correction } from "../ui/Pedagogie.jsx";
 import { ecrire, lire } from "../stockage.js";
 import { CONSEILS } from "../methodeEtapes.js";
 import ConseilsTravail from "./ConseilsTravail.jsx";
+import { ClavierAccents, CorrectionFrancais, EnonceFrancais } from "./ExerciceFrancais.jsx";
 
 export const CLE_SEANCE = "pkp.seance";
 export const CLE_BILAN = "pkp.bilan";
@@ -35,7 +36,9 @@ export function decouperQcm(enonce) {
  * La séance en cours est mémorisée : au retour, « Reprendre ma séance » rouvre la même séance et la même
  * question, sans en créer une nouvelle (#148).
  */
-export default function Exercice({ jeton, onExpire, onVoirCours, cible }) {
+/** `francais` (#231, FR-UI-D5) : présentation propre au français (phrase étudiée, clavier d'accents, correction
+ * expliquée) ; le tirage, la correction et la maîtrise sont les mêmes pour toutes les matières. */
+export default function Exercice({ jeton, onExpire, onVoirCours, cible, francais = false }) {
   const [seanceId, setSeanceId] = useState(() => lire(CLE_SEANCE));
   const [etape, setEtape] = useState(seanceId ? "reprise" : "accueil");
   // Message d'information sur l'écran d'accueil (séance précédente close entre-temps).
@@ -52,6 +55,7 @@ export default function Exercice({ jeton, onExpire, onVoirCours, cible }) {
   const [revision, setRevision] = useState(false);
   const [epuisement, setEpuisement] = useState(null);
   const champ = useRef(null);
+  const choix = useRef(null);
 
   function changerSeance(id, visee = null) {
     ecrire(CLE_SEANCE, id);
@@ -119,6 +123,8 @@ export default function Exercice({ jeton, onExpire, onVoirCours, cible }) {
 
   useEffect(() => {
     if (etape === "question") champ.current?.focus();
+    // Issue #154 : en français, le focus va au premier choix d'un QCM (au clavier, plus besoin de traverser la page).
+    if (etape === "question" && francais) choix.current?.querySelector("button")?.focus();
   }, [etape, question]);
 
   // Le compteur suit la séance mémorisée : un rechargement ne le remet pas à zéro.
@@ -358,7 +364,7 @@ export default function Exercice({ jeton, onExpire, onVoirCours, cible }) {
             ` · niveaux ${competenceVisee.niveaux.min} ${competenceVisee.niveaux.max - competenceVisee.niveaux.min > 1 ? "à" : "et"} ${competenceVisee.niveaux.max}`}
         </p>
       )}
-      <article className="carte">
+      <article className={francais ? "carte exercice-fr" : "carte"}>
         <div className="meta">
           <span className="badge">{LIBELLES_TYPE[question.type]}</span>
           <Difficulte niveau={question.difficulte} />
@@ -368,12 +374,16 @@ export default function Exercice({ jeton, onExpire, onVoirCours, cible }) {
             </span>
           )}
         </div>
-        <p className="enonce">
-          <Maths enLigne texte={intitule} />
-        </p>
+        {francais ? (
+          <EnonceFrancais intitule={intitule} />
+        ) : (
+          <p className="enonce">
+            <Maths enLigne texte={intitule} />
+          </p>
+        )}
 
         {options ? (
-          <div className="options">
+          <div className="options" ref={choix}>
             {options.map((o) => (
               <button key={o.lettre} onClick={() => repondre(o.lettre)} disabled={envoi || repondue}>
                 <span className="lettre">{o.lettre}</span>
@@ -399,6 +409,7 @@ export default function Exercice({ jeton, onExpire, onVoirCours, cible }) {
               spellCheck={false}
               maxLength={200}
             />
+            {francais && !repondue && <ClavierAccents champ={champ} valeur={saisie} onChange={setSaisie} desactive={envoi} />}
             <p className="aide">{AIDE[question.type]}</p>
             {!repondue && (
               <div className="actions">
@@ -426,25 +437,40 @@ export default function Exercice({ jeton, onExpire, onVoirCours, cible }) {
       </article>
 
       {repondue && (
-        <article className={`carte resultat ${resultat.correcte ? "ok" : "ko"}`} role="status">
-          <p className="verdict">{resultat.correcte ? "Bonne réponse !" : "Pas tout à fait."}</p>
-          {resultat.remarque && <p className="avertissement">{resultat.remarque}</p>}
-          {!resultat.correcte && <p className="aide conseil">{CONSEILS.erreur}</p>}
-          {!resultat.correcte && (
-            <p>
-              Réponse attendue : <code>{solutionLisible(question.type, resultat.solution)}</code>
-            </p>
+        <article className={`carte resultat ${resultat.correcte ? "ok" : "ko"}${francais ? " exercice-fr" : ""}`} role="status">
+          {francais ? (
+            <>
+              <CorrectionFrancais
+                question={question}
+                options={options}
+                donnee={saisie}
+                resultat={resultat}
+                onVoirMethode={onVoirCours && (() => onVoirCours(question.competence_id, { ancre: "lecon-cours" }))}
+              />
+              {resultat.remarque && <p className="avertissement">{resultat.remarque}</p>}
+            </>
+          ) : (
+            <>
+              <p className="verdict">{resultat.correcte ? "Bonne réponse !" : "Pas tout à fait."}</p>
+              {resultat.remarque && <p className="avertissement">{resultat.remarque}</p>}
+              {!resultat.correcte && <p className="aide conseil">{CONSEILS.erreur}</p>}
+              {!resultat.correcte && (
+                <p>
+                  Réponse attendue : <code>{solutionLisible(question.type, resultat.solution)}</code>
+                </p>
+              )}
+              <Correction
+                correction={resultat.correction}
+                references={
+                  onVoirCours && {
+                    competence: resultat.competence,
+                    methodes: resultat.methodes,
+                    onVoir: (ancre) => onVoirCours(question.competence_id, { ancre }),
+                  }
+                }
+              />
+            </>
           )}
-          <Correction
-            correction={resultat.correction}
-            references={
-              onVoirCours && {
-                competence: resultat.competence,
-                methodes: resultat.methodes,
-                onVoir: (ancre) => onVoirCours(question.competence_id, { ancre }),
-              }
-            }
-          />
           <AideExercice
             key={question.id}
             seanceId={seanceId}

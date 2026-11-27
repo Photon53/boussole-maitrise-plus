@@ -120,7 +120,8 @@ async function connecterEleve(navigateur, prenom, codeClasse, codePersonnel) {
   await page.getByLabel("Code classe").fill(codeClasse);
   await page.getByLabel("Code personnel").fill(codePersonnel);
   await page.getByRole("button", { name: "Commencer" }).click();
-  await page.getByRole("tab", { name: "Cours", exact: true }).waitFor({ timeout: 15_000 });
+  // Issue #231 : l'élève de français arrive sur l'accueil ; ses cours sont dans « Mes cours ».
+  await page.getByRole("tab", { name: "Mes cours", exact: true }).waitFor({ timeout: 15_000 });
   return page;
 }
 
@@ -196,7 +197,9 @@ async function recette() {
     {
       const page = await connecterProfesseur(navigateur, "/enseignant", ctx.validateur.email);
       await etape("validateur", "Lien vers la validation du français depuis /enseignant", async () => {
-        await page.getByRole("link", { name: /Boussole Français : dossiers et validation/ }).first().click();
+        // Issue #231 : entrée « Dossiers et PDF » du groupe « Français » de l'espace professeur.
+        await page.getByRole("navigation", { name: "Navigation Espace professeur" })
+          .getByRole("link", { name: "Dossiers et PDF" }).click();
         await visible(page.getByRole("heading", { name: "Dossiers de français" }));
       }, { page });
       await etape("validateur", "File de validation : dossier soumis et bouton « Valider »", async () => {
@@ -216,6 +219,18 @@ async function recette() {
         }
         await visible(page.getByRole("button", { name: "Refuser" }));
       }, { page });
+      // Correctif du 27/11 (#217) : les cours interactifs (#177) sont visibles et validables par le validateur.
+      await etape("validateur", "Onglet « Cours » : cours interactifs de 3e listés", async () => {
+        await page.getByRole("tab", { name: "Cours", exact: true }).click();
+        const titre = page.getByRole("heading", { name: "Troisième" });
+        await titre.or(page.getByText(/Aucun cours de français/)).first().waitFor({ timeout: 10_000 });
+        if (!(await titre.isVisible())) throw nonApplicable("aucun chapitre de français de 3e importé sur cette instance");
+        return `${await page.getByRole("button", { name: "Lire le cours" }).count()} cours`;
+      }, { page });
+      await etape("validateur", "Page « Validation » de l'espace professeur : questions de français de 3e", async () => {
+        await page.goto(`${BASE_URL}/enseignant/validation`);
+        await visible(page.getByText(/Vous validez : Français collège/));
+      }, { page });
     }
 
     // 3. Administrateur : connexion à l'écran, puis Français sans nouvelle connexion ; validation (mode complet)
@@ -227,7 +242,10 @@ async function recette() {
         await page.getByLabel("Mot de passe").fill(process.env.ADMIN_MDP);
         if (process.env.ADMIN_TOTP) await page.getByLabel("Code de l'application d'authentification").fill(process.env.ADMIN_TOTP);
         await page.getByRole("button", { name: /Se connecter/ }).click();
-        await page.getByRole("link", { name: "Boussole Français (préparation)" }).first().click();
+        // Issue #231 : page « Boussole Français » de l'administration, puis l'espace des dossiers.
+        await page.getByRole("link", { name: "Boussole Français", exact: true }).first().click();
+        await visible(page.getByRole("heading", { name: "À traiter" }));
+        await page.getByRole("link", { name: /Dossiers, validation et PDF/ }).click();
         await visible(page.getByRole("heading", { name: "Dossiers de français" }));
         await visible(page.getByText(CODE));
       }, { page });
@@ -280,13 +298,23 @@ async function recette() {
       .flatMap((c) => c.paragraphes).filter((p) => p.length >= 40);
     {
       const page = await connecterEleve(navigateur, "Recette", ctx.pilote.code, ctx.pilote.codePersonnel);
-      await etape("élève pilote", "Dossier lisible dans « Cours », sans aucun corrigé", async () => {
-        await page.getByRole("tab", { name: "Cours", exact: true }).click();
+      await etape("élève pilote", "Dossier lisible dans « Mes cours », sans aucun corrigé", async () => {
+        await page.getByRole("tab", { name: "Mes cours", exact: true }).click();
         if (!ouvert) throw nonApplicable("mode lecture : la classe de recette n'a aucun dossier ouvert");
-        await visible(page.getByRole("heading", { name: "Mes dossiers" }));
-        await page.locator("section").filter({ has: page.getByRole("heading", { name: "Mes dossiers" }) }).getByRole("button").first().click();
+        // Issue #231 : chapitres et dossiers ont la même carte ; un dossier est dans « Lire et comprendre ».
+        const carte = page.locator("article").filter({ hasText: "Lire et comprendre" }).first();
+        await visible(carte);
+        await carte.getByRole("button", { name: /Commencer|Reprendre|Revoir/ }).click();
+        // Issue #231 : le dossier est rangé en sept étapes ; on lit chaque étape disponible avant de chercher un corrigé.
+        const rail = page.getByRole("navigation", { name: "Étapes du cours" });
+        await visible(rail);
+        let texte = "";
+        for (const etape of await rail.locator("button.rail-etape:not([disabled])").all()) {
+          await etape.click();
+          texte += await page.locator("body").innerText();
+        }
+        await rail.getByRole("button", { name: /S'entraîner/ }).click();
         await visible(page.getByText(/Rédige ta réponse/));
-        const texte = await page.locator("body").innerText();
         const fuite = corriges.find((p) => texte.includes(p.slice(0, 60)));
         verifier(!fuite, `corrigé visible côté élève : « ${fuite?.slice(0, 60)}… »`);
       }, { page });
@@ -295,15 +323,18 @@ async function recette() {
         if (!ouvert) throw nonApplicable("mode lecture : aucun dossier ouvert");
         const quiz = (await apiOk(`/francais/dossiers/${CODE}/professeur`, { jeton: ctx.admin })).professeur.quiz ?? [];
         if (quiz.length === 0) throw nonApplicable("la version validée n'a pas de quiz");
+        await page.getByRole("navigation", { name: "Étapes du cours" }).getByRole("button", { name: /Appliquer/ }).click();
         await visible(page.getByRole("heading", { name: "Quiz" }));
         const avant = await page.locator("body").innerText();
         const fuite = quiz.find((q) => avant.includes(q.explication.slice(0, 50)));
         verifier(!fuite, `explication du quiz visible avant la réponse : « ${fuite?.explication.slice(0, 50)}… »`);
+        // Limité au formulaire du quiz : l'onglet « S'entraîner », masqué, contient aussi des fieldsets (#177).
+        const formulaire = page.locator("form").filter({ has: page.getByRole("heading", { name: "Quiz" }) });
         for (let i = 0; i < quiz.length; i += 1) {
-          await page.locator(`input[name="quiz-${i}"]`).first().check();
-          await visible(page.locator("fieldset").nth(i).locator("p.petit"));
+          await formulaire.locator(`input[name="quiz-${i}"]`).first().check();
+          await visible(formulaire.locator("fieldset").nth(i).locator("p.petit"));
         }
-        await page.getByRole("button", { name: /Terminer le quiz|Voir la correction/ }).click();
+        await formulaire.getByRole("button", { name: /Terminer le quiz|Voir la correction/ }).click();
         await visible(page.getByText(/Score : \d+\/\d+/));
         return `${quiz.length} questions`;
       }, { page });
@@ -329,8 +360,9 @@ async function recette() {
         const r = await api(`/francais/eleve/dossiers/${CODE}`, { jeton });
         verifier(r.status === 403, `adresse directe : ${r.status} au lieu de 403`);
         if (page) {
-          await page.getByRole("tab", { name: "Cours", exact: true }).click();
-          verifier(!(await page.getByRole("heading", { name: "Mes dossiers" }).isVisible()), "« Mes dossiers » affiché");
+          await page.getByRole("tab", { name: "Mes cours", exact: true }).click();
+          await page.waitForTimeout(1_000);
+          verifier(!(await page.locator("article").filter({ hasText: "Lire et comprendre" }).count()), "dossier affiché");
         }
       }, { page: page ?? undefined });
     }

@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routes import accueil, admin, admin_contenu, archivage, cartes, classes_pilotes, collaboration, cours, redactions, diagnostic, domaines, eleves, enseignants, enseignants_contenu, health, parents, ressources, anglais, anglais_eleves, enfants, familles, francais, francais_eleves, masse, pkp_math, prevalidation_ia, repertoire, remarques, simulation, suivi, validation_maths
+from app.routes import accueil, admin, admin_contenu, admin_francais, archivage, cartes, classes_pilotes, collaboration, cours, redactions, diagnostic, domaines, eleves, enseignants, enseignants_contenu, health, parents, parents_francais, ressources, anglais, anglais_eleves, enfants, familles, francais, francais_accueil, francais_eleves, francais_tableau, masse, pkp_math, prevalidation_ia, repertoire, remarques, simulation, suivi, validation_maths
 
 # En production, la documentation interactive n'est pas exposée publiquement.
 app = FastAPI(
@@ -39,6 +39,7 @@ app.include_router(redactions.router)  # issue #179 : /eleves/moi/redactions, /e
 app.include_router(simulation.router)  # issue #184 : vue élève simulée
 app.include_router(eleves.router)
 app.include_router(enseignants.router)
+app.include_router(parents_francais.router)  # issue #231 : /parents/enfants/{id}/francais
 app.include_router(parents.router)
 app.include_router(cours.router)
 app.include_router(enseignants_contenu.router)
@@ -48,12 +49,15 @@ app.include_router(masse.router)
 app.include_router(cartes.router)
 app.include_router(repertoire.router)
 app.include_router(archivage.router)
+app.include_router(admin_francais.router)  # issue #231 : /admin/francais/synthese
 app.include_router(admin.router)
 app.include_router(classes_pilotes.router)  # issue #176
 app.include_router(admin_contenu.router)
 app.include_router(anglais_eleves.router)
 app.include_router(anglais.router)
+app.include_router(francais_accueil.router)  # issue #231 : /francais/eleve/accueil
 app.include_router(francais_eleves.router)  # issue #212 : /francais/eleve/*
+app.include_router(francais_tableau.router)  # issue #231 : /francais/classes/{id}/tableau
 app.include_router(francais.router)
 app.include_router(enfants.router)
 app.include_router(familles.router)

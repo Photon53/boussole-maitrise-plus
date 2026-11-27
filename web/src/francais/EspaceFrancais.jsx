@@ -6,6 +6,7 @@ import { AccesReserve, CLE_COMPTE, ConnexionEnseignant, NouveauMotDePasse, PageS
 import { useApi } from "../enseignant/useApi.js";
 import { Decision, Historique as HistoriqueAnglais, STATUTS, StatutSeance as StatutAnglais } from "../anglais/ValidationAnglais.jsx";
 import { Maths } from "../maths.jsx";
+import CoursFrancais from "./CoursFrancais.jsx";
 import EditionDossier from "./EditionDossier.jsx";
 import PartieEleve from "./PartieEleve.jsx";
 import SuiviFrancais from "./SuiviFrancais.jsx";
@@ -195,6 +196,7 @@ function Dossiers({ compte, onDeconnexion }) {
         }}
         options={[
           ["dossiers", "Dossiers"],
+          ["cours", "Cours"],
           ["suivi", "Suivi des classes"],
           ...(validateur ? [["validation", "Validation"]] : []),
         ]}
@@ -202,6 +204,8 @@ function Dossiers({ compte, onDeconnexion }) {
       <Erreur message={erreur} />
       {page === "validation" ? (
         <ValidationFrancais appeler={appeler} />
+      ) : page === "cours" ? (
+        <CoursFrancais appeler={appeler} admin={Boolean(compte.admin || compte.role === "admin")} />
       ) : page === "suivi" ? (
         <SuiviFrancais appeler={appeler} jeton={compte.jeton} />
       ) : dossiers === null ? (

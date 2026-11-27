@@ -97,8 +97,11 @@ def mon_dossier(code: str, eleve: EleveCourant, session: SessionDB, reponse: Res
     _sans_cache(reponse)
     d = dossier_servi(session, eleve, code)
     p = progression(session, eleve, d.code)
+    # Issue #231 (constat N2, FR-UI-D6) : la présentation d'un dossier porte des mentions internes (issue, agent,
+    # « brouillon à relire ») ; l'élève ne les voit pas. L'aperçu des adultes les garde.
+    eleve_vue = {**francais.vue_eleve(d.validee), "presentation": []}
     return {
-        **_ligne(d, p), "eleve": francais.vue_eleve(d.validee),
+        **_ligne(d, p), "eleve": eleve_vue,
         "mode_correction": eleve.classe.mode_correction_de(d.code),
         "premier_score": p.premier_score if p else None, "auto_evaluation": p.auto_evaluation if p else [],
         "saisie_ouverte": settings.redaction_active,

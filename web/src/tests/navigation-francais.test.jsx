@@ -11,6 +11,12 @@ const PROFESSEUR = {
   mdp_provisoire: false, enseigne_maths: false, enseigne_anglais: false,
 };
 
+const SYNTHESE_VIDE = {
+  domaines: [{ code: "francais-college", libelle: "Français collège", actif: true, public: false }],
+  chiffres: { cours: 0, cours_prets: 0, questions: 0, questions_validees: 0, classes_pilotes: 0, eleves_pilotes: 0 },
+  niveaux: [], cours: [], classes: [], fonctions: [], alertes: [],
+};
+
 describe("navigation vers le Français en préparation", () => {
   it("propose le Français à la connexion maths sans l'ajouter au cadre partagé avec les parents", async () => {
     window.history.replaceState(null, "", "/enseignant");
@@ -33,7 +39,7 @@ describe("navigation vers le Français en préparation", () => {
     expect(appels).toHaveLength(0);
   });
 
-  it("ouvre le Français depuis le menu admin avec la session professeur existante", async () => {
+  it("ouvre les dossiers de français depuis la page Français de l'administration (#231)", async () => {
     window.history.replaceState(null, "", "/admin");
     sessionStorage.setItem("pkp.admin", JSON.stringify({ jeton: "session-admin", nom: "Admin", expire_le: Date.now() + 600_000 }));
     sessionStorage.setItem("pkp.enseignant", JSON.stringify(PROFESSEUR));
@@ -42,10 +48,12 @@ describe("navigation vers le Français en préparation", () => {
       "GET /admin/domaines": { json: [] },
       "GET /admin/statistiques?periode=30": { json: null },
       "GET /francais/dossiers": { json: [] },
+      "GET /admin/francais/synthese": { json: SYNTHESE_VIDE },
     });
     render(<App />);
     const navigation = await screen.findByRole("navigation", { name: "Navigation Administration" });
-    await userEvent.click(within(navigation).getByRole("link", { name: "Boussole Français (préparation)" }));
+    await userEvent.click(within(navigation).getByRole("link", { name: "Boussole Français" }));
+    await userEvent.click(await screen.findByRole("link", { name: /Dossiers, validation et PDF/ }));
     expect(await screen.findByRole("heading", { name: "Dossiers de français" })).toBeInTheDocument();
     expect(window.location.pathname).toBe("/francais");
     expect(screen.getByText(/lue par les élèves/)).toBeInTheDocument();
@@ -80,9 +88,10 @@ describe("navigation vers le Français en préparation", () => {
   it("l'espace professeur mène à la validation du français (#217)", async () => {
     window.history.replaceState(null, "", "/enseignant");
     sessionStorage.setItem("pkp.enseignant", JSON.stringify({ ...PROFESSEUR, enseigne_francais: true }));
-    fausseApi({ "GET /enseignants/classes": { json: [] } });
+    fausseApi({ "GET /enseignants/classes": { json: [] }, "GET /francais/classes": { json: [] } });
     render(<App />);
-    const liens = await screen.findAllByRole("link", { name: /Boussole Français : dossiers et validation/ });
-    expect(liens[0]).toHaveAttribute("href", "/francais");
+    // Issue #231 : les dossiers sont une entrée du groupe « Français » de l'espace professeur.
+    const navigation = await screen.findByRole("navigation", { name: "Navigation Espace professeur" });
+    expect(within(navigation).getByRole("link", { name: "Dossiers et PDF" })).toHaveAttribute("href", "/francais");
   });
 });

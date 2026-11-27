@@ -32,7 +32,7 @@ jobs:
         run: pytest -q
       - name: Tests de l'API
         working-directory: api
-        run: pytest -q -W ignore::DeprecationWarning
+        run: pytest -q -n auto -W ignore::DeprecationWarning
 
   web:
     name: Front

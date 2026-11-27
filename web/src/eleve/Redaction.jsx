@@ -7,6 +7,7 @@ import { api } from "../api.js";
 import { Erreur } from "../composants.jsx";
 
 const STATUTS = { brouillon: "Brouillon", remise: "Remise, en attente de correction", corrigee: "Corrigée" };
+export const FERMEE = "La rédaction en ligne n'est pas encore ouverte.";
 export const RAPPEL =
   "N'écris ni ton adresse, ni tes coordonnées, ni d'informations intimes sur toi ou sur d'autres personnes : " +
   "préfère des personnages et des lieux imaginaires.";
@@ -15,8 +16,13 @@ export default function Redaction({ jeton, onExpire }) {
   const [sujets, setSujets] = useState(null);
   const [ouvert, setOuvert] = useState(null);
   const [erreur, setErreur] = useState(null);
+  const [fermee, setFermee] = useState(false);
 
-  const echec = useCallback((err) => (err.status === 401 && onExpire ? onExpire() : setErreur(err.message)), [onExpire]);
+  const echec = useCallback((err) => {
+    if (err.status === 401 && onExpire) onExpire();
+    else if (err.status === 403) setFermee(true);
+    else setErreur(err.message);
+  }, [onExpire]);
   const charger = useCallback(() => api("/eleves/moi/redactions", { jeton }).then(setSujets, echec), [jeton, echec]);
   useEffect(() => {
     charger();
@@ -24,6 +30,17 @@ export default function Redaction({ jeton, onExpire }) {
 
   if (ouvert)
     return <Sujet questionId={ouvert} jeton={jeton} echec={echec} onRetour={() => { setOuvert(null); charger(); }} />;
+  if (fermee) {
+    return (
+      <section className="carte" aria-labelledby="titre-redaction">
+        <h2 id="titre-redaction">Rédaction</h2>
+        <p className="info" role="note">
+          {FERMEE} Les sujets sont dans « Mes cours », rubrique Rédaction : rédige sur ta copie et remets-la à ta
+          professeure.
+        </p>
+      </section>
+    );
+  }
   if (erreur) return <Erreur message={erreur} />;
   if (!sujets) return <p className="doux">Chargement des sujets…</p>;
   return (
@@ -46,6 +63,30 @@ export default function Redaction({ jeton, onExpire }) {
 }
 
 function Sujet({ questionId, jeton, echec, onRetour }) {
+  const [enonce, setEnonce] = useState(null);
+  return (
+    <section className="carte" aria-labelledby="titre-sujet">
+      <button className="lien" onClick={onRetour}>← Tous les sujets</button>
+      <h2 id="titre-sujet">Sujet</h2>
+      {enonce && <p>{enonce}</p>}
+      <p className="aide" role="note">{RAPPEL}</p>
+      <EditeurRedaction questionId={questionId} jeton={jeton} echec={echec} onCharge={(d) => setEnonce(d.enonce)} />
+    </section>
+  );
+}
+
+/** Nombre de mots et de paragraphes d'un texte : un repère pour l'élève, jamais une note. */
+export function compter(texte) {
+  const mots = texte.trim() ? texte.trim().split(/\s+/).length : 0;
+  const paragraphes = texte.split(/\n\s*\n/).filter((p) => p.trim()).length;
+  return { mots, paragraphes };
+}
+
+/**
+ * Brouillon, remise, versions corrigées et réécriture d'un sujet (#179). Partagé par la liste des sujets et par
+ * l'atelier de rédaction de l'écran de cours (#231). Ne s'affiche que si la rédaction en ligne est ouverte.
+ */
+export function EditeurRedaction({ questionId, jeton, echec, onCharge }) {
   const [detail, setDetail] = useState(null);
   const [texte, setTexte] = useState("");
   const [message, setMessage] = useState(null);
@@ -57,7 +98,11 @@ function Sujet({ questionId, jeton, echec, onRetour }) {
     setTexte(derniere?.statut === "brouillon" ? derniere.texte : "");
   }, []);
   useEffect(() => {
-    api(`/eleves/moi/redactions/${questionId}`, { jeton }).then(recevoir, echec);
+    api(`/eleves/moi/redactions/${questionId}`, { jeton }).then((d) => {
+      recevoir(d);
+      onCharge?.(d);
+    }, echec);
+    // onCharge n'est appelé qu'au chargement.
   }, [questionId, jeton, recevoir, echec]);
 
   async function envoyer(remettre) {
@@ -77,22 +122,30 @@ function Sujet({ questionId, jeton, echec, onRetour }) {
   if (!detail) return <p className="doux">Chargement…</p>;
   const derniere = detail.versions.at(-1);
   const enAttente = derniere?.statut === "remise";
+  const { mots, paragraphes } = compter(texte);
   return (
-    <section className="carte" aria-labelledby="titre-sujet">
-      <button className="lien" onClick={onRetour}>← Tous les sujets</button>
-      <h2 id="titre-sujet">Sujet</h2>
-      <p>{detail.enonce}</p>
-      <p className="aide" role="note">{RAPPEL}</p>
+    <div className="editeur-redaction">
       {message && <p className="succes" role="status">{message}</p>}
       <Erreur message={erreur} />
       {enAttente ? (
-        <p className="doux">Ta rédaction est remise : ta professeure va la corriger.</p>
+        <p className="info">Ta rédaction est remise : ta professeure va la corriger.</p>
       ) : (
         <>
-          <label htmlFor="texte-redaction">
+          <label htmlFor={`texte-redaction-${questionId}`}>
             {derniere?.statut === "corrigee" ? `Réécriture (version ${derniere.version + 1})` : "Ta rédaction"}
           </label>
-          <textarea id="texte-redaction" rows={14} maxLength={10000} value={texte} onChange={(e) => setTexte(e.target.value)} />
+          <textarea
+            id={`texte-redaction-${questionId}`}
+            className="texte-a-ecrire"
+            rows={14}
+            maxLength={10000}
+            value={texte}
+            onChange={(e) => setTexte(e.target.value)}
+            aria-describedby={`compteur-${questionId}`}
+          />
+          <p id={`compteur-${questionId}`} className="doux petit compteur-redaction">
+            {mots} mot{mots > 1 ? "s" : ""} · {paragraphes} paragraphe{paragraphes > 1 ? "s" : ""} · saute une ligne entre deux paragraphes
+          </p>
           <div className="actions">
             <button className="secondaire" disabled={!texte.trim()} onClick={() => envoyer(false)}>Enregistrer le brouillon</button>
             <button disabled={!texte.trim()} onClick={() => envoyer(true)}>Remettre à ma professeure</button>
@@ -100,15 +153,20 @@ function Sujet({ questionId, jeton, echec, onRetour }) {
         </>
       )}
       {detail.versions.filter((v) => v.statut !== "brouillon").reverse().map((v) => (
-        <article key={v.id} className="encadre">
+        <article key={v.id} className="encadre version-redaction">
           <strong>Version {v.version} — {STATUTS[v.statut]}</strong>
           <p className="texte-redaction">{v.texte}</p>
-          {v.commentaire && <p><strong>Commentaire :</strong> {v.commentaire}</p>}
+          {v.commentaire && (
+            <div className="retour-professeure">
+              <strong>Retour de ta professeure</strong>
+              <p>{v.commentaire}</p>
+            </div>
+          )}
         </article>
       ))}
       {detail.conserver_jusqu_au && (
         <p className="doux petit">Tes rédactions sont conservées jusqu'au {new Date(detail.conserver_jusqu_au).toLocaleDateString("fr-FR")}, puis supprimées.</p>
       )}
-    </section>
+    </div>
   );
 }

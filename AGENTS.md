@@ -13,6 +13,7 @@ Chaque production est attribuée à **l'agent qui l'a réellement produite** (§
 | v2 | 13/11/2026 | DeepSeek : proposition de révision ; revues de Claude et Codex |
 | Correctifs PR #86 | 13/11/2026 | Claude : consignes, modèle de PR et transcription de la décision du propriétaire RGPD-1 |
 | Consolidation | 13/11/2026 | Codex : intégration documentaire des apports et corrections ; intégrée dans la PR #86 par Claude |
+| Autonomie | 27/11/2026 | Claude, sur instruction du propriétaire (#231) : l'agent tranche lui-même et ne s'arrête plus que pour une décision humaine obligatoire (§ 8) |
 
 ---
 
@@ -27,10 +28,10 @@ Chaque production est attribuée à **l'agent qui l'a réellement produite** (§
 | `CLAUDE.md` ou autre fichier propre à un outil | **Complément sans duplication** : réglages de l'outil, renvoi vers ce fichier |
 
 Ce fichier résume certaines règles des documents métier ; en cas d'écart, **le document du domaine fait foi** et
-ce fichier doit être corrigé. Une contradiction entre documents, ou entre un document et le code, **ne se tranche
-pas par l'agent** : il la signale dans l'issue (§ 9), avec les options et une recommandation, avant d'agir. Choisir
-« la règle la plus restrictive » ne suffit pas toujours (deux règles peuvent être incompatibles) et ne remplace
-pas le signalement.
+ce fichier doit être corrigé. Une contradiction entre documents, ou entre un document et le code, **se tranche par
+l'agent** dès qu'elle ne relève pas d'une décision humaine obligatoire (§ 8) : il choisit l'option qui respecte les
+règles absolues (§ 1) et les invariants (§ 5), l'applique, puis la trace (§ 8.2). Si elle touche un cas du § 8.1,
+il s'arrête et la signale (§ 9).
 
 ---
 
@@ -70,6 +71,7 @@ Un nouveau script qui touche au cloud, à la VM ou aux secrets s'ajoute à cette
 - `scripts/tests/test-controle-acces-sauvegardes.sh` ;
 - `deploy/sauvegarde/tests/test-sauvegarde-prod.sh` (faux `docker` et faux `gcloud`, vrai `age`) ;
 - `scripts/recette/pile-locale.sh` (base SQLite temporaire, API et front locaux, recette Français multi-rôles dans Chromium ; aucun accès cloud, ne touche pas `api/pkp.db`) ;
+- `scripts/recette/accessibilite-francais.mjs` contre une pile locale jetable (axe-core, recomposition et parcours au clavier, comptes fictifs ; refuse toute adresse non locale, #231, #154) ;
 - `bash -n <script>` sur n'importe quel script (vérification de syntaxe, rien n'est exécuté).
 
 **Autres scripts** : lire et vérifier leurs effets ; demander une décision uniquement s'ils dépassent le périmètre autorisé ou restent ambigus. Le nom seul ne permet pas de décider : `installer-dev.sh` et `deployer-dev-iap.sh` ont des effets différents. Les interdictions explicites ci-dessus restent applicables.
@@ -209,8 +211,10 @@ Utiliser l'environnement virtuel du projet pour ces commandes.
 ```bash
 (cd api && python -m app.contenu verifier)
 (cd engine && pytest -q)
-(cd api && pytest -q -W ignore::DeprecationWarning)
+(cd api && pytest -q -n auto -W ignore::DeprecationWarning)
 ```
+
+Les tests de l'API tournent en parallèle (`pytest-xdist`, #240) : chaque test a sa propre base SQLite ; `-n 0` (ou sans `-n`) les exécute en série, par exemple pour déboguer.
 
 Après modification de `contenu/`, régénérer l'inventaire avant les contrôles, puis inclure le diff généré :
 
@@ -313,21 +317,43 @@ Et selon le sujet : `docs/DEPLOIEMENT.md` (infra), `docs/audit/` (sécurité), `
 
 ---
 
-## 8. Ce que l'agent ne décide pas seul
+## 8. Quand l'agent s'arrête, quand il décide
 
-- Les choix produit, tarifaires et juridiques (offres, licence, RGPD, CGI) : ce sont des décisions du propriétaire,
-  éventuellement avec un conseil externe.
-- La fusion d'une PR et la fermeture d'une issue.
-- La modification des protections de branche, des secrets, des règles IAM ou des environnements.
-- La validation pédagogique d'un contenu : un agent peut signaler, jamais valider à la place d'un professeur.
-- La résolution d'une contradiction entre documents ou entre un document et le code (§ 0).
+Décision du propriétaire du 27/11/2026 (#231) : **l'agent avance par défaut**. Il ne s'arrête que si une décision
+humaine est obligatoire.
+
+### 8.1 Décisions humaines obligatoires : les seuls cas d'arrêt
+
+| Cas | Exemples |
+|---|---|
+| **Coût financier supplémentaire** | Service ou ressource cloud payant, montée en gamme d'une VM ou d'une base, abonnement, licence payante, prestataire, minutes de CI au-delà du forfait gratuit, achat de nom de domaine |
+| **Juridique et données personnelles** | Nouvelle donnée personnelle, levée d'une restriction RGPD (`PKP_REDACTION_ACTIVE`, `PKP_PDF_FRANCAIS_OUVERT`…), licence, CGU/CGV, contrat, droit d'auteur incertain |
+| **Sécurité et accès** | Secrets, IAM, protections de branche, environnements, règles d'habilitation ou de validation, affaiblissement d'un invariant du § 5 |
+| **Production** | Déploiement, release, GO de production (`docs/VERSIONNING.md`), action sur DEV ou une instance partagée (§ 1) |
+| **Irréversible** | Suppression ou migration destructive de données réelles |
+| **Produit et commerce** | Offres, prix, périmètre commercial, ouverture publique d'un domaine |
+| **Pédagogie** | Validation d'un contenu à la place d'un professeur (V2-D15) |
+| **Gouvernance du dépôt** | Fusion d'une PR, fermeture d'une issue |
+
+### 8.2 Tout le reste : l'agent décide, trace et continue
+
+Ergonomie, design, découpage des PR, nommage, choix techniques réversibles, ordre de travail, contradiction entre
+documents sans effet sur le § 8.1 : l'agent choisit l'option qu'il recommande et l'applique **sans attendre**.
+
+1. Il consigne le choix dans `docs/DECISIONS.md`, avec la mention « arbitrage d'agent, révisable », la date et
+   l'issue.
+2. Il l'annonce dans la PR et dans le commentaire d'issue (§ 2.4), en une ligne par choix, avec l'option écartée.
+3. Le propriétaire peut le renverser à tout moment ; l'agent reprend alors le travail dans le sens indiqué.
+
+Présenter des options et attendre une réponse sur un point du § 8.2 est une **erreur de méthode** : cela bloque le
+travail sans protéger personne.
 
 ---
 
 ## 9. Signaler un blocage
 
-Si une règle empêche d'avancer, **ne pas contourner** : ouvrir un commentaire dans l'issue avec le blocage, les
-options et la recommandation. Le propriétaire tranche.
+Seulement pour un cas du § 8.1 : **ne pas contourner**, ouvrir un commentaire dans l'issue avec le blocage, le
+coût ou le risque, les options et la recommandation, puis continuer le reste du travail qui n'en dépend pas.
 
 ---
 

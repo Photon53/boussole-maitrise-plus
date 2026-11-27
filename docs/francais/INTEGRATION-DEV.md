@@ -149,6 +149,15 @@ Le déploiement importe la **version 2** de `FR3-DNB27-01` (quiz de six question
    diffusée.
 6. Non-régression : un élève d'anglais fait un quiz ; un élève de maths fait une séance.
 
+### 4 quinquies. Cours interactifs (#177) dans l'interface
+
+- Espace Français → onglet **Cours** : les chapitres de son périmètre, par niveau et par rubrique, avec le nombre de
+  questions validées et les classes où ils sont ouverts.
+- Validation des questions : un validateur de français (habilitation « validateur » Français collège, éventuellement
+  pour un niveau) a la page **Validation** dans l'espace professeur, limitée à son domaine et à son niveau ;
+  l'administrateur valide aussi depuis Administration → Exercices, filtre « Français collège ».
+- Une classe créée reçoit tous ses chapitres ouverts ; une classe déjà créée doit les cocher (onglet « Classes »).
+
 ## 5. Vérifications à relever
 
 | Contrôle | Attendu |

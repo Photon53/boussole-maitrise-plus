@@ -1,0 +1,1297 @@
+<!doctype html>
+<!-- Issue #231 — Maquettes haute fidélité et prototype de navigation du module Français (Claude) -->
+<title>Refonte Boussole Français</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* Mise en page : un studio de présentation (sommaire, appareil, notes) autour d'un « appareil » à largeur fixe.
+   Les écrans s'adaptent par requêtes de conteneur : le même balisage donne la version ordinateur (1280 px) et mobile (390 px).
+   Jetons : ceux de web/src/theme.css (charte #149), complétés des jetons proposés pour le Français (préfixe --fr-). */
+:root {
+  --primaire: #1f3a68; --action: #2f5bd3; --action-survol: #2549b0; --action-texte: #fff; --action-doux: #e8eefc;
+  --accent: #e07a1f; --accent-doux: #fdf0e3;
+  --francais: #0f6e66; --fr-doux: #e3f2f0; --fr-fort: #0a524c; --fr-trait: #b9ddd8;
+  --ok: #2b8a3e; --ok-doux: #e6f6ea; --alerte: #b35c00; --alerte-doux: #fff3e0; --ko: #c92a2a; --ko-doux: #fdecec;
+  --texte: #0f172a; --texte-doux: #475569; --texte-pale: #64748b;
+  --fond: #f8fafc; --surface: #fff; --surface-2: #f1f5f9; --bordure: #e2e8f0; --bordure-forte: #cbd5e1;
+  --nuit: #0b1426; --nuit-claire: #1b2f55; --bordure-nuit: #2a3b5c; --sur-nuit: #eef2fa; --sur-nuit-doux: #a9b6cf;
+  --nord: #f2a65a; --nord-texte: #0b1426;
+  --studio: #e9edf3; --papier: #fffdf8;
+  --rayon: 14px; --rayon-petit: 10px;
+  --ombre: 0 1px 2px rgb(15 23 42 / 5%), 0 8px 24px rgb(15 23 42 / 5%);
+  --ombre-haute: 0 18px 50px rgb(15 23 42 / 18%);
+  --police: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --police-titres: "Space Grotesk", "Inter", system-ui, sans-serif;
+  --police-lecture: "Literata", Georgia, "Times New Roman", serif;
+  --police-mono: ui-monospace, "Cascadia Code", Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --primaire: #9db4e8; --action: #7b93ff; --action-survol: #95a8ff; --action-texte: #0f1220; --action-doux: #232b48;
+    --accent: #f2a65a; --accent-doux: #3a2a18;
+    --francais: #5fd4c4; --fr-doux: #15302d; --fr-fort: #8fe3d8; --fr-trait: #2a5a54;
+    --ok: #63c27a; --ok-doux: #19301f; --alerte: #f0b35a; --alerte-doux: #3a2c14; --ko: #ff8787; --ko-doux: #3a1d1f;
+    --texte: #e8eaf2; --texte-doux: #a2a8bd; --texte-pale: #8d93a8;
+    --fond: #12141c; --surface: #1b1e29; --surface-2: #232736; --bordure: #2e3344; --bordure-forte: #3d4358;
+    --studio: #0d0f15; --papier: #1d1f27;
+    --ombre: none; --ombre-haute: 0 18px 50px rgb(0 0 0 / 55%);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --primaire: #9db4e8; --action: #7b93ff; --action-survol: #95a8ff; --action-texte: #0f1220; --action-doux: #232b48;
+  --accent: #f2a65a; --accent-doux: #3a2a18;
+  --francais: #5fd4c4; --fr-doux: #15302d; --fr-fort: #8fe3d8; --fr-trait: #2a5a54;
+  --ok: #63c27a; --ok-doux: #19301f; --alerte: #f0b35a; --alerte-doux: #3a2c14; --ko: #ff8787; --ko-doux: #3a1d1f;
+  --texte: #e8eaf2; --texte-doux: #a2a8bd; --texte-pale: #8d93a8;
+  --fond: #12141c; --surface: #1b1e29; --surface-2: #232736; --bordure: #2e3344; --bordure-forte: #3d4358;
+  --studio: #0d0f15; --papier: #1d1f27;
+  --ombre: none; --ombre-haute: 0 18px 50px rgb(0 0 0 / 55%);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--studio); color: var(--texte); font: 15px/1.5 var(--police); -webkit-font-smoothing: antialiased; }
+h1, h2, h3, h4 { font-family: var(--police-titres); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+p { margin: 0; }
+button, input, select, textarea { font: inherit; color: inherit; }
+a { color: var(--action); }
+:focus-visible { outline: 3px solid var(--action); outline-offset: 2px; border-radius: 6px; }
+.nuit :focus-visible, .barre-eleve :focus-visible { outline-color: var(--nord); }
+svg.i { width: 20px; height: 20px; flex: none; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+svg.i.petit { width: 16px; height: 16px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+
+/* ---------- Studio de présentation ---------- */
+.studio { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 24px; max-width: 1640px; margin: 0 auto;
+  padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.studio-entete { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 16px; }
+.studio-entete h1 { font-size: 1.6rem; }
+.studio-entete p { color: var(--texte-doux); max-width: 70ch; }
+.surtitre { font: 600 .72rem/1 var(--police); letter-spacing: .08em; text-transform: uppercase; color: var(--texte-pale); }
+.bascule { display: inline-flex; background: var(--surface); border: 1px solid var(--bordure); border-radius: 999px; padding: 3px; gap: 2px; }
+.bascule button { border: 0; background: transparent; padding: 7px 14px; border-radius: 999px; cursor: pointer; font-weight: 600; font-size: .88rem; color: var(--texte-doux); display: inline-flex; gap: 6px; align-items: center; }
+.bascule button[aria-pressed="true"] { background: var(--nuit); color: var(--sur-nuit); }
+.sommaire { position: sticky; top: 16px; align-self: start; display: grid; gap: 14px; }
+.sommaire nav { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 10px; }
+.sommaire h2 { font: 600 .72rem/1 var(--police); letter-spacing: .08em; text-transform: uppercase; color: var(--texte-pale); padding: 10px 8px 6px; }
+.sommaire ol { list-style: none; margin: 0; padding: 0; counter-reset: e; }
+.sommaire li a { display: flex; gap: 10px; align-items: baseline; padding: 6px 8px; border-radius: 8px; text-decoration: none; color: var(--texte); font-size: .9rem; }
+.sommaire li a::before { counter-increment: e; content: counter(e, decimal-leading-zero); font: 500 .75rem var(--police-mono); color: var(--texte-pale); }
+.sommaire li.sans-num a::before { content: "·"; }
+.sommaire li a[aria-current="page"] { background: var(--fr-doux); color: var(--fr-fort); font-weight: 600; }
+.scene { min-width: 0; display: grid; gap: 18px; justify-items: center; }
+.appareil { container-type: inline-size; container-name: app; width: 100%; max-width: 1280px; background: var(--fond);
+  border-radius: 12px; overflow: hidden; box-shadow: var(--ombre-haute); border: 1px solid var(--bordure); }
+.scene.mobile .appareil { max-width: 390px; border-radius: 34px; border: 8px solid #0a0d14; }
+.notes { width: 100%; max-width: 1280px; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.scene.mobile .notes { max-width: 900px; }
+.note { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 16px 18px; display: grid; gap: 8px; align-content: start; }
+.note h3 { font-size: .95rem; display: flex; gap: 8px; align-items: center; }
+.note ul { margin: 0; padding-left: 18px; color: var(--texte-doux); font-size: .9rem; display: grid; gap: 4px; }
+.note code { font: .82rem var(--police-mono); background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+.etiquette-maquette { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; width: 100%; max-width: 1280px; align-items: center; }
+.etiquette-maquette .titre { font: 600 1.1rem var(--police-titres); }
+.etiquette-maquette .meta { color: var(--texte-doux); font-size: .85rem; }
+@media (max-width: 980px) { .studio { grid-template-columns: 1fr; } .sommaire { position: static; } .sommaire ol { display: flex; flex-wrap: wrap; gap: 2px; } }
+
+/* ---------- Composants communs de l'application ---------- */
+.ecran { display: none; min-height: 760px; flex-direction: column; }
+.ecran.actif { display: flex; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid transparent; border-radius: var(--rayon-petit);
+  padding: 10px 16px; font-weight: 600; font-size: .94rem; cursor: pointer; text-decoration: none; line-height: 1.2; white-space: nowrap; }
+.btn.principal { background: var(--action); color: var(--action-texte); }
+.btn.principal:hover { background: var(--action-survol); }
+.btn.secondaire { background: var(--surface); color: var(--action); border-color: var(--bordure-forte); }
+.btn.discret { background: transparent; color: var(--texte-doux); padding-inline: 8px; }
+.btn.petit { padding: 6px 11px; font-size: .84rem; }
+.btn.danger { background: var(--surface); color: var(--ko); border-color: var(--ko); }
+.btn.ok { background: var(--ok); color: #fff; }
+.btn[disabled], .btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+.pastille { display: inline-flex; align-items: center; gap: 5px; font-size: .74rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: var(--surface-2); color: var(--texte-doux); }
+.pastille.fr { background: var(--fr-doux); color: var(--fr-fort); }
+.pastille.ok { background: var(--ok-doux); color: var(--ok); }
+.pastille.alerte { background: var(--alerte-doux); color: var(--alerte); }
+.pastille.ko { background: var(--ko-doux); color: var(--ko); }
+.pastille.action { background: var(--action-doux); color: var(--action); }
+.pastille svg.i { width: 13px; height: 13px; stroke-width: 2.4; }
+.panneau { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 20px; min-width: 0; }
+.panneau > h2 { font-size: 1.05rem; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.panneau > h2 small { font: 500 .82rem var(--police); color: var(--texte-doux); }
+.doux { color: var(--texte-doux); }
+.pale { color: var(--texte-pale); font-size: .85rem; }
+.jauge { height: 8px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+.jauge > span { display: block; height: 100%; background: var(--francais); border-radius: 999px; }
+.jauge.mince { height: 5px; }
+.liste { list-style: none; margin: 0; padding: 0; }
+.liste > li { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--bordure); min-width: 0; }
+.liste > li:first-child { border-top: 0; padding-top: 2px; }
+.liste .quoi { flex: 1; min-width: 0; }
+.liste .quoi b { display: block; font-weight: 600; }
+.liste .quoi span { color: var(--texte-doux); font-size: .86rem; }
+.puce-rub { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; background: var(--fr-doux); color: var(--francais); flex: none; }
+.ferme { display: flex; gap: 12px; align-items: flex-start; background: var(--surface-2); border: 1px dashed var(--bordure-forte); border-radius: var(--rayon-petit); padding: 12px 14px; color: var(--texte-doux); font-size: .88rem; }
+.ferme svg.i { margin-top: 1px; }
+.fil { font-size: .84rem; color: var(--texte-doux); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.fil a { color: var(--texte-doux); }
+.tableau-defile { overflow-x: auto; }
+table.donnees { width: 100%; border-collapse: collapse; font-size: .88rem; font-variant-numeric: tabular-nums; }
+table.donnees th { text-align: left; font: 600 .74rem var(--police); letter-spacing: .05em; text-transform: uppercase; color: var(--texte-pale); padding: 8px 10px; border-bottom: 1px solid var(--bordure); white-space: nowrap; }
+table.donnees td { padding: 10px; border-bottom: 1px solid var(--bordure); vertical-align: middle; }
+table.donnees tr:last-child td { border-bottom: 0; }
+.niv { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; font-weight: 600; }
+.niv::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: currentColor; }
+.niv.m { color: var(--ok); } .niv.c { color: var(--action); } .niv.r { color: var(--alerte); } .niv.n { color: var(--texte-pale); }
+.niv.n::before { background: transparent; border: 1.5px solid currentColor; }
+
+/* Barre élève (cadre sombre, charte #149) */
+.barre-eleve { background: var(--nuit); color: var(--sur-nuit); display: flex; align-items: center; gap: 22px; padding: 0 28px; height: 64px; }
+.logo { display: flex; align-items: center; gap: 10px; font: 600 1.02rem var(--police-titres); color: var(--sur-nuit); text-decoration: none; white-space: nowrap; }
+.logo .rose { width: 30px; height: 30px; border-radius: 8px; background: var(--nuit-claire); display: grid; place-items: center; }
+.logo b { color: var(--nord); font-weight: 600; }
+.matiere { display: inline-flex; align-items: center; gap: 6px; font-size: .82rem; color: var(--sur-nuit-doux); border: 1px solid var(--bordure-nuit); border-radius: 999px; padding: 4px 10px; }
+.matiere i { width: 8px; height: 8px; border-radius: 50%; background: #5fd4c4; }
+.nav-haut { display: flex; gap: 4px; height: 100%; }
+.nav-haut a { display: flex; align-items: center; gap: 8px; padding: 0 14px; color: var(--sur-nuit-doux); text-decoration: none; font-weight: 500; font-size: .93rem; border-bottom: 3px solid transparent; border-top: 3px solid transparent; }
+.nav-haut a[aria-current="page"] { color: var(--sur-nuit); border-bottom-color: var(--nord); }
+.qui { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: .88rem; color: var(--sur-nuit-doux); white-space: nowrap; }
+.avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--nuit-claire); color: var(--sur-nuit); display: grid; place-items: center; font: 600 .85rem var(--police-titres); border: 1px solid var(--bordure-nuit); }
+.nav-bas { display: none; }
+.corps { flex: 1; padding: 28px 32px 40px; display: grid; gap: 22px; align-content: start; }
+.corps.large { max-width: none; }
+.titre-page { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; }
+.titre-page h1 { font-size: 1.85rem; line-height: 1.15; }
+.titre-page p { color: var(--texte-doux); margin-top: 4px; }
+
+/* Accueil */
+.reprise { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; padding: 24px 26px;
+  background: linear-gradient(0deg, var(--surface), var(--surface)); border: 1px solid var(--fr-trait); border-radius: var(--rayon); position: relative; overflow: hidden; }
+.reprise .surtitre { color: var(--francais); }
+.reprise h2 { font-size: 1.45rem; margin: 6px 0 4px; }
+.etapes-mini { display: flex; gap: 4px; margin: 14px 0 8px; max-width: 520px; }
+.etapes-mini span { flex: 1; height: 6px; border-radius: 999px; background: var(--surface-2); }
+.etapes-mini span.fait { background: var(--francais); }
+.etapes-mini span.encours { background: linear-gradient(90deg, var(--francais) 50%, var(--surface-2) 50%); }
+.rubriques { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.rubrique { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 18px; display: grid; gap: 10px; text-decoration: none; color: inherit; align-content: start; transition: border-color .15s, transform .15s; }
+.rubrique:hover { border-color: var(--francais); transform: translateY(-2px); }
+.rubrique h3 { font-size: 1.05rem; }
+.rubrique p { font-size: .87rem; color: var(--texte-doux); }
+.rubrique .bas { display: flex; justify-content: space-between; align-items: center; font-size: .8rem; color: var(--texte-doux); margin-top: 4px; }
+.deux-col { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+.pile { display: grid; gap: 18px; min-width: 0; }
+
+/* Catalogue */
+.filtres { display: flex; gap: 8px; flex-wrap: wrap; }
+.filtre { border: 1px solid var(--bordure-forte); background: var(--surface); border-radius: 999px; padding: 7px 14px; font-weight: 600; font-size: .86rem; cursor: pointer; display: inline-flex; gap: 7px; align-items: center; color: var(--texte-doux); }
+.filtre[aria-pressed="true"] { background: var(--fr-fort); border-color: var(--fr-fort); color: #fff; }
+.filtre .n { font: 500 .78rem var(--police-mono); opacity: .8; }
+.cours-grille { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.carte-cours { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 18px; display: grid; gap: 12px; grid-template-rows: auto auto 1fr auto; }
+.carte-cours .haut { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.carte-cours .rub { display: inline-flex; align-items: center; gap: 6px; font-size: .78rem; font-weight: 600; color: var(--francais); text-transform: uppercase; letter-spacing: .05em; }
+.carte-cours h3 { font-size: 1.08rem; line-height: 1.3; }
+.carte-cours p { font-size: .87rem; color: var(--texte-doux); }
+.carte-cours .pied { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding-top: 12px; border-top: 1px solid var(--bordure); font-size: .82rem; color: var(--texte-doux); }
+.section-titre { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.section-titre h2 { font-size: 1.15rem; }
+
+/* Leçon et activités : 7 étapes */
+.lecon { display: grid; grid-template-columns: 230px minmax(0, 1fr) 280px; gap: 0; flex: 1; }
+.rail { border-right: 1px solid var(--bordure); padding: 24px 18px; background: var(--surface); display: grid; gap: 16px; align-content: start; }
+.rail .cours-nom { font: 600 .95rem/1.3 var(--police-titres); }
+.etapes { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; counter-reset: et; }
+.etapes li { display: grid; grid-template-columns: 26px 1fr; gap: 10px; align-items: center; padding: 8px 8px; border-radius: 8px; font-size: .9rem; color: var(--texte-doux); position: relative; }
+.etapes li .rond { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--bordure-forte); display: grid; place-items: center; font: 600 .78rem var(--police-titres); background: var(--surface); }
+.etapes li.fait .rond { background: var(--francais); border-color: var(--francais); color: #fff; }
+.etapes li.actif { background: var(--fr-doux); color: var(--fr-fort); font-weight: 600; }
+.etapes li.actif .rond { border-color: var(--francais); color: var(--francais); }
+.etapes li small { display: block; font-weight: 400; font-size: .76rem; color: var(--texte-pale); }
+.zone-lecture { padding: 32px 44px 48px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-content: start; min-width: 0; }
+.zone-lecture .entete-etape { display: grid; gap: 6px; }
+.zone-lecture .entete-etape h1 { font-size: 1.9rem; }
+.lecture { font-family: var(--police-lecture); font-size: 1.125rem; line-height: 1.72; max-width: 66ch; color: var(--texte); display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
+.lecture strong { font-weight: 600; }
+.lecture .gn { background: var(--fr-doux); border-bottom: 2px solid var(--francais); padding: 0 2px; border-radius: 3px; }
+.lecture .cod { background: var(--action-doux); border-bottom: 2px solid var(--action); padding: 0 2px; border-radius: 3px; }
+.encadre { border-radius: var(--rayon-petit); padding: 16px 18px; display: grid; gap: 8px; font-family: var(--police); font-size: .95rem; line-height: 1.55; }
+.encadre .surtitre { display: flex; align-items: center; gap: 6px; }
+.encadre.methode { background: var(--accent-doux); border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent); }
+.encadre.methode .surtitre { color: var(--alerte); }
+.encadre.regle { background: var(--fr-doux); border: 1px solid var(--fr-trait); }
+.encadre.regle .surtitre { color: var(--fr-fort); }
+.encadre ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; }
+.tableau-regle { width: 100%; border-collapse: collapse; font-family: var(--police); font-size: .92rem; }
+.tableau-regle th, .tableau-regle td { padding: 9px 12px; border-bottom: 1px solid var(--bordure); text-align: left; }
+.tableau-regle th { background: var(--surface-2); font-weight: 600; font-size: .82rem; }
+.aside { border-left: 1px solid var(--bordure); padding: 24px 20px; display: grid; gap: 18px; align-content: start; background: var(--surface); }
+.aside h3 { font-size: .92rem; display: flex; gap: 8px; align-items: center; }
+.aside .bloc { display: grid; gap: 8px; font-size: .88rem; }
+.aside .bloc ul { margin: 0; padding-left: 18px; color: var(--texte-doux); display: grid; gap: 6px; }
+.navigation-etape { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; padding-top: 18px; border-top: 1px solid var(--bordure); max-width: 66ch; }
+.etape-mobile { display: none; }
+
+/* Exercice */
+.activite { padding: 30px 44px 44px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 22px; align-content: start; max-width: 820px; width: 100%; min-width: 0; }
+.progres-q { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.points { display: flex; gap: 6px; }
+.points span { width: 26px; height: 6px; border-radius: 999px; background: var(--surface-2); }
+.points span.ok { background: var(--ok); } .points span.ko { background: var(--alerte); } .points span.cour { background: var(--action); }
+.enonce { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 26px 28px; display: grid; gap: 18px; }
+.enonce .consigne { font-weight: 600; font-size: 1.02rem; }
+.phrase { font-family: var(--police-lecture); font-size: 1.5rem; line-height: 1.5; padding: 18px 20px; background: var(--papier); border-radius: var(--rayon-petit); border: 1px solid var(--bordure); }
+.phrase .cible { text-decoration: underline; text-decoration-color: var(--francais); text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.choix { display: grid; gap: 10px; }
+.choix label { display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; border: 1.5px solid var(--bordure-forte); border-radius: var(--rayon-petit); padding: 12px 14px; cursor: pointer; background: var(--surface); font-weight: 500; }
+.choix label .lettre { width: 34px; height: 34px; border-radius: 8px; background: var(--surface-2); display: grid; place-items: center; font: 600 .95rem var(--police-titres); }
+.choix input { position: absolute; opacity: 0; pointer-events: none; }
+.choix label:has(input:checked) { border-color: var(--action); background: var(--action-doux); }
+.choix label:has(input:checked) .lettre { background: var(--action); color: var(--action-texte); }
+.choix label:has(input:focus-visible) { outline: 3px solid var(--action); outline-offset: 2px; }
+.choix label.juste { border-color: var(--ok); background: var(--ok-doux); }
+.choix label.juste .lettre { background: var(--ok); color: #fff; }
+.choix label.faux { border-color: var(--alerte); background: var(--alerte-doux); }
+.choix label.faux .lettre { background: var(--alerte); color: #fff; }
+.actions { display: flex; gap: 10px; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.indices { display: flex; flex-wrap: wrap; gap: 8px; }
+.saisie { display: grid; gap: 8px; }
+.saisie label { font-weight: 600; font-size: .9rem; }
+.saisie input { font-family: var(--police-lecture); font-size: 1.35rem; padding: 12px 16px; border: 1.5px solid var(--bordure-forte); border-radius: var(--rayon-petit); background: var(--surface); width: 100%; max-width: 380px; }
+.saisie input:focus { outline: 3px solid var(--action); outline-offset: 1px; border-color: var(--action); }
+.clavier { display: flex; flex-wrap: wrap; gap: 6px; }
+.clavier button { width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--bordure-forte); background: var(--surface); font: 500 1.05rem var(--police-lecture); cursor: pointer; }
+.clavier button:hover { border-color: var(--action); }
+details.rappel { border: 1px solid var(--bordure); border-radius: var(--rayon-petit); background: var(--surface); }
+details.rappel summary { cursor: pointer; padding: 12px 14px; font-weight: 600; font-size: .9rem; display: flex; gap: 8px; align-items: center; list-style: none; }
+details.rappel summary::-webkit-details-marker { display: none; }
+details.rappel > div { padding: 0 16px 14px; font-size: .9rem; color: var(--texte-doux); display: grid; gap: 8px; }
+
+/* Correction */
+.verdict { display: flex; gap: 14px; align-items: flex-start; padding: 16px 18px; border-radius: var(--rayon-petit); background: var(--alerte-doux); color: var(--texte); border: 1px solid color-mix(in srgb, var(--alerte) 40%, transparent); }
+.verdict .ico { width: 36px; height: 36px; border-radius: 50%; background: var(--alerte); color: #fff; display: grid; place-items: center; flex: none; }
+.verdict h2 { font-size: 1.1rem; }
+.etapes-corr { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; counter-reset: c; }
+.etapes-corr li { display: grid; grid-template-columns: 28px 1fr; gap: 12px; align-items: start; font-family: var(--police-lecture); font-size: 1.05rem; line-height: 1.55; }
+.etapes-corr li::before { counter-increment: c; content: counter(c); width: 28px; height: 28px; border-radius: 50%; background: var(--fr-doux); color: var(--fr-fort); font: 600 .85rem var(--police-titres); display: grid; place-items: center; }
+
+/* Compréhension */
+.comprehension { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); flex: 1; }
+.texte-source { background: var(--papier); border-right: 1px solid var(--bordure); padding: 28px 36px 40px; display: grid; gap: 14px; align-content: start; }
+.texte-source h2 { font-family: var(--police-lecture); font-weight: 600; font-size: 1.35rem; }
+.lignes { list-style: none; margin: 0; padding: 0; font-family: var(--police-lecture); font-size: 1.08rem; line-height: 1.7; }
+.lignes li { display: grid; grid-template-columns: 34px 1fr; gap: 8px; border-radius: 4px; }
+.lignes li::before { content: attr(data-n); font: 500 .78rem/2.2 var(--police-mono); color: var(--texte-pale); text-align: right; padding-right: 6px; }
+.lignes li.plage { box-shadow: inset 3px 0 0 var(--fr-trait); }
+.lignes li.plage::before { color: var(--fr-fort); font-weight: 700; }
+.questions { padding: 28px 32px 40px; display: grid; gap: 16px; align-content: start; }
+.onglets-q { display: flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: 10px; width: max-content; max-width: 100%; overflow-x: auto; }
+.onglets-q button { border: 0; background: transparent; padding: 7px 12px; border-radius: 7px; font-weight: 600; font-size: .86rem; color: var(--texte-doux); cursor: pointer; white-space: nowrap; }
+.onglets-q button[aria-selected="true"] { background: var(--surface); color: var(--texte); box-shadow: var(--ombre); }
+.q-redigee { display: grid; gap: 10px; background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 18px; }
+.q-redigee textarea { min-height: 120px; resize: vertical; padding: 12px; border-radius: var(--rayon-petit); border: 1px solid var(--bordure-forte); background: var(--surface-2); font-family: var(--police-lecture); font-size: 1rem; }
+.bascule-texte { display: none; }
+
+/* Rédaction */
+.redaction { display: grid; grid-template-columns: minmax(0, 1fr) 320px; flex: 1; }
+.feuille { padding: 28px 40px 40px; display: grid; gap: 18px; align-content: start; }
+.editeur { background: var(--papier); border: 1px solid var(--bordure-forte); border-radius: var(--rayon); min-height: 340px; display: grid; grid-template-rows: auto 1fr auto; overflow: hidden; }
+.editeur .barre-outils { display: flex; gap: 6px; padding: 8px 10px; border-bottom: 1px solid var(--bordure); background: var(--surface); flex-wrap: wrap; align-items: center; }
+.editeur .page { padding: 22px 26px; font-family: var(--police-lecture); font-size: 1.08rem; line-height: 2; color: var(--texte-pale);
+  background-image: repeating-linear-gradient(transparent 0 calc(2em - 1px), var(--bordure) calc(2em - 1px) 2em); background-position: 0 22px; }
+.editeur .compteur { display: flex; justify-content: space-between; gap: 10px; padding: 8px 14px; border-top: 1px solid var(--bordure); font-size: .82rem; color: var(--texte-doux); background: var(--surface); flex-wrap: wrap; }
+.criteres { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.criteres li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; font-size: .9rem; align-items: start; }
+.criteres li .case { width: 20px; height: 20px; border: 1.5px solid var(--bordure-forte); border-radius: 5px; margin-top: 1px; }
+.mots { display: flex; flex-wrap: wrap; gap: 6px; }
+.mots span { font-family: var(--police-lecture); font-size: .92rem; background: var(--surface-2); border-radius: 6px; padding: 3px 9px; }
+
+/* Espaces adultes */
+.adulte { display: grid; grid-template-columns: 236px minmax(0, 1fr); flex: 1; }
+.cote { background: var(--nuit); color: var(--sur-nuit); padding: 18px 12px; display: grid; grid-template-rows: auto 1fr auto; gap: 16px; }
+.cote .groupe { display: grid; gap: 2px; align-content: start; }
+.cote .groupe + .groupe { margin-top: 12px; }
+.cote .groupe-titre { font: 600 .68rem var(--police); letter-spacing: .1em; text-transform: uppercase; color: var(--sur-nuit-doux); padding: 10px 10px 6px; }
+.cote a { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 9px; color: var(--sur-nuit-doux); text-decoration: none; font-size: .9rem; font-weight: 500; }
+.cote a[aria-current="page"] { background: var(--nuit-claire); color: var(--sur-nuit); box-shadow: inset 3px 0 0 var(--nord); }
+.cote a .compte { margin-left: auto; font: 600 .72rem var(--police); background: var(--nord); color: var(--nord-texte); border-radius: 999px; padding: 1px 7px; }
+.cote .profil { border-top: 1px solid var(--bordure-nuit); padding: 12px 10px 0; font-size: .85rem; color: var(--sur-nuit-doux); display: grid; gap: 2px; }
+.cote .profil b { color: var(--sur-nuit); font-weight: 600; }
+.cote-mobile { display: none; }
+.principal-adulte { padding: 26px 32px 40px; display: grid; gap: 20px; align-content: start; min-width: 0; }
+.chiffres { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.chiffre { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 16px 18px; display: grid; gap: 4px; }
+.chiffre .val { font: 600 1.8rem/1.1 var(--police-titres); font-variant-numeric: tabular-nums; }
+.chiffres.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.chiffre .val, .niv { white-space: nowrap; }
+.chiffre .lib { font-size: .84rem; color: var(--texte-doux); }
+.reglage { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 12px 0; border-top: 1px solid var(--bordure); }
+.reglage:first-of-type { border-top: 0; }
+.interrupteur { width: 44px; height: 24px; border-radius: 999px; background: var(--bordure-forte); position: relative; flex: none; }
+.interrupteur::after { content: ""; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; }
+.interrupteur.on { background: var(--ok); } .interrupteur.on::after { left: 23px; }
+.select { border: 1px solid var(--bordure-forte); background: var(--surface); border-radius: 9px; padding: 8px 12px; font-size: .9rem; }
+.file-val { display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 18px; align-items: start; }
+.file-val .item { display: grid; gap: 4px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--bordure); background: var(--surface); cursor: pointer; }
+.file-val .item[aria-current="true"] { border-color: var(--action); box-shadow: inset 3px 0 0 var(--action); }
+.apercu-cadre { border: 1px dashed var(--bordure-forte); border-radius: var(--rayon); padding: 16px; display: grid; gap: 12px; background: var(--fond); }
+.corrige-cadre { border-radius: var(--rayon); padding: 16px; display: grid; gap: 8px; background: var(--alerte-doux); border: 1px solid color-mix(in srgb, var(--alerte) 35%, transparent); }
+
+/* Avant / après */
+.comparaison { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 24px; }
+.comparaison figure { margin: 0; display: grid; gap: 8px; align-content: start; }
+.comparaison figcaption { font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.comparaison img { width: 100%; border-radius: 10px; border: 1px solid var(--bordure); display: block; }
+.comparaison .constats { grid-column: 1 / -1; }
+
+/* ---------- Version mobile (conteneur étroit) ---------- */
+@container app (max-width: 700px) {
+  .ecran { min-height: 780px; }
+  .barre-eleve { height: 56px; padding: 0 16px; gap: 10px; }
+  .barre-eleve .nav-haut, .barre-eleve .qui span.nom { display: none; }
+  .barre-eleve .matiere { display: none; }
+  .logo span.texte-logo { font-size: .95rem; }
+  .nav-bas { display: grid; grid-template-columns: repeat(4, 1fr); position: sticky; bottom: 0; background: var(--surface); border-top: 1px solid var(--bordure); padding: 6px 4px 10px; margin-top: auto; z-index: 2; }
+  .nav-bas a { display: grid; justify-items: center; gap: 2px; font-size: .7rem; font-weight: 600; color: var(--texte-pale); text-decoration: none; padding: 4px 0; }
+  .nav-bas a[aria-current="page"] { color: var(--fr-fort); }
+  .nav-bas a svg.i { width: 22px; height: 22px; }
+  .corps { padding: 18px 16px 24px; gap: 16px; }
+  .titre-page h1 { font-size: 1.45rem; }
+  .reprise { grid-template-columns: 1fr; padding: 18px; gap: 14px; }
+  .reprise h2 { font-size: 1.2rem; }
+  .reprise .btn { width: 100%; }
+  .rubriques { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .rubrique { padding: 14px; gap: 6px; }
+  .rubrique p { display: none; }
+  .deux-col, .cours-grille, .chiffres, .file-val, .comparaison { grid-template-columns: 1fr; }
+  .chiffres { grid-template-columns: 1fr 1fr; }
+  .chiffres.trois { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .chiffres.trois .chiffre { padding: 12px; }
+  .chiffres.trois .val { font-size: 1.3rem; }
+  .filtres { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+  .lecon { grid-template-columns: 1fr; }
+  .rail, .aside { display: none; }
+  .etape-mobile { display: grid; gap: 8px; padding: 14px 16px; background: var(--surface); border-bottom: 1px solid var(--bordure); }
+  .etape-mobile .ligne { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: .84rem; }
+  .zone-lecture, .activite { padding: 20px 16px 28px; gap: 16px; }
+  .zone-lecture .entete-etape h1 { font-size: 1.4rem; }
+  .lecture { font-size: 1.06rem; }
+  .enonce { padding: 18px 16px; }
+  .phrase { font-size: 1.2rem; padding: 14px; }
+  .comprehension { grid-template-columns: 1fr; }
+  .bascule-texte { display: flex; margin: 12px 16px 0; }
+  .comprehension .questions { display: none; }
+  .texte-source { padding: 18px 16px 24px; border-right: 0; }
+  .redaction { grid-template-columns: 1fr; }
+  .redaction .aside { display: grid; border-left: 0; border-top: 1px solid var(--bordure); }
+  .feuille { padding: 20px 16px; }
+  .adulte { grid-template-columns: 1fr; }
+  .cote { display: none; }
+  .cote-mobile { display: flex; align-items: center; gap: 10px; background: var(--nuit); color: var(--sur-nuit); padding: 0 16px; height: 56px; }
+  .cote-mobile .btn { margin-left: auto; color: var(--sur-nuit); }
+  .principal-adulte { padding: 18px 16px 28px; }
+  .masque-mobile { display: none !important; }
+  .btn { white-space: normal; text-align: center; }
+  .panneau > h2 { flex-wrap: wrap; }
+  .navigation-etape .btn.principal { flex: 1; }
+}
+@container app (min-width: 701px) { .seul-mobile { display: none !important; } }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-accueil" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-cours" viewBox="0 0 24 24"><path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z"/></symbol>
+  <symbol id="i-progres" viewBox="0 0 24 24"><path d="M4 20V11M10 20V5M16 20v-6M2 20h20"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/></symbol>
+  <symbol id="i-lire" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-grammaire" viewBox="0 0 24 24"><rect x="3" y="4" width="8" height="6" rx="1.5"/><rect x="13" y="4" width="8" height="6" rx="1.5"/><rect x="8" y="14" width="8" height="6" rx="1.5"/><path d="M7 10v2h10v-2M12 12v2"/></symbol>
+  <symbol id="i-conjugaison" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v4h4M12 8v4l3 2"/></symbol>
+  <symbol id="i-plume" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></symbol>
+  <symbol id="i-croix" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-droite" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-gauche" viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+  <symbol id="i-cadenas" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-oeil" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-lien" viewBox="0 0 24 24"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></symbol>
+  <symbol id="i-classe" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20a6 6 0 0 1 12 0M16 4.5a3 3 0 0 1 0 6M21 20a5 5 0 0 0-4-4.9"/></symbol>
+  <symbol id="i-bouclier" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></symbol>
+  <symbol id="i-reglages" viewBox="0 0 24 24"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></symbol>
+  <symbol id="i-ampoule" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+  <symbol id="i-alerte" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v4M12 17.5v.01"/></symbol>
+  <symbol id="i-horloge" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  <symbol id="i-pdf" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 12a8 8 0 0 1-11.8 7L4 20l1-4.6A8 8 0 1 1 21 12z"/></symbol>
+  <symbol id="i-cible" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-recharger" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></symbol>
+  <symbol id="i-boussole" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 5l2.2 7L12 19l-2.2-7z" fill="currentColor" stroke="none"/></symbol>
+  <symbol id="i-texte" viewBox="0 0 24 24"><path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M8.5 12h7M8.5 15h7M8.5 18h4"/></symbol>
+  <symbol id="i-loupe" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.3-4.3"/></symbol>
+</svg>
+
+<div class="studio">
+  <header class="studio-entete">
+    <div>
+      <p class="surtitre">Issue #231 · refonte de l'interface Français · à valider par le propriétaire</p>
+      <h1>Boussole Français : maquettes et prototype</h1>
+      <p>Maquettes haute fidélité, navigables. Données d'utilisateurs fictives ; textes, questions et corrigés tirés des huit cours de #177.
+        Le même écran s'affiche en version ordinateur ou mobile.</p>
+    </div>
+    <div class="bascule" role="group" aria-label="Taille d'écran">
+      <button type="button" id="b-ordi" aria-pressed="true"><svg class="i petit"><use href="#i-progres"/></svg>Ordinateur</button>
+      <button type="button" id="b-mobile" aria-pressed="false"><svg class="i petit"><use href="#i-menu"/></svg>Mobile</button>
+    </div>
+  </header>
+
+  <aside class="sommaire">
+    <nav aria-label="Écrans">
+      <h2>Élève</h2>
+      <ol id="sommaire-eleve"></ol>
+      <h2>Adultes</h2>
+      <ol id="sommaire-adultes" start="10"></ol>
+      <h2>Audit</h2>
+      <ol id="sommaire-audit"><li class="sans-num"><a href="#avant-apres">Avant / après</a></li></ol>
+    </nav>
+  </aside>
+
+  <main class="scene" id="scene">
+    <div class="etiquette-maquette"><span class="titre" id="titre-ecran"></span><span class="meta" id="meta-ecran"></span></div>
+    <div class="appareil" id="appareil">
+
+<!-- ============ 1. ACCUEIL FRANÇAIS ============ -->
+<section class="ecran" data-ecran="accueil" data-titre="Accueil Français" data-role="Élève · Lina4, 5e B (classe pilote)">
+  <header class="barre-eleve">
+    <a class="logo" href="#accueil"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a>
+    <span class="matiere"><i></i>Français · 5e</span>
+    <nav class="nav-haut" aria-label="Navigation élève">
+      <a href="#accueil" aria-current="page">Accueil</a><a href="#catalogue">Mes cours</a><a href="#bilan">Ma progression</a>
+    </nav>
+    <div class="qui"><span class="nom">Lina4 · 5e B</span><span class="avatar">L</span></div>
+  </header>
+  <div class="corps">
+    <div class="titre-page">
+      <div><h1>Bonjour Lina</h1><p>Mardi 1er décembre · ta professeure a ouvert 3 cours pour la 5e B.</p></div>
+      <span class="pastille fr masque-mobile"><svg class="i"><use href="#i-cible"/></svg>Parcours guidé</span>
+    </div>
+
+    <section class="reprise" aria-labelledby="t-reprise">
+      <div>
+        <p class="surtitre">Reprendre où tu t'es arrêtée</p>
+        <h2 id="t-reprise">Les fonctions : sujet, COD, COI et complément du nom</h2>
+        <p class="doux">Grammaire · étape 4 sur 7 : <b>S'entraîner</b> · 3 questions sur 9 faites</p>
+        <div class="etapes-mini" aria-hidden="true"><span class="fait"></span><span class="fait"></span><span class="fait"></span><span class="encours"></span><span></span><span></span><span></span></div>
+      </div>
+      <a class="btn principal" href="#grammaire">Continuer <svg class="i"><use href="#i-droite"/></svg></a>
+    </section>
+
+    <section aria-labelledby="t-rub" style="display:grid;gap:12px">
+      <div class="section-titre"><h2 id="t-rub" style="font-size:1.15rem">Les quatre rubriques</h2><a href="#catalogue" class="pale">Tous mes cours</a></div>
+      <div class="rubriques">
+        <a class="rubrique" href="#catalogue"><span class="puce-rub"><svg class="i"><use href="#i-texte"/></svg></span><h3>Lire et comprendre</h3><p>Textes, compréhension, préparation au brevet.</p><span class="bas"><span>0 cours ouvert</span><span class="pastille">3e</span></span></a>
+        <a class="rubrique" href="#catalogue"><span class="puce-rub"><svg class="i"><use href="#i-grammaire"/></svg></span><h3>Grammaire</h3><p>Nature et fonctions des mots, orthographe.</p><span class="bas"><span>1 cours en cours</span><span class="pastille fr">33 %</span></span></a>
+        <a class="rubrique" href="#catalogue"><span class="puce-rub"><svg class="i"><use href="#i-conjugaison"/></svg></span><h3>Conjugaison</h3><p>Temps, modes et terminaisons.</p><span class="bas"><span>1 cours à commencer</span><span class="pastille action">Nouveau</span></span></a>
+        <a class="rubrique" href="#redaction"><span class="puce-rub"><svg class="i"><use href="#i-plume"/></svg></span><h3>Rédaction</h3><p>Écrire, relire, réécrire avec ta professeure.</p><span class="bas"><span>1 sujet</span><span class="pastille">Sur copie</span></span></a>
+      </div>
+    </section>
+
+    <div class="deux-col">
+      <section class="panneau" aria-labelledby="t-afaire">
+        <h2 id="t-afaire">À faire cette semaine <small>donné par Mme Martin</small></h2>
+        <ul class="liste">
+          <li><span class="puce-rub"><svg class="i"><use href="#i-grammaire"/></svg></span><span class="quoi"><b>Finir l'entraînement sur les fonctions</b><span>Grammaire · 6 questions restantes · environ 15 min</span></span><a class="btn secondaire petit" href="#grammaire">Ouvrir</a></li>
+          <li><span class="puce-rub"><svg class="i"><use href="#i-conjugaison"/></svg></span><span class="quoi"><b>Découvrir l'imparfait et le passé simple</b><span>Conjugaison · pour jeudi 3 décembre</span></span><a class="btn secondaire petit" href="#conjugaison">Ouvrir</a></li>
+          <li><span class="puce-rub"><svg class="i"><use href="#i-plume"/></svg></span><span class="quoi"><b>Raconter un événement passé</b><span>Rédaction · à rédiger sur ta copie, 20 lignes</span></span><a class="btn secondaire petit" href="#redaction">Consigne</a></li>
+        </ul>
+      </section>
+      <div class="pile">
+        <section class="panneau" aria-labelledby="t-retours">
+          <h2 id="t-retours">Retours de ta professeure</h2>
+          <ul class="liste">
+            <li><span class="quoi"><b>« Pense au test c'est … qui. »</b><span>Sur « Les fonctions » · hier</span></span></li>
+          </ul>
+        </section>
+        <section class="panneau" aria-labelledby="t-res">
+          <h2 id="t-res">Ressources de ta professeure</h2>
+          <ul class="liste">
+            <li><svg class="i"><use href="#i-lien"/></svg><span class="quoi"><b>Fiche : les pronoms COD et COI</b><span>Lien · Les fonctions</span></span></li>
+            <li><svg class="i"><use href="#i-pdf"/></svg><span class="quoi"><b>Tableau des fonctions</b><span>PDF · bientôt disponible</span></span><span class="pastille"><svg class="i"><use href="#i-cadenas"/></svg>Fermé</span></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+  </div>
+  <nav class="nav-bas" aria-label="Navigation élève (mobile)">
+    <a href="#accueil" aria-current="page"><svg class="i"><use href="#i-accueil"/></svg>Accueil</a>
+    <a href="#catalogue"><svg class="i"><use href="#i-cours"/></svg>Cours</a>
+    <a href="#bilan"><svg class="i"><use href="#i-progres"/></svg>Progression</a>
+    <a href="#accueil"><svg class="i"><use href="#i-plus"/></svg>Plus</a>
+  </nav>
+</section>
+
+<!-- ============ 2. CATALOGUE ============ -->
+<section class="ecran" data-ecran="catalogue" data-titre="Catalogue des cours" data-role="Élève · Lina4, 5e B">
+  <header class="barre-eleve">
+    <a class="logo" href="#accueil"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a>
+    <span class="matiere"><i></i>Français · 5e</span>
+    <nav class="nav-haut" aria-label="Navigation élève"><a href="#accueil">Accueil</a><a href="#catalogue" aria-current="page">Mes cours</a><a href="#bilan">Ma progression</a></nav>
+    <div class="qui"><span class="nom">Lina4 · 5e B</span><span class="avatar">L</span></div>
+  </header>
+  <div class="corps">
+    <div class="titre-page"><div><h1>Mes cours</h1><p>Les cours ouverts par ta professeure. Leçons, entraînements et dossiers se présentent de la même façon.</p></div></div>
+    <div class="filtres" role="group" aria-label="Filtrer par rubrique">
+      <button class="filtre" aria-pressed="true">Toutes <span class="n">3</span></button>
+      <button class="filtre" aria-pressed="false"><svg class="i petit"><use href="#i-texte"/></svg>Lire et comprendre <span class="n">0</span></button>
+      <button class="filtre" aria-pressed="false"><svg class="i petit"><use href="#i-grammaire"/></svg>Grammaire <span class="n">1</span></button>
+      <button class="filtre" aria-pressed="false"><svg class="i petit"><use href="#i-conjugaison"/></svg>Conjugaison <span class="n">1</span></button>
+      <button class="filtre" aria-pressed="false"><svg class="i petit"><use href="#i-plume"/></svg>Rédaction <span class="n">1</span></button>
+    </div>
+    <section style="display:grid;gap:12px" aria-labelledby="t-5e">
+      <div class="section-titre"><h2 id="t-5e">Cinquième</h2><span class="pale">3 cours ouverts</span></div>
+      <div class="cours-grille">
+        <article class="carte-cours">
+          <div class="haut"><span class="rub"><svg class="i petit"><use href="#i-grammaire"/></svg>Grammaire</span><span class="pastille fr">En cours</span></div>
+          <h3>Les fonctions : sujet, COD, COI et complément du nom</h3>
+          <p>Identifier le sujet, le COD et le COI ; distinguer un COI d'un complément du nom introduits par « de ».</p>
+          <div style="display:grid;gap:6px"><div class="etapes-mini" style="margin:0" aria-label="Étape 4 sur 7"><span class="fait"></span><span class="fait"></span><span class="fait"></span><span class="encours"></span><span></span><span></span><span></span></div>
+            <div class="pied"><span><svg class="i petit"><use href="#i-horloge"/></svg> 3 × 45 min · 9 questions</span><a class="btn principal petit" href="#lecon">Reprendre</a></div></div>
+        </article>
+        <article class="carte-cours">
+          <div class="haut"><span class="rub"><svg class="i petit"><use href="#i-conjugaison"/></svg>Conjugaison</span><span class="pastille action">Nouveau</span></div>
+          <h3>L'imparfait et le passé simple</h3>
+          <p>Conjuguer à l'imparfait et au passé simple ; choisir le temps selon sa valeur dans un récit.</p>
+          <div style="display:grid;gap:6px"><div class="etapes-mini" style="margin:0" aria-label="Pas commencé"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="pied"><span><svg class="i petit"><use href="#i-horloge"/></svg> 2 × 45 min · 9 questions</span><a class="btn secondaire petit" href="#conjugaison">Commencer</a></div></div>
+        </article>
+        <article class="carte-cours">
+          <div class="haut"><span class="rub"><svg class="i petit"><use href="#i-plume"/></svg>Rédaction</span><span class="pastille">Sur copie</span></div>
+          <h3>Raconter un événement passé</h3>
+          <p>Raconter un événement inventé : le décor à l'imparfait, les actions au passé simple, des connecteurs.</p>
+          <div style="display:grid;gap:6px"><div class="etapes-mini" style="margin:0" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+            <div class="pied"><span><svg class="i petit"><use href="#i-horloge"/></svg> 55 min · 20 lignes</span><a class="btn secondaire petit" href="#redaction">Voir la consigne</a></div></div>
+        </article>
+      </div>
+    </section>
+    <section style="display:grid;gap:12px" aria-labelledby="t-6e">
+      <div class="section-titre"><h2 id="t-6e">Revoir la sixième</h2><span class="pale">Révisions proposées par ta professeure</span></div>
+      <div class="cours-grille">
+        <article class="carte-cours">
+          <div class="haut"><span class="rub"><svg class="i petit"><use href="#i-grammaire"/></svg>Grammaire</span><span class="pastille ok"><svg class="i"><use href="#i-check"/></svg>Maîtrisé</span></div>
+          <h3>La nature des mots</h3><p>Identifier la classe grammaticale d'un mot dans une phrase ; distinguer classe et fonction.</p>
+          <div class="pied"><span>9 / 9 · revu il y a 12 jours</span><a class="btn discret petit" href="#lecon">Revoir</a></div>
+        </article>
+        <article class="carte-cours">
+          <div class="haut"><span class="rub"><svg class="i petit"><use href="#i-conjugaison"/></svg>Conjugaison</span><span class="pastille alerte">À revoir</span></div>
+          <h3>Le présent de l'indicatif</h3><p>Conjuguer au présent les verbes des 1er et 2e groupes et les verbes fréquents du 3e groupe.</p>
+          <div class="pied"><span>Révision conseillée : « nous mangeons »</span><a class="btn discret petit" href="#conjugaison">Réviser</a></div>
+        </article>
+      </div>
+    </section>
+  </div>
+  <nav class="nav-bas" aria-label="Navigation élève (mobile)">
+    <a href="#accueil"><svg class="i"><use href="#i-accueil"/></svg>Accueil</a><a href="#catalogue" aria-current="page"><svg class="i"><use href="#i-cours"/></svg>Cours</a>
+    <a href="#bilan"><svg class="i"><use href="#i-progres"/></svg>Progression</a><a href="#accueil"><svg class="i"><use href="#i-plus"/></svg>Plus</a>
+  </nav>
+</section>
+
+<!-- ============ 3. ÉCRAN DE LEÇON ============ -->
+<section class="ecran" data-ecran="lecon" data-titre="Écran de leçon (étape « Comprendre »)" data-role="Élève · cours C3, 5e">
+  <header class="barre-eleve">
+    <a class="logo" href="#accueil"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a>
+    <span class="matiere"><i></i>Français · 5e</span>
+    <nav class="nav-haut" aria-label="Navigation élève"><a href="#accueil">Accueil</a><a href="#catalogue" aria-current="page">Mes cours</a><a href="#bilan">Ma progression</a></nav>
+    <div class="qui"><span class="nom">Lina4 · 5e B</span><span class="avatar">L</span></div>
+  </header>
+  <div class="etape-mobile">
+    <div class="ligne"><a href="#catalogue" class="fil"><svg class="i petit"><use href="#i-gauche"/></svg>Mes cours</a><span class="pastille fr">Étape 2 sur 7</span></div>
+    <div class="etapes-mini" style="margin:0" aria-hidden="true"><span class="fait"></span><span class="encours"></span><span></span><span></span><span></span><span></span><span></span></div>
+  </div>
+  <div class="lecon">
+    <nav class="rail" aria-label="Étapes du cours">
+      <a href="#catalogue" class="fil"><svg class="i petit"><use href="#i-gauche"/></svg>Mes cours</a>
+      <div><p class="surtitre" style="color:var(--francais)">Grammaire · 5e</p><p class="cours-nom">Les fonctions : sujet, COD, COI et complément du nom</p></div>
+      <ol class="etapes">
+        <li class="fait"><span class="rond"><svg class="i petit"><use href="#i-check"/></svg></span><span>Découvrir<small>Objectifs, prérequis</small></span></li>
+        <li class="actif" aria-current="step"><span class="rond">2</span><span>Comprendre<small>Leçon, exemple résolu</small></span></li>
+        <li><span class="rond">3</span><span>Appliquer<small>3 questions faciles</small></span></li>
+        <li><span class="rond">4</span><span>S'entraîner<small>3 questions moyennes</small></span></li>
+        <li><span class="rond">5</span><span>Approfondir<small>3 questions difficiles</small></span></li>
+        <li><span class="rond">6</span><span>Réinvestir<small>Lien avec la rédaction</small></span></li>
+        <li><span class="rond">7</span><span>Consolider<small>Bilan, à retenir</small></span></li>
+      </ol>
+      <p class="pale">Ordre proposé par ta professeure (parcours guidé). Tu peux revenir à une étape terminée.</p>
+    </nav>
+    <article class="zone-lecture">
+      <div class="entete-etape"><p class="surtitre">Étape 2 · Comprendre · environ 15 min</p><h1>À quoi sert chaque groupe de la phrase ?</h1></div>
+      <div class="lecture">
+        <p>Dans « <span class="gn">Le récit de son voyage</span> passionne <span class="cod">la classe</span> » :</p>
+        <ul style="margin:0;padding-left:22px;display:grid;gap:6px">
+          <li>« Le récit de son voyage » est le <strong>sujet</strong> de « passionne » : <em>c'est… qui passionne</em> ;</li>
+          <li>dans ce groupe, « de son voyage » complète le nom « récit » : c'est un <strong>complément du nom</strong> ;</li>
+          <li>« la classe » complète le verbe sans préposition : c'est un <strong>COD</strong>.</li>
+        </ul>
+        <p>Dans « Il parle <strong>de son voyage</strong> », le même groupe complète cette fois le <em>verbe</em> « parle » : c'est un <strong>COI</strong> (il <em>en</em> parle).</p>
+        <div class="tableau-defile"><table class="tableau-regle">
+          <thead><tr><th>Fonction</th><th>Ce qu'elle complète</th><th>Préposition</th><th>Pronom possible</th></tr></thead>
+          <tbody><tr><td><b>COD</b></td><td>le verbe</td><td>non</td><td>le, la, les</td></tr>
+            <tr><td><b>COI</b></td><td>le verbe</td><td>oui (à, de)</td><td>lui, leur, en, y</td></tr>
+            <tr><td><b>Complément du nom</b></td><td>un nom</td><td>le plus souvent</td><td>remplacé avec son nom</td></tr></tbody>
+        </table></div>
+        <div class="encadre methode">
+          <p class="surtitre"><svg class="i petit"><use href="#i-ampoule"/></svg>Méthode · distinguer un COI d'un complément du nom</p>
+          <ol><li>Cherche le mot que le groupe complète : le verbe ou un nom ?</li>
+            <li>Remplace le nom et le groupe qui le suit par un pronom : si le groupe disparaît avec le nom, c'est un complément du nom.</li>
+            <li>Si le groupe dépend du verbe et se remplace par « en », « y » ou « lui », c'est un COI.</li></ol>
+          <p><b>Exemple résolu.</b> « Elle se souvient <u>de ses vacances</u> » → elle <em>s'en</em> souvient → <b>COI</b>.</p>
+        </div>
+      </div>
+      <div class="navigation-etape">
+        <a class="btn discret" href="#catalogue"><svg class="i"><use href="#i-gauche"/></svg>Découvrir</a>
+        <a class="btn principal" href="#grammaire">J'ai compris : appliquer <svg class="i"><use href="#i-droite"/></svg></a>
+      </div>
+    </article>
+    <aside class="aside" aria-label="Aides du cours">
+      <div class="bloc"><h3><svg class="i"><use href="#i-cible"/></svg>Objectifs</h3>
+        <ul><li>Identifier le sujet, même inversé ou éloigné.</li><li>Distinguer COD et COI, y compris les pronoms.</li><li>Distinguer COI et complément du nom.</li></ul></div>
+      <div class="bloc"><h3><svg class="i"><use href="#i-alerte"/></svg>Erreurs fréquentes</h3>
+        <ul><li>Prendre le premier groupe nominal pour le sujet.</li><li>Confondre COI et complément du nom à cause de « de ».</li><li>Prendre « lui » pour un COD.</li></ul></div>
+      <div class="bloc"><h3><svg class="i"><use href="#i-lien"/></svg>De ta professeure</h3>
+        <ul class="liste"><li><span class="quoi"><b>Fiche : les pronoms COD et COI</b><span>Lien</span></span></li></ul></div>
+    </aside>
+  </div>
+  <nav class="nav-bas" aria-label="Navigation élève (mobile)">
+    <a href="#accueil"><svg class="i"><use href="#i-accueil"/></svg>Accueil</a><a href="#catalogue" aria-current="page"><svg class="i"><use href="#i-cours"/></svg>Cours</a>
+    <a href="#bilan"><svg class="i"><use href="#i-progres"/></svg>Progression</a><a href="#accueil"><svg class="i"><use href="#i-plus"/></svg>Plus</a>
+  </nav>
+</section>
+
+<!-- ============ 4. EXERCICE DE GRAMMAIRE ============ -->
+<section class="ecran" data-ecran="grammaire" data-titre="Exercice de grammaire (QCM)" data-role="Élève · C3, question 4 sur 9, difficulté 3">
+  <header class="barre-eleve">
+    <a class="logo" href="#accueil"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a>
+    <span class="matiere"><i></i>Français · 5e</span>
+    <nav class="nav-haut" aria-label="Navigation élève"><a href="#accueil">Accueil</a><a href="#catalogue" aria-current="page">Mes cours</a><a href="#bilan">Ma progression</a></nav>
+    <div class="qui"><span class="nom">Lina4 · 5e B</span><span class="avatar">L</span></div>
+  </header>
+  <div class="etape-mobile">
+    <div class="ligne"><a href="#lecon" class="fil"><svg class="i petit"><use href="#i-gauche"/></svg>Leçon</a><span class="pastille fr">Étape 4 · S'entraîner</span></div>
+  </div>
+  <div class="lecon">
+    <nav class="rail" aria-label="Étapes du cours">
+      <a href="#catalogue" class="fil"><svg class="i petit"><use href="#i-gauche"/></svg>Mes cours</a>
+      <div><p class="surtitre" style="color:var(--francais)">Grammaire · 5e</p><p class="cours-nom">Les fonctions : sujet, COD, COI et complément du nom</p></div>
+      <ol class="etapes">
+        <li class="fait"><span class="rond"><svg class="i petit"><use href="#i-check"/></svg></span><span>Découvrir</span></li>
+        <li class="fait"><span class="rond"><svg class="i petit"><use href="#i-check"/></svg></span><span>Comprendre</span></li>
+        <li class="fait"><span class="rond"><svg class="i petit"><use href="#i-check"/></svg></span><span>Appliquer<small>3 / 3</small></span></li>
+        <li class="actif" aria-current="step"><span class="rond">4</span><span>S'entraîner<small>Question 1 sur 3</small></span></li>
+        <li><span class="rond">5</span><span>Approfondir</span></li><li><span class="rond">6</span><span>Réinvestir</span></li><li><span class="rond">7</span><span>Consolider</span></li>
+      </ol>
+    </nav>
+    <div class="activite">
+      <div class="progres-q"><div class="points" aria-label="Questions : 3 justes, question 4 en cours"><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="cour"></span><span></span><span></span><span></span><span></span><span></span></div><span class="pale">Question 4 sur 9 · moyenne</span></div>
+      <form class="enonce" id="f-qcm" aria-labelledby="t-qcm">
+        <p class="consigne" id="t-qcm">Quelle est la fonction du groupe souligné ?</p>
+        <p class="phrase">Le récit <span class="cible">de son voyage</span> passionne la classe.</p>
+        <div class="choix" role="radiogroup" aria-labelledby="t-qcm">
+          <label><input type="radio" name="qcm" value="A" id="qcm-a"><span class="lettre">A</span><span>COI</span><span></span></label>
+          <label><input type="radio" name="qcm" value="B" id="qcm-b"><span class="lettre">B</span><span>complément du nom</span><span></span></label>
+          <label><input type="radio" name="qcm" value="C" id="qcm-c"><span class="lettre">C</span><span>COD</span><span></span></label>
+        </div>
+        <div class="actions">
+          <details class="rappel"><summary><svg class="i petit"><use href="#i-ampoule"/></svg>Revoir la méthode</summary><div><p>Cherche le mot que le groupe complète : le verbe ou un nom ?</p></div></details>
+          <a class="btn principal" href="#correction" id="valider-qcm">Valider ma réponse</a>
+        </div>
+      </form>
+      <p class="pale">La correction s'affiche après ta réponse. Tu peux revenir à la leçon sans perdre ta question.</p>
+    </div>
+    <aside class="aside" aria-label="Aides">
+      <div class="bloc"><h3><svg class="i"><use href="#i-cours"/></svg>L'essentiel</h3>
+        <ul><li><b>COD</b> : complète le verbe, sans préposition.</li><li><b>COI</b> : complète le verbe, avec à ou de.</li><li><b>Complément du nom</b> : complète un nom.</li></ul>
+        <a href="#lecon" class="pale">Relire la leçon</a></div>
+    </aside>
+  </div>
+  <nav class="nav-bas" aria-label="Navigation élève (mobile)">
+    <a href="#accueil"><svg class="i"><use href="#i-accueil"/></svg>Accueil</a><a href="#catalogue" aria-current="page"><svg class="i"><use href="#i-cours"/></svg>Cours</a>
+    <a href="#bilan"><svg class="i"><use href="#i-progres"/></svg>Progression</a><a href="#accueil"><svg class="i"><use href="#i-plus"/></svg>Plus</a>
+  </nav>
+</section>
+
+<!-- ============ 5. EXERCICE DE CONJUGAISON ============ -->
+<section class="ecran" data-ecran="conjugaison" data-titre="Exercice de conjugaison (réponse courte)" data-role="Élève · C4, question 5 sur 9, difficulté 3">
+  <header class="barre-eleve">
+    <a class="logo" href="#accueil"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a>
+    <span class="matiere"><i></i>Français · 5e</span>
+    <nav class="nav-haut" aria-label="Navigation élève"><a href="#accueil">Accueil</a><a href="#catalogue" aria-current="page">Mes cours</a><a href="#bilan">Ma progression</a></nav>
+    <div class="qui"><span class="nom">Lina4 · 5e B</span><span class="avatar">L</span></div>
+  </header>
+  <div class="etape-mobile">
+    <div class="ligne"><a href="#catalogue" class="fil"><svg class="i petit"><use href="#i-gauche"/></svg>L'imparfait et le passé simple</a><span class="pastille fr">Étape 4</span></div>
+  </div>
+  <div class="lecon">
+    <nav class="rail" aria-label="Étapes du cours">
+      <a href="#catalogue" class="fil"><svg class="i petit"><use href="#i-gauche"/></svg>Mes cours</a>
+      <div><p class="surtitre" style="color:var(--francais)">Conjugaison · 5e</p><p class="cours-nom">L'imparfait et le passé simple</p></div>
+      <ol class="etapes">
+        <li class="fait"><span class="rond"><svg class="i petit"><use href="#i-check"/></svg></span><span>Découvrir</span></li>
+        <li class="fait"><span class="rond"><svg class="i petit"><use href="#i-check"/></svg></span><span>Comprendre</span></li>
+        <li class="fait"><span class="rond"><svg class="i petit"><use href="#i-check"/></svg></span><span>Appliquer<small>2 / 3</small></span></li>
+        <li class="actif" aria-current="step"><span class="rond">4</span><span>S'entraîner<small>Question 2 sur 3</small></span></li>
+        <li><span class="rond">5</span><span>Approfondir</span></li><li><span class="rond">6</span><span>Réinvestir</span></li><li><span class="rond">7</span><span>Consolider</span></li>
+      </ol>
+    </nav>
+    <div class="activite">
+      <div class="progres-q"><div class="points" aria-label="Questions : 2 justes, 1 à revoir, question 5 en cours"><span class="ok"></span><span class="ko"></span><span class="ok"></span><span class="ok"></span><span class="cour"></span><span></span><span></span><span></span><span></span></div><span class="pale">Question 5 sur 9 · moyenne</span></div>
+      <form class="enonce" aria-labelledby="t-conj" onsubmit="return false">
+        <p class="consigne" id="t-conj">Conjugue le verbe au passé simple et écris seulement la forme verbale.</p>
+        <p class="phrase">Elles <span class="cible">(finir)</span> leur repas en silence.</p>
+        <div class="indices" aria-label="Repères"><span class="pastille fr">passé simple</span><span class="pastille">3e personne du pluriel</span><span class="pastille">verbe du 2e groupe</span></div>
+        <div class="saisie"><label for="rep-conj">Ta réponse</label><input id="rep-conj" autocomplete="off" spellcheck="false" placeholder="forme verbale" value="finir">
+          <div class="clavier" aria-label="Lettres accentuées"><button type="button">é</button><button type="button">è</button><button type="button">ê</button><button type="button">à</button><button type="button">â</button><button type="button">î</button><button type="button">ï</button><button type="button">ô</button><button type="button">û</button><button type="button">ç</button></div>
+          <p class="pale">Les accents comptent ; les majuscules et les espaces en trop ne comptent pas.</p></div>
+        <div class="actions">
+          <details class="rappel"><summary><svg class="i petit"><use href="#i-ampoule"/></svg>Rappel du cours</summary><div><p>Passé simple, 2e groupe : on part du radical (fin-) et on ajoute la terminaison de la personne. Tableau complet dans la leçon.</p></div></details>
+          <a class="btn principal" href="#correction">Valider ma réponse</a>
+        </div>
+      </form>
+    </div>
+    <aside class="aside" aria-label="Aides">
+      <div class="bloc"><h3><svg class="i"><use href="#i-cours"/></svg>L'essentiel</h3>
+        <ul><li><b>Imparfait</b> : le décor, les habitudes.</li><li><b>Passé simple</b> : les actions qui font avancer le récit.</li></ul></div>
+      <div class="bloc"><h3><svg class="i"><use href="#i-alerte"/></svg>Erreur à éviter</h3><ul><li>Confondre « il chanta » et « il chantait ».</li></ul></div>
+    </aside>
+  </div>
+  <nav class="nav-bas" aria-label="Navigation élève (mobile)">
+    <a href="#accueil"><svg class="i"><use href="#i-accueil"/></svg>Accueil</a><a href="#catalogue" aria-current="page"><svg class="i"><use href="#i-cours"/></svg>Cours</a>
+    <a href="#bilan"><svg class="i"><use href="#i-progres"/></svg>Progression</a><a href="#accueil"><svg class="i"><use href="#i-plus"/></svg>Plus</a>
+  </nav>
+</section>
+
+<!-- ============ 6. COMPRÉHENSION DE TEXTE ============ -->
+<section class="ecran" data-ecran="comprehension" data-titre="Compréhension de texte (dossier brevet)" data-role="Élève · Noah2, 3e A · C8 « Comprendre un texte »">
+  <header class="barre-eleve">
+    <a class="logo" href="#accueil"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a>
+    <span class="matiere"><i></i>Français · 3e</span>
+    <nav class="nav-haut" aria-label="Navigation élève"><a href="#accueil">Accueil</a><a href="#catalogue" aria-current="page">Mes cours</a><a href="#bilan">Ma progression</a></nav>
+    <div class="qui"><span class="nom">Noah2 · 3e A</span><span class="avatar">N</span></div>
+  </header>
+  <div class="etape-mobile">
+    <div class="ligne"><a href="#catalogue" class="fil"><svg class="i petit"><use href="#i-gauche"/></svg>Comprendre un texte</a><span class="pastille fr">Étape 4 · S'entraîner</span></div>
+  </div>
+  <div class="bascule-texte onglets-q" role="tablist" aria-label="Affichage"><button role="tab" aria-selected="true">Le texte</button><button role="tab" aria-selected="false">Questions (4/11)</button></div>
+  <div class="comprehension">
+    <article class="texte-source" aria-labelledby="t-texte">
+      <p class="surtitre">Lire et comprendre · 3e · préparation au brevet 2027</p>
+      <h2 id="t-texte">La place près de la fenêtre</h2>
+      <ol class="lignes">
+        <li data-n="1">La porte de la salle était déjà ouverte quand je suis arrivée.</li>
+        <li data-n="2">J'avais préparé ma proposition toute la semaine, mais, devant les chaises occupées, mes phrases se sont dispersées.</li>
+        <li data-n="3">Au fond, une place restait libre près de la fenêtre.</li>
+        <li data-n="4" class="plage">Je m'y suis glissée et j'ai posé mon carnet sur mes genoux, bien fermé.</li>
+        <li data-n="5" class="plage">Sur la première page, j'avais dessiné le terrain derrière les immeubles, avec des bancs et un petit jardin.</li>
+        <li data-n="6" class="plage">Depuis des mois, nous passions devant les grilles sans pouvoir entrer.</li>
+        <li data-n="7" class="plage">La personne qui animait la réunion a demandé si quelqu'un souhaitait proposer une idée pour ce terrain.</li>
+        <li data-n="8" class="plage">J'ai pressé ma main contre la couverture du carnet.</li>
+        <li data-n="9" class="plage">Un voisin a suggéré d'y installer un parking. Plusieurs têtes ont approuvé.</li>
+        <li data-n="10" class="plage">J'ai regardé mon dessin. Les bancs semblaient maintenant bien petits.</li>
+        <li data-n="11" class="plage">À côté de moi, une dame a murmuré : « Vous aviez quelque chose à dire ? »</li>
+        <li data-n="12" class="plage">J'ai répondu que ce n'était pas très important.</li>
+        <li data-n="13">Elle n'a pas insisté. Elle a simplement déplacé sa chaise pour me laisser le passage.</li>
+        <li data-n="14">Ce geste m'a surprise davantage qu'un encouragement.</li>
+      </ol>
+      <p class="pale">Les lignes 4 à 12, visées par la question, sont repérées dans la marge. Texte original écrit pour la plateforme (registre des sources du dossier FR3-DNB27-01).</p>
+    </article>
+    <div class="questions">
+      <div class="onglets-q" role="tablist" aria-label="Activités du dossier"><button role="tab" aria-selected="false">Quiz · 6/9</button><button role="tab" aria-selected="true">Questions rédigées</button><button role="tab" aria-selected="false">Je sais</button></div>
+      <div class="q-redigee">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="pastille">Q3 · difficulté 2</span><span class="pale">Retour de ta professeure</span></div>
+        <p style="font-weight:600">Relève deux gestes, dans les lignes 4 à 12, qui peuvent montrer son hésitation à parler. Explique leur lien avec cette hésitation.</p>
+        <details class="rappel"><summary><svg class="i petit"><use href="#i-ampoule"/></svg>Méthode : réponse, preuve, explication</summary><div><p>Formule ta réponse, cite le texte entre guillemets avec le numéro de ligne, puis explique ce que la citation montre.</p></div></details>
+        <label for="rep-q3" class="sr">Ta réponse</label>
+        <textarea id="rep-q3" disabled placeholder="Tu rédiges cette réponse sur ta copie : la réponse en ligne n'est pas encore ouverte."></textarea>
+        <div class="ferme"><svg class="i"><use href="#i-cadenas"/></svg><span>La réponse en ligne s'ouvrira quand l'établissement l'aura autorisée. En attendant, réponds sur ta copie ; ta professeure te fera un retour.</span></div>
+      </div>
+      <div class="actions"><a class="btn discret" href="#comprehension"><svg class="i"><use href="#i-gauche"/></svg>Q2</a><a class="btn secondaire" href="#comprehension">Q4 <svg class="i"><use href="#i-droite"/></svg></a></div>
+    </div>
+  </div>
+  <nav class="nav-bas" aria-label="Navigation élève (mobile)">
+    <a href="#accueil"><svg class="i"><use href="#i-accueil"/></svg>Accueil</a><a href="#catalogue" aria-current="page"><svg class="i"><use href="#i-cours"/></svg>Cours</a>
+    <a href="#bilan"><svg class="i"><use href="#i-progres"/></svg>Progression</a><a href="#accueil"><svg class="i"><use href="#i-plus"/></svg>Plus</a>
+  </nav>
+</section>
+
+<!-- ============ 7. CORRECTION EXPLIQUÉE ============ -->
+<section class="ecran" data-ecran="correction" data-titre="Correction expliquée" data-role="Élève · C3, question 4 · réponse erronée">
+  <header class="barre-eleve">
+    <a class="logo" href="#accueil"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a>
+    <span class="matiere"><i></i>Français · 5e</span>
+    <nav class="nav-haut" aria-label="Navigation élève"><a href="#accueil">Accueil</a><a href="#catalogue" aria-current="page">Mes cours</a><a href="#bilan">Ma progression</a></nav>
+    <div class="qui"><span class="nom">Lina4 · 5e B</span><span class="avatar">L</span></div>
+  </header>
+  <div class="etape-mobile"><div class="ligne"><a href="#lecon" class="fil"><svg class="i petit"><use href="#i-gauche"/></svg>Leçon</a><span class="pastille fr">Étape 4 · S'entraîner</span></div></div>
+  <div class="lecon">
+    <nav class="rail" aria-label="Étapes du cours">
+      <a href="#catalogue" class="fil"><svg class="i petit"><use href="#i-gauche"/></svg>Mes cours</a>
+      <div><p class="surtitre" style="color:var(--francais)">Grammaire · 5e</p><p class="cours-nom">Les fonctions : sujet, COD, COI et complément du nom</p></div>
+      <ol class="etapes">
+        <li class="fait"><span class="rond"><svg class="i petit"><use href="#i-check"/></svg></span><span>Découvrir</span></li>
+        <li class="fait"><span class="rond"><svg class="i petit"><use href="#i-check"/></svg></span><span>Comprendre</span></li>
+        <li class="fait"><span class="rond"><svg class="i petit"><use href="#i-check"/></svg></span><span>Appliquer</span></li>
+        <li class="actif" aria-current="step"><span class="rond">4</span><span>S'entraîner<small>Question 1 sur 3</small></span></li>
+        <li><span class="rond">5</span><span>Approfondir</span></li><li><span class="rond">6</span><span>Réinvestir</span></li><li><span class="rond">7</span><span>Consolider</span></li>
+      </ol>
+    </nav>
+    <div class="activite">
+      <div class="progres-q"><div class="points" aria-label="Questions : 3 justes, 1 à revoir"><span class="ok"></span><span class="ok"></span><span class="ok"></span><span class="ko"></span><span></span><span></span><span></span><span></span><span></span></div><span class="pale">Question 4 sur 9</span></div>
+      <div class="verdict" role="status"><span class="ico"><svg class="i"><use href="#i-recharger"/></svg></span><div><h2>Pas encore : regardons ensemble</h2><p class="doux">Tu as répondu <b>A) COI</b>. La bonne réponse est <b>B) complément du nom</b>.</p></div></div>
+      <div class="enonce">
+        <p class="phrase">Le récit <span class="cible">de son voyage</span> passionne la classe.</p>
+        <div class="choix" aria-label="Rappel des choix">
+          <label class="faux"><span class="lettre">A</span><span>COI</span><span class="pastille alerte"><svg class="i"><use href="#i-croix"/></svg>Ta réponse</span></label>
+          <label class="juste"><span class="lettre">B</span><span>complément du nom</span><span class="pastille ok"><svg class="i"><use href="#i-check"/></svg>Bonne réponse</span></label>
+        </div>
+        <div style="display:grid;gap:10px">
+          <p class="surtitre" style="color:var(--fr-fort)">Méthode : chercher le mot complété par le groupe</p>
+          <ol class="etapes-corr">
+            <li>« De son voyage » suit le nom « récit » et le précise.</li>
+            <li>Il fait partie du groupe sujet « Le récit de son voyage ».</li>
+            <li>Un groupe qui complète un nom est un complément du nom.</li>
+          </ol>
+        </div>
+        <div class="encadre methode"><p class="surtitre"><svg class="i petit"><use href="#i-alerte"/></svg>Erreur fréquente</p><p>Répondre « COI » à cause de la préposition « de ». Un COI complète le <b>verbe</b> : « Il parle de son voyage » → il <em>en</em> parle.</p></div>
+      </div>
+      <div class="actions"><a class="btn discret" href="#lecon"><svg class="i"><use href="#i-cours"/></svg>Revoir la méthode dans la leçon</a><a class="btn principal" href="#conjugaison">Question suivante <svg class="i"><use href="#i-droite"/></svg></a></div>
+    </div>
+    <aside class="aside" aria-label="Pour progresser">
+      <div class="bloc"><h3><svg class="i"><use href="#i-cible"/></svg>Ce que tu travailles</h3><ul><li>Distinguer COI et complément du nom</li></ul></div>
+      <div class="bloc"><h3><svg class="i"><use href="#i-recharger"/></svg>Et ensuite ?</h3><ul><li>Une question proche te sera reproposée plus tard : c'est ainsi que la méthode s'installe.</li></ul></div>
+    </aside>
+  </div>
+  <nav class="nav-bas" aria-label="Navigation élève (mobile)">
+    <a href="#accueil"><svg class="i"><use href="#i-accueil"/></svg>Accueil</a><a href="#catalogue" aria-current="page"><svg class="i"><use href="#i-cours"/></svg>Cours</a>
+    <a href="#bilan"><svg class="i"><use href="#i-progres"/></svg>Progression</a><a href="#accueil"><svg class="i"><use href="#i-plus"/></svg>Plus</a>
+  </nav>
+</section>
+
+<!-- ============ 8. BILAN ET PROGRESSION ============ -->
+<section class="ecran" data-ecran="bilan" data-titre="Bilan et progression" data-role="Élève · Lina4 · fin de C3 et progression générale">
+  <header class="barre-eleve">
+    <a class="logo" href="#accueil"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a>
+    <span class="matiere"><i></i>Français · 5e</span>
+    <nav class="nav-haut" aria-label="Navigation élève"><a href="#accueil">Accueil</a><a href="#catalogue">Mes cours</a><a href="#bilan" aria-current="page">Ma progression</a></nav>
+    <div class="qui"><span class="nom">Lina4 · 5e B</span><span class="avatar">L</span></div>
+  </header>
+  <div class="corps">
+    <div class="titre-page"><div><h1>Ma progression</h1><p>Calculée à partir des exercices corrigés automatiquement. Les rédactions relues par ta professeure n'entrent pas dans ce calcul.</p></div></div>
+    <section class="panneau" aria-labelledby="t-bilan" style="display:grid;gap:16px">
+      <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:start">
+        <div><p class="surtitre" style="color:var(--francais)">Bilan · étape 7 · Consolider</p><h2 id="t-bilan" style="font-size:1.25rem;margin-top:4px">Les fonctions : sujet, COD, COI et complément du nom</h2></div>
+        <span class="pastille ok"><svg class="i"><use href="#i-check"/></svg>Compétence maîtrisée · 84 %</span>
+      </div>
+      <div class="chiffres trois">
+        <div class="chiffre"><span class="lib">Faciles</span><span class="val">3 / 3</span><div class="jauge mince"><span style="width:100%"></span></div></div>
+        <div class="chiffre"><span class="lib">Moyennes</span><span class="val">2 / 3</span><div class="jauge mince"><span style="width:66%"></span></div></div>
+        <div class="chiffre"><span class="lib">Difficiles</span><span class="val">2 / 3</span><div class="jauge mince"><span style="width:66%"></span></div></div>
+      </div>
+      <div class="encadre regle"><p class="surtitre"><svg class="i petit"><use href="#i-cours"/></svg>À retenir</p>
+        <p><b>Sujet</b> : « c'est … qui ». <b>COD</b> : complète le verbe sans préposition. <b>COI</b> : complète le verbe avec à ou de. <b>Complément du nom</b> : complète un nom et disparaît avec lui quand on le remplace par un pronom.</p></div>
+      <div class="actions"><span class="pale">Une compétence est maîtrisée à partir de 80 %, soit environ 5 bonnes réponses d'affilée.</span><a class="btn secondaire" href="#redaction">Réinvestir dans ta rédaction</a></div>
+    </section>
+    <div class="deux-col">
+      <section class="panneau" aria-labelledby="t-rubprog">
+        <h2 id="t-rubprog">Par rubrique</h2>
+        <ul class="liste">
+          <li><span class="puce-rub"><svg class="i"><use href="#i-grammaire"/></svg></span><span class="quoi"><b>Grammaire</b><span>2 compétences sur 2 maîtrisées</span><div class="jauge mince" style="margin-top:6px"><span style="width:100%"></span></div></span><span class="niv m">Maîtrisé</span></li>
+          <li><span class="puce-rub"><svg class="i"><use href="#i-conjugaison"/></svg></span><span class="quoi"><b>Conjugaison</b><span>Le présent : à revoir · l'imparfait et le passé simple : en cours</span><div class="jauge mince" style="margin-top:6px"><span style="width:45%"></span></div></span><span class="niv r">À revoir</span></li>
+          <li><span class="puce-rub"><svg class="i"><use href="#i-texte"/></svg></span><span class="quoi"><b>Lire et comprendre</b><span>Pas encore de cours ouvert en 5e</span></span><span class="pastille">Pas encore</span></li>
+          <li><span class="puce-rub"><svg class="i"><use href="#i-plume"/></svg></span><span class="quoi"><b>Rédaction</b><span>Retours de ta professeure, sans pourcentage</span></span><span class="pastille">1 retour</span></li>
+        </ul>
+      </section>
+      <div class="pile">
+        <section class="panneau" aria-labelledby="t-retrav"><h2 id="t-retrav">À retravailler</h2>
+          <ul class="liste"><li><span class="quoi"><b>Les terminaisons en -ger et -cer</b><span>« nous mangeons » · Le présent (6e)</span></span><a class="btn secondaire petit" href="#conjugaison">Réviser</a></li></ul></section>
+        <section class="panneau" aria-labelledby="t-hist"><h2 id="t-hist">Dernières activités</h2>
+          <ul class="liste"><li><span class="quoi"><b>Les fonctions · 7 / 9</b><span>Aujourd'hui · 18 min</span></span></li><li><span class="quoi"><b>Le présent · 5 / 9</b><span>Il y a 12 jours · 21 min</span></span></li></ul></section>
+      </div>
+    </div>
+  </div>
+  <nav class="nav-bas" aria-label="Navigation élève (mobile)">
+    <a href="#accueil"><svg class="i"><use href="#i-accueil"/></svg>Accueil</a><a href="#catalogue"><svg class="i"><use href="#i-cours"/></svg>Cours</a>
+    <a href="#bilan" aria-current="page"><svg class="i"><use href="#i-progres"/></svg>Progression</a><a href="#accueil"><svg class="i"><use href="#i-plus"/></svg>Plus</a>
+  </nav>
+</section>
+
+<!-- ============ 9. RÉDACTION ============ -->
+<section class="ecran" data-ecran="redaction" data-titre="Rédaction" data-role="Élève · R2 « Raconter un événement passé », 5e">
+  <header class="barre-eleve">
+    <a class="logo" href="#accueil"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a>
+    <span class="matiere"><i></i>Français · 5e</span>
+    <nav class="nav-haut" aria-label="Navigation élève"><a href="#accueil">Accueil</a><a href="#catalogue" aria-current="page">Mes cours</a><a href="#bilan">Ma progression</a></nav>
+    <div class="qui"><span class="nom">Lina4 · 5e B</span><span class="avatar">L</span></div>
+  </header>
+  <div class="redaction">
+    <div class="feuille">
+      <a href="#catalogue" class="fil"><svg class="i petit"><use href="#i-gauche"/></svg>Mes cours · Rédaction</a>
+      <div style="display:grid;gap:6px"><p class="surtitre" style="color:var(--francais)">Rédaction · 5e · environ 55 minutes</p><h1 style="font-size:1.75rem">Raconter un événement passé</h1></div>
+      <div class="encadre regle" style="font-family:var(--police-lecture);font-size:1.05rem">
+        <p class="surtitre" style="font-family:var(--police)"><svg class="i petit"><use href="#i-plume"/></svg>Consigne</p>
+        <p>Raconte un événement inventé, à l'imparfait et au passé simple. Installe d'abord le décor, puis fais surgir l'événement avec un connecteur comme « soudain ». Environ 20 lignes.</p>
+        <p class="pale" style="font-family:var(--police)">Sujet fictif : n'écris ni adresse, ni nom de famille, ni information personnelle.</p>
+      </div>
+      <div class="ferme"><svg class="i"><use href="#i-cadenas"/></svg><span><b>La rédaction en ligne n'est pas encore ouverte.</b> Rédige sur ta copie et remets-la à ta professeure. L'éditeur ci-dessous montre ce qui s'ouvrira après autorisation (RGPD-2).</span></div>
+      <div class="editeur" aria-disabled="true">
+        <div class="barre-outils"><button class="btn discret petit" disabled>Annuler</button><button class="btn discret petit" disabled>Rétablir</button><span class="pale" style="margin-left:auto">Brouillon enregistré sur ce poste uniquement</span></div>
+        <div class="page">Il faisait déjà nuit quand…</div>
+        <div class="compteur"><span>0 ligne sur 20 environ · 4 mots</span><span>Connecteurs repérés : 0 sur 3</span></div>
+      </div>
+    </div>
+    <aside class="aside" aria-label="Outils de rédaction">
+      <div class="bloc"><h3><svg class="i"><use href="#i-check"/></svg>Mes critères de réussite</h3>
+        <ul class="criteres"><li><span class="case"></span>Le décor est à l'imparfait, les actions au passé simple.</li><li><span class="case"></span>J'utilise au moins trois connecteurs temporels.</li><li><span class="case"></span>Mon récit est cohérent du début à la fin.</li><li><span class="case"></span>J'ai relu les terminaisons des verbes.</li></ul></div>
+      <div class="bloc"><h3><svg class="i"><use href="#i-lien"/></svg>Connecteurs utiles</h3><div class="mots"><span>d'abord</span><span>soudain</span><span>puis</span><span>alors</span><span>enfin</span></div></div>
+      <div class="bloc"><h3><svg class="i"><use href="#i-conjugaison"/></svg>Pour t'aider</h3><a href="#lecon" class="pale">Relire « L'imparfait et le passé simple »</a></div>
+      <div class="bloc"><h3><svg class="i"><use href="#i-recharger"/></svg>Relire et réécrire</h3><p class="doux">Relis une fois pour le sens, une fois pour les accords et la conjugaison. Après le retour de ta professeure, tu pourras réécrire ton texte.</p></div>
+    </aside>
+  </div>
+  <nav class="nav-bas" aria-label="Navigation élève (mobile)">
+    <a href="#accueil"><svg class="i"><use href="#i-accueil"/></svg>Accueil</a><a href="#catalogue" aria-current="page"><svg class="i"><use href="#i-cours"/></svg>Cours</a>
+    <a href="#bilan"><svg class="i"><use href="#i-progres"/></svg>Progression</a><a href="#accueil"><svg class="i"><use href="#i-plus"/></svg>Plus</a>
+  </nav>
+</section>
+
+<!-- ============ 10. TABLEAU DE BORD PROFESSEUR ============ -->
+<section class="ecran" data-ecran="professeur" data-titre="Tableau de bord professeur" data-role="Professeure fictive · Mme Martin, français 5e (classe pilote)">
+  <div class="cote-mobile"><a class="logo" href="#professeur"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a><button class="btn discret" aria-label="Menu"><svg class="i"><use href="#i-menu"/></svg></button></div>
+  <div class="adulte">
+    <nav class="cote nuit" aria-label="Espace professeur">
+      <a class="logo" href="#professeur"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span>Boussole <b>Français</b></span></a>
+      <div>
+        <div class="groupe"><p class="groupe-titre">Enseigner</p>
+          <a href="#professeur" aria-current="page"><svg class="i"><use href="#i-accueil"/></svg>Tableau de bord</a>
+          <a href="#professeur"><svg class="i"><use href="#i-classe"/></svg>Mes classes</a>
+          <a href="#catalogue"><svg class="i"><use href="#i-cours"/></svg>Préparer les cours</a>
+          <a href="#professeur"><svg class="i"><use href="#i-plume"/></svg>Rédactions à relire</a>
+          <a href="#professeur"><svg class="i"><use href="#i-lien"/></svg>Mes ressources</a></div>
+        <div class="groupe"><p class="groupe-titre">Outils</p>
+          <a href="#accueil"><svg class="i"><use href="#i-oeil"/></svg>Voir comme un élève</a>
+          <a href="#validateur"><svg class="i"><use href="#i-bouclier"/></svg>Validation<span class="compte">18</span></a>
+          <a href="#professeur"><svg class="i"><use href="#i-message"/></svg>Remarques</a></div>
+      </div>
+      <div class="profil"><b>Mme Martin (fictif)</b><span>Français · 5e et 4e</span></div>
+    </nav>
+    <div class="principal-adulte">
+      <div class="titre-page"><div><p class="fil">Espace professeur · Français</p><h1>Tableau de bord</h1></div>
+        <label class="masque-mobile" style="display:flex;gap:8px;align-items:center"><span class="pale">Classe</span><select class="select" id="choix-classe"><option>5e B · 5E-FR-K7Q2 · pilote</option><option>4e A · 4E-FR-P3D8</option></select></label></div>
+      <div class="chiffres">
+        <div class="chiffre"><span class="lib">Élèves actifs cette semaine</span><span class="val">21 / 24</span></div>
+        <div class="chiffre"><span class="lib">Cours ouverts</span><span class="val">3</span></div>
+        <div class="chiffre"><span class="lib">Compétences maîtrisées (moyenne)</span><span class="val">58 %</span></div>
+        <div class="chiffre"><span class="lib">Élèves à accompagner</span><span class="val" style="color:var(--alerte)">4</span></div>
+      </div>
+      <div class="deux-col">
+        <section class="panneau" aria-labelledby="t-suivi">
+          <h2 id="t-suivi">Suivi de la 5e B <small>exercices corrigés automatiquement</small></h2>
+          <div class="tableau-defile"><table class="donnees">
+            <thead><tr><th>Élève</th><th>Fonctions</th><th>Imparfait, passé simple</th><th>Rédaction</th><th>Activité</th></tr></thead>
+            <tbody>
+              <tr><td><b>Adam5</b></td><td><span class="niv m">Maîtrisé</span></td><td><span class="niv c">En cours</span></td><td><span class="pale">Copie remise</span></td><td>aujourd'hui</td></tr>
+              <tr><td><b>Chloé1</b></td><td><span class="niv c">En cours</span></td><td><span class="niv n">Pas commencé</span></td><td><span class="pale">—</span></td><td>hier</td></tr>
+              <tr><td><b>Inès7</b></td><td><span class="niv r">À reprendre</span></td><td><span class="niv n">Pas commencé</span></td><td><span class="pale">—</span></td><td>il y a 6 jours</td></tr>
+              <tr><td><b>Lina4</b></td><td><span class="niv m">Maîtrisé</span></td><td><span class="niv c">En cours</span></td><td><span class="pale">Copie remise</span></td><td>aujourd'hui</td></tr>
+              <tr><td><b>Maël2</b></td><td><span class="niv c">En cours</span></td><td><span class="niv c">En cours</span></td><td><span class="pale">—</span></td><td>aujourd'hui</td></tr>
+              <tr><td><b>Sofia8</b></td><td><span class="niv r">À reprendre</span></td><td><span class="niv r">À reprendre</span></td><td><span class="pale">—</span></td><td>il y a 9 jours</td></tr>
+            </tbody></table></div>
+          <p class="pale" style="margin-top:10px">6 élèves sur 24 affichés · <a href="#professeur">Tout voir</a> · la correction humaine n'alimente jamais le taux de maîtrise (ARCH-5).</p>
+        </section>
+        <div class="pile">
+          <section class="panneau" aria-labelledby="t-pres"><h2 id="t-pres">Présentation pour la 5e B</h2>
+            <div class="reglage"><div><b>Parcours guidé</b><p class="pale">Origine : par défaut</p></div><span class="pastille ok"><svg class="i"><use href="#i-check"/></svg>Active</span></div>
+            <div class="reglage"><div><b>Objectif brevet</b><p class="pale">Prévu au plus tard le 1er mars 2027 (A4)</p></div><span class="pastille">Bientôt</span></div>
+            <div class="reglage"><div><b>Bibliothèque</b><p class="pale">Prévue en février 2027 (A4)</p></div><span class="pastille">Bientôt</span></div>
+          </section>
+          <section class="panneau" aria-labelledby="t-afaire-p"><h2 id="t-afaire-p">À faire</h2>
+            <ul class="liste">
+              <li><svg class="i"><use href="#i-bouclier"/></svg><span class="quoi"><b>18 questions de 4e à valider</b><span>La phrase complexe · Les temps et les modes</span></span><a class="btn secondaire petit" href="#validateur">Ouvrir</a></li>
+              <li><svg class="i"><use href="#i-plume"/></svg><span class="quoi"><b>Rédactions en ligne</b><span>Fermées (RGPD-2) : copies papier</span></span><span class="pastille"><svg class="i"><use href="#i-cadenas"/></svg>Fermé</span></li>
+              <li><svg class="i"><use href="#i-classe"/></svg><span class="quoi"><b>4 élèves à accompagner</b><span>Inès7, Sofia8 et 2 autres</span></span></li>
+            </ul></section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 11. ESPACE VALIDATEUR ============ -->
+<section class="ecran" data-ecran="validateur" data-titre="Espace validateur" data-role="Validatrice fictive · Mme Leroy, français 4e">
+  <div class="cote-mobile"><a class="logo" href="#validateur"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Français</b></span></a><button class="btn discret" aria-label="Menu"><svg class="i"><use href="#i-menu"/></svg></button></div>
+  <div class="adulte">
+    <nav class="cote nuit" aria-label="Espace professeur">
+      <a class="logo" href="#professeur"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span>Boussole <b>Français</b></span></a>
+      <div>
+        <div class="groupe"><p class="groupe-titre">Enseigner</p><a href="#professeur"><svg class="i"><use href="#i-accueil"/></svg>Tableau de bord</a><a href="#professeur"><svg class="i"><use href="#i-classe"/></svg>Mes classes</a><a href="#catalogue"><svg class="i"><use href="#i-cours"/></svg>Préparer les cours</a></div>
+        <div class="groupe"><p class="groupe-titre">Valider</p><a href="#validateur" aria-current="page"><svg class="i"><use href="#i-bouclier"/></svg>File de validation<span class="compte">18</span></a><a href="#validateur"><svg class="i"><use href="#i-recharger"/></svg>Historique des décisions</a></div>
+      </div>
+      <div class="profil"><b>Mme Leroy (fictif)</b><span>Validatrice · français 4e et 3e</span></div>
+    </nav>
+    <div class="principal-adulte">
+      <div class="titre-page"><div><p class="fil">Validation pédagogique · Français 4e et 3e</p><h1>File de validation</h1><p>Vous ne pouvez pas valider un contenu dont vous êtes l'autrice (V2-D15). Toute décision est journalisée.</p></div></div>
+      <div class="filtres" role="group" aria-label="Filtrer la file"><button class="filtre" aria-pressed="true">À valider <span class="n">18</span></button><button class="filtre" aria-pressed="false">À corriger <span class="n">0</span></button><button class="filtre" aria-pressed="false">Validées <span class="n">27</span></button></div>
+      <div class="file-val">
+        <div style="display:grid;gap:8px">
+          <div class="item" aria-current="true"><span class="pastille">4e · Grammaire</span><b>La phrase complexe et les propositions subordonnées</b><span class="pale">9 questions · question 3 sur 9 · auteur : brouillon IA (Claude)</span></div>
+          <div class="item"><span class="pastille">4e · Conjugaison</span><b>Les temps et les modes verbaux</b><span class="pale">9 questions · auteur : brouillon IA (Claude)</span></div>
+          <div class="item"><span class="pastille">4e · Rédaction</span><b>Défendre son opinion</b><span class="pale">Sujet et guide du professeur</span></div>
+        </div>
+        <section class="panneau" aria-labelledby="t-q" style="display:grid;gap:14px">
+          <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center"><h2 id="t-q" style="margin:0;font-size:1.05rem">FR4-PHRASE-COMPLEXE · question 3</h2><span class="pastille">QCM · difficulté 1</span></div>
+          <div class="apercu-cadre">
+            <p class="surtitre"><svg class="i petit"><use href="#i-oeil"/></svg> Aperçu élève</p>
+            <p style="font-weight:600">Comment sont reliées les propositions de cette phrase ?</p>
+            <p class="phrase" style="font-size:1.2rem">Il pleut ; nous restons à la maison.</p>
+            <div class="choix"><label><span class="lettre">A</span><span>par juxtaposition</span><span></span></label><label><span class="lettre">B</span><span>par coordination</span><span></span></label><label><span class="lettre">C</span><span>par subordination</span><span></span></label></div>
+          </div>
+          <div class="corrige-cadre"><p class="surtitre" style="color:var(--alerte)"><svg class="i petit"><use href="#i-cadenas"/></svg> Corrigé · jamais montré à l'élève avant sa réponse</p>
+            <p><b>Réponse : A.</b> Les deux propositions sont séparées par un point-virgule, sans mot de liaison : c'est une juxtaposition.</p></div>
+          <label for="motif" style="font-weight:600;font-size:.9rem">Motif (obligatoire pour « À corriger »)</label>
+          <textarea id="motif" style="min-height:70px;padding:10px;border-radius:10px;border:1px solid var(--bordure-forte);background:var(--surface)" placeholder="Ce qui doit être corrigé…"></textarea>
+          <div class="actions"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn secondaire petit"><svg class="i petit"><use href="#i-pdf"/></svg>PDF élève</button><button class="btn secondaire petit"><svg class="i petit"><use href="#i-pdf"/></svg>PDF professeur</button></div>
+            <div style="display:flex;gap:8px"><button class="btn danger">À corriger</button><button class="btn ok"><svg class="i"><use href="#i-check"/></svg>Valider</button></div></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 12. ESPACE ADMINISTRATEUR ============ -->
+<section class="ecran" data-ecran="administrateur" data-titre="Espace administrateur · module Français" data-role="Administrateur fictif">
+  <div class="cote-mobile"><a class="logo" href="#administrateur"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Éducation</b></span></a><button class="btn discret" aria-label="Menu"><svg class="i"><use href="#i-menu"/></svg></button></div>
+  <div class="adulte">
+    <nav class="cote nuit" aria-label="Administration">
+      <a class="logo" href="#administrateur"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span>Boussole <b>Éducation</b></span></a>
+      <div>
+        <div class="groupe"><p class="groupe-titre">Pilotage</p><a href="#administrateur"><svg class="i"><use href="#i-progres"/></svg>Tableau de bord</a><a href="#administrateur"><svg class="i"><use href="#i-recharger"/></svg>Journal</a></div>
+        <div class="groupe"><p class="groupe-titre">Matières</p><a href="#administrateur">Maths</a><a href="#administrateur">Anglais</a><a href="#administrateur" aria-current="page"><svg class="i"><use href="#i-cours"/></svg>Français</a></div>
+        <div class="groupe"><p class="groupe-titre">Comptes</p><a href="#administrateur"><svg class="i"><use href="#i-classe"/></svg>Équipe et habilitations</a><a href="#administrateur">Familles</a></div>
+      </div>
+      <div class="profil"><b>Administrateur (fictif)</b><span>Second facteur actif</span></div>
+    </nav>
+    <div class="principal-adulte">
+      <div class="titre-page"><div><p class="fil">Administration · Matières</p><h1>Français</h1><p>Activation, contenus, classes pilotes et fonctions sensibles. Les règles de sécurité et de validation ne se modifient pas ici.</p></div>
+        <a class="btn secondaire" href="#accueil"><svg class="i"><use href="#i-oeil"/></svg>Simuler un élève</a></div>
+      <div class="chiffres">
+        <div class="chiffre"><span class="lib">Cours importés</span><span class="val">8 + 4</span><span class="pale">8 cours, 4 sujets de rédaction</span></div>
+        <div class="chiffre"><span class="lib">Questions validées</span><span class="val">27 / 72</span><div class="jauge mince"><span style="width:37%"></span></div></div>
+        <div class="chiffre"><span class="lib">Classes pilotes</span><span class="val">2</span><span class="pale">5e B, 3e A</span></div>
+        <div class="chiffre"><span class="lib">Validateurs habilités</span><span class="val">2</span><span class="pale">4e, 3e · aucun en 6e et 5e</span></div>
+      </div>
+      <div class="deux-col">
+        <section class="panneau" aria-labelledby="t-cont"><h2 id="t-cont">Contenus et validation</h2>
+          <div class="tableau-defile"><table class="donnees"><thead><tr><th>Niveau</th><th>Cours</th><th>Rubrique</th><th>Validation</th><th>Ouvert à</th></tr></thead><tbody>
+            <tr><td>6e</td><td>La nature des mots</td><td>Grammaire</td><td><span class="pastille alerte">0 / 9</span></td><td class="pale">—</td></tr>
+            <tr><td>6e</td><td>Le présent de l'indicatif</td><td>Conjugaison</td><td><span class="pastille alerte">0 / 9</span></td><td class="pale">—</td></tr>
+            <tr><td>5e</td><td>Les fonctions</td><td>Grammaire</td><td><span class="pastille alerte">0 / 9</span></td><td class="pale">—</td></tr>
+            <tr><td>5e</td><td>L'imparfait et le passé simple</td><td>Conjugaison</td><td><span class="pastille alerte">0 / 9</span></td><td class="pale">—</td></tr>
+            <tr><td>4e</td><td>La phrase complexe</td><td>Grammaire</td><td><span class="pastille action">En cours</span></td><td class="pale">—</td></tr>
+            <tr><td>4e</td><td>Les temps et les modes</td><td>Conjugaison</td><td><span class="pastille action">En cours</span></td><td class="pale">—</td></tr>
+            <tr><td>3e</td><td>Accords et réécriture</td><td>Grammaire</td><td><span class="pastille ok">9 / 9</span></td><td>3e A</td></tr>
+            <tr><td>3e</td><td>Comprendre un texte</td><td>Lire et comprendre</td><td><span class="pastille ok">Dossier v1</span></td><td>3e A</td></tr>
+          </tbody></table></div>
+          <p class="pale" style="margin-top:8px">Valeurs fictives pour la maquette. Un cours n'est servi qu'après validation par une personne différente de l'auteur, et seulement aux classes pilotes (SEC-D6).</p>
+        </section>
+        <div class="pile">
+          <section class="panneau" aria-labelledby="t-act"><h2 id="t-act">Activation</h2>
+            <div class="reglage"><div><b>Français collège</b><p class="pale">Actif pour l'équipe et les classes pilotes, fermé au public</p></div><span class="interrupteur on" role="img" aria-label="Actif"></span></div>
+            <div class="reglage"><div><b>Visible sur l'accueil public</b><p class="pale">Non : ouverture sur décision du propriétaire</p></div><span class="interrupteur" role="img" aria-label="Non"></span></div></section>
+          <section class="panneau" aria-labelledby="t-sens"><h2 id="t-sens">Fonctions sensibles <small>lecture seule</small></h2>
+            <div class="reglage"><div><b>Rédaction en ligne</b><p class="pale">PKP_REDACTION_ACTIVE · RGPD-2</p></div><span class="pastille"><svg class="i"><use href="#i-cadenas"/></svg>Désactivée</span></div>
+            <div class="reglage"><div><b>PDF de « Mon cours »</b><p class="pale">PKP_PDF_FRANCAIS_OUVERT · A5</p></div><span class="pastille"><svg class="i"><use href="#i-cadenas"/></svg>Désactivé</span></div>
+            <p class="pale">Ces réglages se changent dans la configuration du serveur, sur décision du propriétaire. L'interface les affiche sans permettre de les modifier.</p></section>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 13. ESPACE PARENT ============ -->
+<section class="ecran" data-ecran="parent" data-titre="Espace parent · Français" data-role="Parent fictif de Lina4 (5e B)">
+  <header class="barre-eleve">
+    <a class="logo" href="#parent"><span class="rose"><svg class="i"><use href="#i-boussole"/></svg></span><span class="texte-logo">Boussole <b>Famille</b></span></a>
+    <nav class="nav-haut" aria-label="Enfants"><a href="#parent" aria-current="page">Lina4</a></nav>
+    <div class="qui"><span class="nom">parent.exemple@exemple.test</span><span class="avatar">P</span></div>
+  </header>
+  <div class="corps">
+    <div class="titre-page"><div><p class="fil">Lina4 · 5e B · Français</p><h1>Le français de Lina</h1><p>Un bilan des exercices et des retours de sa professeure. Les textes rédigés par Lina ne sont pas affichés ici.</p></div>
+      <div class="filtres masque-mobile" role="group" aria-label="Matière"><button class="filtre" aria-pressed="false">Maths</button><button class="filtre" aria-pressed="true">Français</button></div></div>
+    <div class="chiffres">
+      <div class="chiffre"><span class="lib">Cours travaillés</span><span class="val">3</span><span class="pale">sur 3 ouverts</span></div>
+      <div class="chiffre"><span class="lib">Compétences maîtrisées</span><span class="val">2 / 4</span></div>
+      <div class="chiffre"><span class="lib">Temps sur 7 jours</span><span class="val">1 h 05</span></div>
+      <div class="chiffre"><span class="lib">Dernière activité</span><span class="val" style="font-size:1.3rem">aujourd'hui</span></div>
+    </div>
+    <div class="deux-col">
+      <section class="panneau" aria-labelledby="t-par-cours"><h2 id="t-par-cours">Cours ouverts par la professeure</h2>
+        <ul class="liste">
+          <li><span class="puce-rub"><svg class="i"><use href="#i-grammaire"/></svg></span><span class="quoi"><b>Les fonctions : sujet, COD, COI et complément du nom</b><span>Grammaire · 7 / 9 au dernier essai</span><div class="jauge mince" style="margin-top:6px"><span style="width:84%"></span></div></span><span class="niv m">Maîtrisé</span></li>
+          <li><span class="puce-rub"><svg class="i"><use href="#i-conjugaison"/></svg></span><span class="quoi"><b>L'imparfait et le passé simple</b><span>Conjugaison · commencé hier</span><div class="jauge mince" style="margin-top:6px"><span style="width:40%"></span></div></span><span class="niv c">En cours</span></li>
+          <li><span class="puce-rub"><svg class="i"><use href="#i-plume"/></svg></span><span class="quoi"><b>Raconter un événement passé</b><span>Rédaction sur copie · retour de la professeure reçu</span></span><span class="pastille">Relue</span></li>
+        </ul></section>
+      <div class="pile">
+        <section class="panneau" aria-labelledby="t-par-aide"><h2 id="t-par-aide">Comment l'aider</h2>
+          <ul class="liste"><li><span class="quoi"><b>Réviser le présent des verbes en -ger</b><span>« nous mangeons », « nous nageons »</span></span></li></ul></section>
+        <div class="ferme"><svg class="i"><use href="#i-cadenas"/></svg><span>Par respect de la vie privée de votre enfant, ses textes et ses réponses rédigées ne sont jamais montrés dans l'espace famille (RGPD-2). Vous voyez les bilans autorisés (SEC-D6).</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ AVANT / APRÈS ============ -->
+<section class="ecran" data-ecran="avant-apres" data-titre="Avant / après" data-role="Captures de develop (da93c37, pile locale jetable) et maquettes">
+  <div class="comparaison">
+    <figure><figcaption><span class="pastille alerte">Avant</span>Élève, onglet « Cours » (capture du 27/11)</figcaption><img src="audit/eleve-ordinateur-cours.png" alt="Capture : espace élève actuel en français, huit onglets dont le dernier tronqué, dossiers et cours en deux blocs de liens."></figure>
+    <figure><figcaption><span class="pastille ok">Après</span>Accueil Français (maquette)</figcaption><img src="maquettes/01-accueil-ordinateur.png" alt="Maquette : accueil Français avec reprise du cours, quatre rubriques, travail à faire et retours."></figure>
+    <figure><figcaption><span class="pastille alerte">Avant</span>Élève, dossier ouvert</figcaption><img src="audit/eleve-ordinateur-dossier-ouvert-haut.png" alt="Capture : dossier de compréhension actuel, métadonnées internes visibles par l'élève, texte en liste numérotée sous la leçon."></figure>
+    <figure><figcaption><span class="pastille ok">Après</span>Compréhension de texte (maquette)</figcaption><img src="maquettes/06-comprehension-ordinateur.png" alt="Maquette : texte numéroté à gauche, questions à droite."></figure>
+    <figure><figcaption><span class="pastille alerte">Avant</span>Professeur, accueil</figcaption><img src="audit/professeur-ordinateur-accueil.png" alt="Capture : espace professeur actuel, marque Boussole Maths pour une professeure de français."></figure>
+    <figure><figcaption><span class="pastille ok">Après</span>Tableau de bord professeur (maquette)</figcaption><img src="maquettes/10-professeur-ordinateur.png" alt="Maquette : tableau de bord de la professeure de français."></figure>
+  </div>
+</section>
+
+    </div>
+    <div class="notes" id="notes"></div>
+  </main>
+</div>
+
+<script>
+// Notes de conception affichées sous chaque maquette : intention, composants réutilisés, garde-fous.
+const NOTES = {
+  accueil: {
+    intention: ["Une seule question : « que dois-je faire maintenant ? ». La reprise vient en premier.", "Trois destinations au lieu de huit onglets : Accueil, Mes cours, Ma progression.", "Les quatre rubriques sont des entrées, pas des onglets techniques."],
+    reutilise: ["<code>Progression</code> (calcul de reprise)", "<code>MonCours</code> → bloc « Ressources de ta professeure »", "<code>Remarques</code> déplacées dans « Plus »"],
+    garde: ["Aucune gamification : pas de points, de séries ni de badges.", "PDF de « Mon cours » affiché fermé (A5).", "Rédaction présentée « sur copie » tant que RGPD-2 n'est pas levé."]
+  },
+  catalogue: {
+    intention: ["Chapitres YAML et dossiers présentés avec la même carte (décision A1 : la différence technique est masquée).", "Filtre par rubrique ; regroupement par niveau ; révisions des années précédentes."],
+    reutilise: ["<code>Cours.jsx</code> (liste des chapitres ouverts)", "<code>DossiersFrancais.jsx</code> (dossiers ouverts)", "Pastilles d'état de <code>Progression</code>"],
+    garde: ["Seuls les cours validés et ouverts à la classe apparaissent (V2-D15, SEC-D6)."]
+  },
+  lecon: {
+    intention: ["Les sept étapes de #177 forment le fil du cours ; chaque étape correspond à des champs existants (objectifs, cours, méthodes, difficultés, erreurs fréquentes, résumé).", "Colonne de lecture limitée à 66 caractères, police de lecture à empattements, 18 px.", "Aides dans la marge : objectifs, erreurs fréquentes, ressources."],
+    reutilise: ["Rendu Markdown et tableaux de <code>Cours.jsx</code>", "<code>Pedagogie.jsx</code> (méthodes, exemples résolus)"],
+    garde: ["Le parcours guidé est la présentation par défaut (#111) ; l'élève peut revenir en arrière mais ne change pas la présentation."]
+  },
+  grammaire: {
+    intention: ["La phrase étudiée est mise en scène en grand, le groupe visé souligné.", "Choix en grandes cibles (44 px minimum), lettre et libellé.", "Aide « Revoir la méthode » sans quitter la question."],
+    reutilise: ["<code>Exercice.jsx</code> (tirage par le moteur, envoi, correction)", "Type <code>qcm</code> existant"],
+    garde: ["Aucune solution dans la page avant la réponse (ARCH-4, <code>QuestionPublique</code>).", "L'ordre des questions par étape reste un filtre de présentation : à vérifier avec le moteur (voir découpage, PR 3)."]
+  },
+  conjugaison: {
+    intention: ["Repères grammaticaux (temps, personne, groupe) en pastilles, pas en phrase.", "Clavier d'accents pour tablette et ordinateur sans clavier français.", "Règle de saisie rappelée : accents comptés, casse et espaces neutralisés."],
+    reutilise: ["Type <code>texte</code> et sa normalisation côté moteur", "<code>Exercice.jsx</code>"],
+    garde: ["Le rappel affiche le résumé du cours, jamais la forme attendue."]
+  },
+  comprehension: {
+    intention: ["Texte et questions côte à côte : l'élève cite sans faire défiler.", "Lignes numérotées dans la marge, en police de lecture ; lignes citées dans la question mises en évidence.", "Sur mobile : bascule « Le texte / Questions »."],
+    reutilise: ["<code>DossiersFrancais.jsx</code> (quiz, questions rédigées, « Je sais »)", "Contrat <code>boussole-francais-dossier/1</code>"],
+    garde: ["Les métadonnées internes du dossier (issue, agent, « brouillon ») ne sont plus montrées à l'élève (constat N2).", "Réponse en ligne fermée tant que <code>PKP_REDACTION_ACTIVE</code> est faux."]
+  },
+  correction: {
+    intention: ["Ton bienveillant, sans rouge agressif : la couleur double un libellé et une icône.", "La méthode et ses étapes, puis l'erreur fréquente visée par la question.", "Retour vers la leçon à l'endroit de la méthode."],
+    reutilise: ["Champ <code>correction</code> (méthode, étapes, résultat, erreurs fréquentes)", "<code>ResultatReponse</code>"],
+    garde: ["La correction n'apparaît qu'après la réponse (ARCH-4)."]
+  },
+  bilan: {
+    intention: ["Bilan de fin de cours par niveau de difficulté (3 faciles, 3 moyennes, 3 difficiles, A2).", "Progression par rubrique ; rédaction sans pourcentage.", "« À retravailler » mène directement à la révision."],
+    reutilise: ["<code>Progression.jsx</code>", "<code>Historique.jsx</code>", "Seuil de maîtrise du moteur (80 %) inchangé"],
+    garde: ["La correction humaine n'alimente jamais la maîtrise (ARCH-5, R8)."]
+  },
+  redaction: {
+    intention: ["Consigne et critères de réussite toujours visibles ; feuille lignée en police de lecture.", "Outils sobres : connecteurs, lien vers le cours de conjugaison, rappel de relecture.", "État réel affiché : fermé, rédaction sur copie."],
+    reutilise: ["<code>Redaction.jsx</code> et le circuit de #187", "Chapitres de la rubrique <code>redaction</code>"],
+    garde: ["<code>PKP_REDACTION_ACTIVE</code> reste faux : l'éditeur est montré désactivé.", "Rappel RGPD-2 dans la consigne : sujet fictif, aucune donnée personnelle."]
+  },
+  professeur: {
+    intention: ["Marque « Boussole Français » pour une professeure de français (constat N4).", "Suivi par élève et par cours, en un tableau ; élèves à accompagner signalés.", "Réglage de présentation visible avec son origine (FR-01 de #111)."],
+    reutilise: ["<code>EspaceEnseignant</code>, <code>Classes</code>, <code>SuiviFrancais</code>", "Navigation latérale sombre de la charte #149"],
+    garde: ["Bibliothèque et Objectif brevet affichés « bientôt » selon le calendrier A4 ; persistance soumise à EX.4."]
+  },
+  validateur: {
+    intention: ["File à gauche, question à droite : aperçu élève et corrigé séparés visuellement.", "« À corriger » exige un motif ; PDF élève et professeur à portée de main.", "Remplace un tableau de 14 000 px de haut (constat N6)."],
+    reutilise: ["<code>Validation.jsx</code>, routes <code>/francais/validation</code> et <code>/admin/questions/{id}/validation</code>"],
+    garde: ["Interdiction d'auto-validation (V2-D15) rappelée et appliquée côté serveur.", "Aucun changement des règles de validation."]
+  },
+  administrateur: {
+    intention: ["Une page « Français » parmi les matières, au même rang que Maths et Anglais.", "État des huit cours et quatre sujets ; classes pilotes ; validateurs habilités.", "Fonctions sensibles affichées en lecture seule."],
+    reutilise: ["<code>ClassesPilotes</code>, <code>Qualifications</code>, <code>Contenu</code>, simulation (#184)"],
+    garde: ["Les drapeaux restent dans la configuration du serveur ; l'interface ne les change pas."]
+  },
+  parent: {
+    intention: ["Le français a enfin sa vue (constat U6) : cours, maîtrise, temps, retours reçus.", "Conseil concret pour aider à la maison.", "Bascule Maths / Français pour une famille à plusieurs matières."],
+    reutilise: ["<code>EspaceParent.jsx</code>, résumé Français de <code>/parents/famille</code>"],
+    garde: ["Jamais les textes rédigés de l'enfant (RGPD-2) ; uniquement les bilans autorisés (SEC-D6).", "Identifiant d'enfant sans nom de famille (RGPD-1)."]
+  },
+  "avant-apres": {
+    intention: ["Captures réelles faites sur une pile locale jetable (SQLite temporaire), comptes fictifs.", "Toutes les captures sont dans <code>audit/</code> ; les maquettes rendues dans <code>maquettes/</code>."],
+    reutilise: ["Script de capture joint au rapport, réutilisable pour l'« après »."],
+    garde: ["Aucune donnée réelle ; aucune instance partagée utilisée."]
+  }
+};
+const ELEVE = ["accueil", "catalogue", "lecon", "grammaire", "conjugaison", "comprehension", "correction", "bilan", "redaction"];
+const ADULTES = ["professeur", "validateur", "administrateur", "parent"];
+const ecrans = [...document.querySelectorAll(".ecran")];
+const titreDe = (id) => document.querySelector(`[data-ecran="${id}"]`).dataset.titre;
+document.getElementById("sommaire-eleve").innerHTML = ELEVE.map((id) => `<li><a href="#${id}">${titreDe(id)}</a></li>`).join("");
+document.getElementById("sommaire-adultes").innerHTML = ADULTES.map((id) => `<li><a href="#${id}">${titreDe(id)}</a></li>`).join("");
+document.querySelector("#sommaire-adultes").style.counterReset = "e 9";
+
+function afficher() {
+  const id = (location.hash || "#accueil").slice(1);
+  const cible = ecrans.find((e) => e.dataset.ecran === id) ?? ecrans[0];
+  ecrans.forEach((e) => e.classList.toggle("actif", e === cible));
+  document.querySelectorAll(".sommaire a").forEach((a) => a.toggleAttribute("aria-current", a.getAttribute("href") === `#${cible.dataset.ecran}`));
+  document.querySelectorAll(".sommaire a[aria-current]").forEach((a) => a.setAttribute("aria-current", "page"));
+  document.getElementById("titre-ecran").textContent = cible.dataset.titre;
+  document.getElementById("meta-ecran").textContent = cible.dataset.role;
+  const n = NOTES[cible.dataset.ecran];
+  const bloc = (titre, icone, items) => `<div class="note"><h3><svg class="i petit"><use href="#${icone}"/></svg>${titre}</h3><ul>${items.map((t) => `<li>${t}</li>`).join("")}</ul></div>`;
+  document.getElementById("notes").innerHTML = n ? bloc("Intention", "i-cible", n.intention) + bloc("Réutilise l'existant", "i-recharger", n.reutilise) + bloc("Garde-fous", "i-bouclier", n.garde) : "";
+}
+window.addEventListener("hashchange", () => { afficher(); document.getElementById("scene").scrollIntoView({ block: "start" }); });
+afficher();
+
+// Taille d'écran
+const scene = document.getElementById("scene");
+function taille(mobile) {
+  scene.classList.toggle("mobile", mobile);
+  document.getElementById("b-ordi").setAttribute("aria-pressed", String(!mobile));
+  document.getElementById("b-mobile").setAttribute("aria-pressed", String(mobile));
+  try { localStorage.setItem("fr231-taille", mobile ? "mobile" : "ordi"); } catch (e) { /* stockage indisponible */ }
+}
+document.getElementById("b-ordi").onclick = () => taille(false);
+document.getElementById("b-mobile").onclick = () => taille(true);
+const tailleDemandee = new URLSearchParams(location.search).get("taille");
+if (tailleDemandee) taille(tailleDemandee === "mobile");
+else { try { if (localStorage.getItem("fr231-taille") === "mobile") taille(true); } catch (e) { /* stockage indisponible */ } }
+
+// Petites interactions de démonstration
+document.querySelectorAll(".clavier button").forEach((b) => b.addEventListener("click", () => {
+  const champ = document.getElementById("rep-conj"); champ.value += b.textContent; champ.focus();
+}));
+document.querySelectorAll(".filtres").forEach((g) => g.addEventListener("click", (ev) => {
+  const b = ev.target.closest(".filtre"); if (!b) return;
+  g.querySelectorAll(".filtre").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+}));
+document.querySelectorAll('.onglets-q[role="tablist"]').forEach((g) => g.addEventListener("click", (ev) => {
+  const b = ev.target.closest("button"); if (!b) return;
+  g.querySelectorAll("button").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+  if (g.classList.contains("bascule-texte")) {
+    const voirQuestions = b === g.lastElementChild;
+    const zone = g.nextElementSibling;
+    zone.querySelector(".texte-source").style.display = voirQuestions ? "none" : "";
+    zone.querySelector(".questions").style.display = voirQuestions ? "grid" : "";
+  }
+}));
+</script>

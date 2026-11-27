@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import PositiveInt, model_validator
+from pydantic import Field, PositiveInt, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 CLE_DEV = "dev-uniquement-a-changer"
@@ -43,6 +43,11 @@ class Settings(BaseSettings):
     # l'information des élèves et des parents ne sont pas validés ; PKP_REDACTION_ACTIVE=true pour l'ouvrir.
     redaction_active: bool = False
     redaction_longueur_max: int = 10_000
+    # Issue #231 (décision du propriétaire du 27/11/2026) : tant que la rédaction en ligne est fermée, l'élève peut
+    # préparer son brouillon dans l'atelier ; il reste sur l'appareil seulement (navigateur) et il est effacé ce nombre
+    # de jours après sa dernière modification. 0 désactive le brouillon local. Plafond de 30 jours : aller au-delà
+    # demande une nouvelle décision RGPD du propriétaire. Information des familles : charte d'utilisation (#183).
+    redaction_brouillon_jours: int = Field(10, ge=0, le=30)
     # Issue #172 : « Accueil et demandes ». Durée de conservation par file, en jours depuis le dernier traitement, par
     # exemple PKP_ACCUEIL_CONSERVATION_JOURS='{"candidature": 180, "partenariat": 365}'. Aucune durée par défaut :
     # elles sont décidées par le propriétaire (RGPD-3, en attente). Sans durée, une file ne collecte rien (formulaire

@@ -12,7 +12,7 @@ suite() {
 }
 
 suite "Moteur" engine "$PYTHON" -m pytest -q
-suite "API" api "$PYTHON" -m pytest -q -W ignore::DeprecationWarning
+suite "API" api "$PYTHON" -m pytest -q -n auto -W ignore::DeprecationWarning
 suite "Front" web npm test
 
 if ((${#echecs[@]})); then printf '\nÉchec : %s\n' "${echecs[*]}"; exit 1; fi

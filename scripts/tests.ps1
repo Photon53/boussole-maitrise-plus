@@ -12,7 +12,7 @@ function Suite([string]$nom, [string]$dossier, [string]$commande, [string[]]$arg
 }
 
 Suite "Moteur" "engine" $python @("-m", "pytest", "-q")
-Suite "API" "api" $python @("-m", "pytest", "-q", "-W", "ignore::DeprecationWarning")
+Suite "API" "api" $python @("-m", "pytest", "-q", "-n", "auto", "-W", "ignore::DeprecationWarning")
 Suite "Front" "web" "npm" @("test")
 
 if ($echecs.Count -gt 0) { Write-Host "`nÉchec : $($echecs -join ', ')" -ForegroundColor Red; exit 1 }

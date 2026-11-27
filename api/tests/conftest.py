@@ -95,10 +95,12 @@ def bases_modeles(tmp_path_factory) -> tuple[Path, Path]:
 
 @pytest.fixture
 def db_url(tmp_path, bases_modeles, request) -> str:
-    """Base SQLite migrée jusqu'à la dernière version ; avec les données de démo si le test utilise `client`."""
+    """Base SQLite migrée jusqu'à la dernière version ; avec les données de démo si le test utilise `client` ou `demo`
+    (copie de la base préparée une fois : recharger la banque coûtait environ 11 s par test)."""
     migree, demo = bases_modeles
     fichier = tmp_path / "test.db"
-    shutil.copyfile(demo if "client" in request.fixturenames else migree, fichier)
+    avec_demo = {"client", "demo"} & set(request.fixturenames)
+    shutil.copyfile(demo if avec_demo else migree, fichier)
     return f"sqlite:///{fichier}"
 
 
