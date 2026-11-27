@@ -42,9 +42,9 @@ def _aware(d: datetime | None) -> datetime | None:
     return d if d is None or d.tzinfo else d.replace(tzinfo=UTC)
 
 
-@router.get("/accueil")
-def accueil(eleve: EleveCourant, session: SessionDB, reponse: Response) -> dict:
-    reponse.headers["Cache-Control"] = "private, no-store"
+def cours_de_l_eleve(session: SessionDB, eleve: models.Eleve) -> tuple[bool, list[dict]]:
+    """Accès de la classe (SEC-D6) et cours ouverts de l'élève avec son état et son étape ; aucun cours sans accès.
+    Partagé par l'accueil de l'élève et le bilan de ses parents (#231)."""
     classe = eleve.classe
     acces = permissions.refus_acces_classe(session, classe) is None
     cours: list[dict] = []
@@ -80,6 +80,14 @@ def accueil(eleve: EleveCourant, session: SessionDB, reponse: Response) -> dict:
                 "nb_quiz": len(d.validee.quiz or []), **etat, "etape": _etape(etat),
                 "derniere_activite": _iso(p.maj_le) if p and p.tentatives else None,
             })
+    return acces, cours
+
+
+@router.get("/accueil")
+def accueil(eleve: EleveCourant, session: SessionDB, reponse: Response) -> dict:
+    reponse.headers["Cache-Control"] = "private, no-store"
+    classe = eleve.classe
+    acces, cours = cours_de_l_eleve(session, eleve)
 
     # Reprendre : le cours le plus récemment travaillé qui n'est pas terminé, sinon le premier à commencer.
     en_cours = sorted((c for c in cours if c["derniere_activite"] and c["etape"] < 7),

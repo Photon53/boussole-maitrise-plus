@@ -10,6 +10,7 @@ import PkpMath from "../pkpmath/PkpMath.jsx";
 import { ecrire, lire } from "../stockage.js";
 import { formaterDate, pourcentage } from "../ui/Cadre.jsx";
 import Remarques from "../ui/Remarques.jsx";
+import BilanFrancais from "./BilanFrancais.jsx";
 
 const CLE_COMPTE = "pkp.parent";
 // Mêmes règles que l'API (app/security.py) : vérifiées ici pour un message immédiat.
@@ -81,7 +82,7 @@ function SuiviEnfants({ compte, onDeconnexion }) {
           ...famille.map((f) => ({ id: `f${f.enfant.id}`, libelle: f.enfant.prenom, famille: f })),
           ...inscriptions
             .filter((e) => !dejaVues.has(e.id))
-            .map((e) => ({ id: `i${e.id}`, libelle: `${e.prenom} · ${e.code_classe}`, eleveId: e.id })),
+            .map((e) => ({ id: `i${e.id}`, libelle: `${e.prenom} · ${e.code_classe}`, eleveId: e.id, matiere: e.matiere })),
         ];
         setEnfants(liste);
         setEnfantId((id) => (liste.some((e) => e.id === id) ? id : liste[0]?.id ?? null));
@@ -122,6 +123,9 @@ function SuiviEnfants({ compte, onDeconnexion }) {
       {enfants?.filter((e) => e.id === enfantId).map((e) =>
         e.famille ? (
           <SuiviFamille key={e.id} suivi={e.famille} appeler={appeler} compte={compte} onExpire={onDeconnexion} onChange={charger} />
+        ) : e.matiere === "francais" ? (
+          // Issue #231 : bilan Français (cours, états, temps, retours), jamais de contenu ni de texte de l'enfant.
+          <BilanFrancais key={e.id} eleveId={e.eleveId} appeler={appeler} />
         ) : (
           <TableauEnfant key={e.id} enfantId={e.eleveId} appeler={appeler} compte={compte} onExpire={onDeconnexion} onCode={charger} />
         ),
@@ -201,12 +205,14 @@ function SuiviFamille({ suivi, appeler, compte, onExpire, onChange }) {
         </section>
       )}
 
-      {vue === "francais" && (
-        <section className="carte">
-          <h2>Boussole Français</h2>
-          <p className="doux">Le français arrive bientôt sur Boussole : {enfant.prenom} y aura accès avec la même carte.</p>
-        </section>
-      )}
+      {vue === "francais" &&
+        ((suivi.francais ?? []).length === 0 ? (
+          <section className="carte">
+            <p className="doux">{enfant.prenom} n'est encore inscrit dans aucune classe de français.</p>
+          </section>
+        ) : (
+          suivi.francais.map((f) => <BilanFrancais key={f.id} eleveId={f.id} appeler={appeler} />)
+        ))}
 
       {vue === "fiches" && (
         <section className="carte">
