@@ -4,7 +4,7 @@
 // #177 (FR-UI-D2) : objectifs, leçon, quiz, entraînement, transfert, réponses rédigées, « Je sais ». Pendant les
 // questions, le texte reste à côté, lignes numérotées dans la marge ; les lignes que cite la question sont repérées.
 // Les activités (quiz, réponses rédigées, auto-évaluation) sont les composants existants de #217, inchangés.
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Maths } from "../maths.jsx";
 import RailEtapes, { NavigationEtapes, SEPT_ETAPES } from "../ui/Etapes.jsx";
 import { AutoEvaluation, QuizFrancais, ReponsesRedigees } from "./ActiviteFrancais.jsx";
@@ -50,7 +50,8 @@ function AvecTexte({ textes, codes, plages, children }) {
   if (!texte) return children;
   return (
     <div className="lecture-partagee">
-      <div className="lecture-texte">
+      {/* Zone qui défile : atteignable au clavier et nommée (#154). */}
+      <div className="lecture-texte" tabIndex={0} role="region" aria-label={`Texte : ${texte.titre}`}>
         {utiles.length > 1 && (
           <div className="fr-filtres" role="group" aria-label="Texte affiché">
             {utiles.map((t) => (
@@ -146,6 +147,14 @@ export default function LectureDossier({ dossier, jeton, onExpire, onFermer, lib
   const e = dossier.eleve;
   const titreEtape = SEPT_ETAPES[active - 1];
 
+  // Issue #154 : au changement d'étape, le focus va au titre de l'étape (annoncé par un lecteur d'écran).
+  const refTitre = useRef(null);
+  const dejaAffiche = useRef(false);
+  useEffect(() => {
+    if (dejaAffiche.current) refTitre.current?.focus();
+    dejaAffiche.current = true;
+  }, [active]);
+
   function choisir(numero) {
     setFaites((f) => (f.includes(active) ? f : [...f, active]));
     setActive(numero);
@@ -166,7 +175,7 @@ export default function LectureDossier({ dossier, jeton, onExpire, onFermer, lib
       />
       <section className="contenu-etape" aria-labelledby="titre-etape">
         <p className="surtitre">Étape {active} sur 7</p>
-        <h2 id="titre-etape">{titreEtape}</h2>
+        <h2 id="titre-etape" ref={refTitre} tabIndex={-1}>{titreEtape}</h2>
         <h3 className="visuellement-cache" id="titre-dossier-francais">{dossier.titre}</h3>
 
         {active === 1 && (

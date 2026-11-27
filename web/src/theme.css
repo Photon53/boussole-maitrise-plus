@@ -24,6 +24,10 @@
   --alerte-doux: #fff3e0;
   --ko: #c92a2a;
   --ko-doux: #fdecec;
+  /* Texte des badges sur fond doux (#231, #154) : contraste ≥ 5,5:1 ; --ok, --alerte et --accent restent pour les traits. */
+  --ok-texte: #1e6b31;
+  --alerte-texte: #8a4600;
+  --accent-texte: #9a4a0c;
 
   /* Neutres */
   --texte: #0f172a;
@@ -93,6 +97,9 @@
     --alerte-doux: #3a2c14;
     --ko: #ff8787;
     --ko-doux: #3a1d1f;
+    --ok-texte: #63c27a;
+    --alerte-texte: #f0b35a;
+    --accent-texte: #f2a65a;
     --texte: #e8eaf2;
     --texte-doux: #a2a8bd;
     --fond: #12141c;

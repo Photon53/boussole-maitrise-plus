@@ -130,7 +130,7 @@ export default function FrancaisAdmin({ jeton, onExpire, onDomaine }) {
         <div className="fr-principal">
           <section className="carte" aria-labelledby="fr-niveaux">
             <h2 id="fr-niveaux">Par niveau</h2>
-            <div className="tableau-defilant">
+            <div className="tableau-defilant" tabIndex={0} role="region" aria-label="Par niveau, tableau défilant">
               <table className="fr-table">
                 <thead>
                   <tr>
@@ -179,7 +179,7 @@ export default function FrancaisAdmin({ jeton, onExpire, onDomaine }) {
               Object.entries(parNiveau).map(([niveau, liste]) => (
                 <div key={niveau} className="fr-groupe-niveau">
                   <h3>{niveau}</h3>
-                  <div className="tableau-defilant">
+                  <div className="tableau-defilant" tabIndex={0} role="region" aria-label={`Cours de ${niveau}, tableau défilant`}>
                     <table className="fr-table fr-cours">
                       <thead>
                         <tr>

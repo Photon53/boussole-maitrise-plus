@@ -193,7 +193,7 @@ function Tableau({ t, validateur }) {
             {t.eleves.length === 0 ? "Aucun élève inscrit dans cette classe." : "Aucun cours ouvert à cette classe."}
           </Vide>
         ) : (
-          <div className="tableau-defilant">
+          <div className="tableau-defilant" tabIndex={0} role="region" aria-label="Suivi de la classe, tableau défilant">
             <table className="fr-table fr-suivi">
               <thead>
                 <tr>
