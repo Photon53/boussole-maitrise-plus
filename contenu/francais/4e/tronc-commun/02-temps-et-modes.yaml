@@ -16,7 +16,7 @@ competences:
       - Distinguer le futur (je serai) du conditionnel présent (je serais) selon le sens de la phrase.
     resume: |
       - **Indicatif** : le mode du réel (présent, imparfait, passé simple, futur, passé composé…). Le **conditionnel** est rangé parmi les temps de l’indicatif dans la terminologie de référence : il exprime un futur vu du passé ou une hypothèse.
-      - **Subjonctif** : après « il faut que », « je veux que », « bien que » ; terminaisons -e, -es, -e, -ions, -iez, -ent. *Que je finisse, que tu sois, qu’ils fassent.*
+      - **Subjonctif** : après « il faut que », « je veux que », « bien que » ; terminaisons -e, -es, -e, -ions, -iez, -ent. *Que je finisse, qu’ils fassent* ; irréguliers : *que tu sois, que j’aie*.
       - **Impératif** : ordre ou conseil, sans sujet exprimé. *Viens ! Finissons.*
       - **Conditionnel présent** : radical du futur + terminaisons de l’imparfait : *je serais, nous lirions.*
       - **Futur ou conditionnel ?** Remplacer par « nous » : *nous serons* (futur), *nous serions* (conditionnel).
@@ -34,7 +34,7 @@ competences:
       | Il faut que tu **partes**. | partes | subjonctif présent | une obligation, une action envisagée |
       | **Viens** ici ! | viens | impératif présent | un ordre |
 
-      **Former le subjonctif présent** : radical de « ils » au présent de l’indicatif (*ils finissent → que je finisse*) ; « être », « avoir », « faire », « aller », « pouvoir », « savoir » et « vouloir » sont irréguliers (*que je sois, que j’aie, que je fasse*).
+      **Former le subjonctif présent** : pour je, tu, il, ils, radical de « ils » au présent de l’indicatif (*ils prennent → que je prenne*) ; pour nous et vous, radical de « nous » (*nous prenons → que nous prenions*) ; « être », « avoir », « faire », « aller », « pouvoir », « savoir » et « vouloir » sont irréguliers (*que je sois, que j’aie, que je fasse*).
 
       ## 3. Appliquer et s’entraîner
       Les exercices commencent par l’identification des modes, puis demandent de conjuguer au subjonctif et au conditionnel.
@@ -81,7 +81,7 @@ competences:
       - code: FR4-MODES-EMPLOI-02
         difficulte: 1
         type: qcm
-        enonce: "Dans « Il faut que tu partes », à quel mode et à quel temps est « partes » ? A) indicatif présent  B) subjonctif présent  C) conditionnel présent"
+        enonce: "Dans « Il faut que tu partes », à quel mode et à quel temps est « partes » ? A) indicatif présent  B) subjonctif présent  C) indicatif, conditionnel présent"
         solution: B
         auteur: Brouillon IA (Claude)
         correction:
@@ -97,9 +97,9 @@ competences:
         solution: finissions|nous finissions
         auteur: Brouillon IA (Claude)
         correction:
-          methode: Partir du radical de « ils » au présent de l’indicatif.
+          methode: Avec « nous », partir du radical de « nous » au présent de l’indicatif.
           etapes:
-            - "Ils finissent : le radical est « finiss- »."
+            - "Nous finissons : le radical est « finiss- »."
             - Avec « nous », la terminaison du subjonctif est -ions.
           resultat: finissions
           erreurs_frequentes:

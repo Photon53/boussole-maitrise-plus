@@ -53,6 +53,7 @@ competences:
           - Chercher si « que » suit un nom qu’il reprend (un antécédent).
           - "Remplacer « que » par son antécédent dans la proposition : si la phrase a du sens, c’est un pronom relatif."
           - Si « que » suit un verbe (croire, penser, vouloir…) et ne reprend aucun nom, c’est une conjonction de subordination.
+          - "Attention : dans « l’idée que tu partes », « que » suit un nom sans le reprendre (« tu partes l’idée » n’a pas de sens) : c’est aussi une conjonction."
         exemple:
           enonce: Quelle est la nature de « que » dans « La route que nous suivons est longue » ?
           resolution:
@@ -163,7 +164,7 @@ competences:
         difficulte: 4
         type: texte
         enonce: Combien de propositions compte la phrase « Quand la cloche sonna, les élèves qui attendaient dans la cour se rangèrent » ? Réponds par un nombre.
-        solution: 3|trois
+        solution: 3|trois|3 propositions|trois propositions
         auteur: Brouillon IA (Claude)
         correction:
           methode: Compter les verbes conjugués, puis identifier chaque proposition.
@@ -177,7 +178,7 @@ competences:
       - code: FR4-PHRASE-COMPLEXE-09
         difficulte: 5
         type: qcm
-        enonce: "Dans « La maison où j’ai grandi a été vendue », qu’est la proposition « où j’ai grandi » ? A) une subordonnée conjonctive, complément du verbe  B) une subordonnée relative, complément de l’antécédent « maison »  C) une proposition indépendante"
+        enonce: "Dans « La maison où j’ai grandi a été vendue », comment analyse-t-on la proposition « où j’ai grandi » ? A) une subordonnée conjonctive, complément du verbe  B) une subordonnée relative, complément de l’antécédent « maison »  C) une proposition indépendante"
         solution: B
         auteur: Brouillon IA (Claude)
         correction:
