@@ -1017,4 +1017,7 @@ button.question-entete:hover:not(:disabled) { background: none; color: var(--tex
   .rail-mobile { display: block; }
   .lecture-partagee { grid-template-columns: minmax(0, 1fr); }
   .lecture-texte { position: static; max-height: 45vh; }
+  .contenu-etape > .surtitre { display: none; }
 }
+.cours-avancement { display: grid; gap: 6px; max-width: 420px; font-size: var(--t-s); }
+.cours-action { display: grid; gap: 8px; justify-items: start; }
