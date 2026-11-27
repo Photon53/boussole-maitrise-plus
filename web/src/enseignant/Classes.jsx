@@ -30,7 +30,8 @@ export default function Classes({ jeton, onExpire, maths = true, francais = fals
   const [eleves, setEleves] = useState(null);
   const [detail, setDetail] = useState(null); // { eleveId, competences }
   const [matiere, setMatiere] = useState(maths ? "maths" : "francais");
-  const [niveau, setNiveau] = useState("2nde");
+  // Issue #231 : un professeur de français seul crée d'abord des classes de collège.
+  const [niveau, setNiveau] = useState(maths ? "2nde" : "6e");
   const [parcours, setParcours] = useState("tronc-commun");
   const matieresPermises = Object.keys(MATIERES_CLASSES).filter((m) => (m === "maths" ? maths : francais));
   const enFrancais = matiere === "francais";

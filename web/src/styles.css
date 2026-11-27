@@ -900,3 +900,26 @@ h1, h2, .accueil h3, .profil h3, .app-entete h1, .logo, .chiffres-cles strong {
   .fr-cours td:nth-child(4) { grid-column: 1 / -1; font-size: var(--t-xs); color: var(--texte-doux); }
   .fr-cours td:nth-child(4):empty, .fr-cours td:last-child:empty { display: none; }
 }
+
+/* --- Espace professeur : tableau de bord Français (#231) ------------------------------------------------- */
+.fr-prof { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+.fr-prof .kpis { margin-bottom: 0; }
+.fr-prof-barre { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.fr-prof-barre label { font-weight: 600; margin: 0; }
+.fr-prof-barre select { width: auto; max-width: 100%; }
+.fr-prof-barre .fr-actions { margin-left: auto; }
+.fr-suivi th[scope="row"] { white-space: nowrap; position: sticky; left: 0; background: var(--surface); }
+.fr-suivi thead th { text-transform: none; letter-spacing: 0; font-size: var(--t-s); color: var(--texte); vertical-align: bottom; }
+.fr-suivi thead th .doux { display: block; font-weight: 400; font-size: var(--t-xs); }
+.fr-entete-cours { display: block; min-width: 8rem; max-width: 12rem; white-space: normal; }
+.fr-niveau { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
+.fr-niveau::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: currentColor; flex: none; }
+.fr-niveau.m { color: var(--ok); }
+.fr-niveau.c { color: var(--action); }
+.fr-niveau.r { color: var(--alerte); }
+.fr-niveau.n { color: var(--texte-doux); font-weight: 500; }
+.fr-niveau.n::before { content: "–"; width: auto; height: auto; background: none; border-radius: 0; }
+.fr-valeur-alerte { color: var(--alerte); }
+@media (max-width: 640px) { .fr-prof-barre .fr-actions { margin-left: 0; } }
+.fr-deux { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; align-items: start; }
+.fr-prof .kpis, .fr-admin .kpis { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }

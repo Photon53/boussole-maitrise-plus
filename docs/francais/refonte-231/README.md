@@ -5,7 +5,8 @@ Issue #231 (sous-ticket de #175), renforcée par le propriétaire le 27/11/2026.
 
 **Statut au 27/11/2026, fin de journée** : le propriétaire a délégué les arbitrages D1 à D6 (appliqués, voir
 `DECISIONS.md`, FR-UI-D1 à D6) et demandé de commencer par l'administration. **Livré : la page « Boussole
-Français » de l'administration** (§ 8, PR 4a), captures réelles dans [`apres/`](apres/). Les autres écrans suivent
+Français » de l'administration** (§ 8, PR 4a) **et l'espace professeur Français** (PR 4b), captures réelles dans
+[`apres/`](apres/). Les autres écrans suivent
 le découpage du § 8.
 
 Statut initial : maquettes à valider. Ce dossier ne modifie ni le
@@ -259,7 +260,8 @@ captures « après » faites avec [`outils/captures-audit.mjs`](outils/captures-
 | **3a** | **Écran de cours en sept étapes** : rail, leçon, exercices de grammaire et de conjugaison, correction expliquée, bilan | `Cours.jsx`, `Exercice.jsx` (présentation), `Etapes`, `ZoneLecture`, `CorrectionExpliquee` | Vitest ; aucune solution dans le DOM avant réponse (ARCH-4) ; recette : leçon → exercice → correction → bilan | D2, D3, PR 2 |
 | **3b** | **Compréhension et rédaction** : `TexteNumerote`, texte et questions côte à côte, rédaction avec état fermé | `DossiersFrancais.jsx`, `Redaction.jsx` | Vitest ; drapeaux inchangés ; recette : dossier ouvert, quiz, état fermé | PR 3a |
 | **4a ✔** | **Administration** (fait le 27/11) : page « Boussole Français » : « À traiter » (alertes avec l'écran qui les règle), cours prêts, questions validées, classes pilotes, tableau par niveau (validateurs, classes pilotes), chapitres et dossiers ensemble par niveau et rubrique, fonctions sensibles en lecture seule. Remplace le lien « Boussole Français (préparation) » | `api/app/routes/admin_francais.py` (`GET /admin/francais/synthese`, lecture seule), `web/src/admin/FrancaisAdmin.jsx`, `EspaceAdmin.jsx`, `Exercices.jsx` (filtre `?statut=`), `styles.css` | 5 tests API, 4 tests Vitest, navigation mise à jour, recette #217 adaptée | — |
-| **4** | **Adultes** : espace professeur Français (marque, tableau de bord, présentation de #111 en lecture), file de validation, page Français de l'administration | `EspaceEnseignant`, `SuiviFrancais.jsx`, `Validation.jsx`, `EspaceFrancais.jsx`, `admin/` | Vitest ; refus d'auto-validation inchangé (test API existant) ; recette validateur et administrateur | Maquettes 10–12 |
+| **4b ✔** | **Professeur** (fait le 27/11) : marque « Boussole Français » ; navigation en groupes « Français » et « Outils » ; pages propres aux maths retirées pour un professeur de français seul ; **tableau de bord** de la classe : indicateurs, à faire (questions à valider dans son périmètre, élèves à accompagner, rédactions), présentation de #111 (parcours guidé, origine « par défaut »), suivi élèves × cours (chapitres et dossiers) ; création de classe en 6e par défaut | `api/app/routes/francais_tableau.py` (`GET /francais/classes/{id}/tableau`, lecture seule), `web/src/francais/TableauFrancais.jsx`, `EspaceEnseignant.jsx`, `Classes.jsx`, `styles.css` | 4 tests API, 6 tests Vitest | — |
+| **4** | **Adultes (reste)** : file de validation en deux volets (aperçu élève, corrigé), espace professeur Français (marque, tableau de bord, présentation de #111 en lecture), file de validation, page Français de l'administration | `EspaceEnseignant`, `SuiviFrancais.jsx`, `Validation.jsx`, `EspaceFrancais.jsx`, `admin/` | Vitest ; refus d'auto-validation inchangé (test API existant) ; recette validateur et administrateur | Maquettes 10–12 |
 | **5** | **Passe finale responsive et accessibilité** (#154) : 3 tailles, clavier, zoom 200 %, contraste, lecteur d'écran sur les parcours clés | tous les écrans modifiés | axe sur les écrans clés ; captures avant/après des cinq rôles | PR 1 à 4 |
 
 La persistance des présentations par groupe ou séance (#111) reste suspendue à l'arbitrage EX.4 ; la PR 4 affiche

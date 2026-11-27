@@ -68,6 +68,30 @@ try {
   parent = "parent-audit-231@exemple.test";
 } catch (e) { journal.push(`parent : ${e.message}`); }
 
+// Activité fictive (#231, captures « après ») : Lina répond juste, Yanis à moitié, Inès se trompe.
+const solutions = {};
+for (let p = 1; ; p += 1) {
+  const r = await api(`/admin/questions?domaine=${DOMAINE}&niveau=3e&page=${p}`, { jeton: admin });
+  for (const q of r.elements) solutions[q.id] = String(q.solution).split("|")[0].trim();
+  if (p * 50 >= r.total) break;
+}
+async function travailler(prenom, code, n, juste) {
+  try {
+    const { jeton } = await api("/eleves/connexion", { methode: "POST", corps: { prenom, code_classe: cp.code, code_personnel: code } });
+    const seance = await api("/seances", { methode: "POST", jeton });
+    for (let i = 0; i < n; i += 1) {
+      const q = await api(`/seances/${seance.id}/question`, { jeton });
+      if (!q?.id) break;
+      await api(`/seances/${seance.id}/reponses`, { methode: "POST", jeton,
+        corps: { question_id: q.id, reponse_donnee: juste(i) ? solutions[q.id] ?? "x" : "x" } });
+    }
+  } catch (e) { journal.push(`activité ${prenom} : ${e.message}`); }
+}
+const code = (prenom) => el.crees.find((e) => e.prenom === prenom).code;
+await travailler("Lina", code("Lina"), 14, () => true);
+await travailler("Yanis", code("Yanis"), 6, (i) => i % 2 === 0);
+await travailler("Inès", code("Inès"), 8, () => false);
+
 // --- Captures ---------------------------------------------------------------------------------------------
 const nav = await chromium.launch();
 async function capture(page, nom) {
@@ -131,6 +155,9 @@ for (const taille of ["ordinateur", "mobile"]) {
     const page = await contexte(taille);
     await connexionAdulte(page, "/enseignant", p3.email);
     await capture(page, `professeur-${taille}-accueil`);
+    // Issue #231 : l'accueil d'un professeur de français seul est son tableau de bord ; ses classes sont à part.
+    await page.goto(`${BASE}/enseignant/classes`); await page.waitForTimeout(1200);
+    await capture(page, `professeur-${taille}-classes`);
     await page.goto(`${BASE}/francais`); await page.waitForTimeout(1200);
     await capture(page, `professeur-${taille}-francais-dossiers`);
     if (taille === "ordinateur") for (const o of ["Mes classes", "Suivi des classes", "Cours", "Rédactions"]) {
