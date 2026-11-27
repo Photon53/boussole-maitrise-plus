@@ -16,6 +16,8 @@ Pour lever l'ambiguïté, ce registre les **préfixe** ; les documents sources g
 | `DEV-D` | Ticket #65 (pipeline DEV GitHub → GCP) et ses commentaires | D1 à D5 |
 | `ARCH` | `docs/ARCHITECTURE.md` « Décisions validées » (non numérotées à la source) | — |
 | `RGPD` | Décisions du propriétaire sur les données personnelles, consignées dans ce registre et `docs/RGPD.md` | 1 à 3 |
+| `FR-UI` | Refonte de l'interface Français (#231) ; arbitrages d'agent délégués par le propriétaire, révisables | D1 à D6 |
+| `AGENTS` | Règles de travail des agents (`AGENTS.md`) | 1 |
 
 Exemple : « D1 » seul est ambigu ; `SEC-D1` désigne le code personnel des élèves, `V2-D1` le premier client visé,
 `DEV-D1` la fusion de la PR #64.
@@ -85,6 +87,23 @@ du RGPD. La source fait foi : section « Mise à jour de référence » de la de
 | V2-D12 — production des contenus | 2026-11-27 | **Six cours en chapitres YAML** (C1 à C6) et **deux dossiers** (C7, C8) ; quatre sujets de rédaction en chapitres YAML de la rubrique `redaction` (circuit #187). Méthode commune en sept étapes (découvrir, comprendre, appliquer, s'entraîner, approfondir, réinvestir, consolider), portée par les champs existants, sans nouvel écran ni moteur. Pilote : **72 questions autocorrigées distinctes**, 9 par cours, difficultés 1-1-2 / 3-3-3 / 4-4-5, hors rédaction et correction humaine ; 240 plus tard, sans bloquer le pilote. Les révisions de conjugaison sont intégrées aux dossiers de brevet, sans neuvième cours. Tout contenu reste « à valider » ; pas de fusion, de publication ni de fermeture sans accord | Une PR par niveau, une pour les dossiers de 3e, une pour la rédaction ; références du BO dans #55 et dans chaque fiche | #177 (description, 27/11) |
 | V2-D12 — maîtrise des quiz (tranché pour le pilote) | 2026-11-27 | En 3e, des **exercices de compétences transférables**, distincts des quiz de compréhension propres au texte et du retour humain, sont **associés aux dossiers** sous forme de chapitres YAML du moteur commun. Ils comptent dans le quota de 9 questions du cours. Le quiz garde un score distinct, sans effet sur la maîtrise. Le calcul ne change pas (0 à 1, dix dernières réponses, pondération 0,9, seuil 0,8) ; ni correction humaine ni « Je sais » (R8 de #98) ; pas de second moteur | Option M1 de `francais/PREPARATION-175.md` § 10 ; M2 non autorisée ; plan de répartition à faire valider par le professeur | #177 |
 | V2-D12 — dossiers dans le parcours guidé | 2026-11-27 | Les dossiers de 3e sont accessibles dans le **parcours guidé** du pilote, sans attendre la présentation « Objectif brevet » | Navigation à préciser dans #111 et #231, sans développement autorisé ici | #177 |
+
+### Module Français — refonte de l'interface, arbitrages délégués du 27/11/2026 (#231)
+
+Le propriétaire a délégué ces arbitrages à l'agent (« applique tes recommandations D1 à D6, commence par l'admin, je
+te délègue les arbitrages »). **Arbitrages d'agent, révisables** (AGENTS.md § 8.2). Détail et options écartées :
+[`francais/refonte-231/README.md`](francais/refonte-231/README.md) § 7.
+
+| Id | Date | Décision | Conséquence | Source |
+|---|---|---|---|---|
+| AGENTS-1 | 2026-11-27 | **L'agent avance par défaut** et ne s'arrête que pour une décision humaine obligatoire : coût financier supplémentaire, juridique et RGPD, sécurité et accès, production, action irréversible, produit et commerce, validation pédagogique, fusion et fermeture. Tout le reste est tranché par l'agent, tracé ici et annoncé dans la PR | `AGENTS.md` § 0, § 8 et § 9 réécrits | #231 (décision du propriétaire) |
+| FR-UI-D1 | 2026-11-27 | **Rubriques affichées à l'élève** : Lire et comprendre (dossiers), Grammaire, Conjugaison, Rédaction. « Mon cours » est présenté comme « Ressources de ta professeure ». Complète A1 : la rubrique technique `mon_cours` reste dans le modèle | Aucune migration ; affichage seulement. Option écartée : quatre rubriques de A1 + cinquième entrée « Comprendre un texte » | #231 |
+| FR-UI-D2 | 2026-11-27 | **Les sept étapes de #177 sont le parcours guidé.** Correspondance avec les cinq étapes du cadrage de #111 : Comprendre ↔ Je comprends ; Appliquer et S'entraîner ↔ Je m'entraîne ; Approfondir et Réinvestir ↔ Je me dépasse ; Consolider ↔ Je mémorise et Je vérifie | `francais/CADRAGE-PARCOURS-GUIDE.md` lu avec cette correspondance | #231, #111, #177 |
+| FR-UI-D3 | 2026-11-27 | **Étapes 3 à 5 en affichage seulement** : le moteur choisit la question ; l'écran situe l'étape d'après la difficulté de la question servie. Aucun changement du moteur ni des règles de maîtrise | Option écartée pour le pilote : filtre de difficulté dans l'API d'exercice | #231 |
+| FR-UI-D4 | 2026-11-27 | **Police de lecture Literata** (OFL 1.1, auto-hébergée par `@fontsource`) pour les textes longs et les phrases d'exercice | Ajoutée avec la PR des fondations de l'élève ; CSP `font-src 'self'` inchangée ; aucun coût | #231 |
+| FR-UI-D5 | 2026-11-27 | **Navigation à trois destinations pour le français d'abord** ; Maths et Anglais gardent leurs onglets jusqu'à décision après le pilote | Aucune régression Maths et Anglais | #231 |
+| FR-UI-D6 | 2026-11-27 | **Correctif immédiat** : les mentions internes d'un dossier (issue, agent, « brouillon ») ne sont plus montrées à l'élève | PR 0 de la refonte | #231 (constat N2) |
+| FR-UI-ORDRE | 2026-11-27 | **L'espace administrateur Français passe en premier**, à la demande du propriétaire, avant l'espace élève | Page « Français » dans l'administration ; voir le découpage du README | #231 (décision du propriétaire) |
 
 ### Sécurité et données personnelles
 
