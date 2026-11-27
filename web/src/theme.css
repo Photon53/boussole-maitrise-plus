@@ -1,5 +1,5 @@
 /* Charte graphique (cahier des charges V2, module 4 ; refonte « instrument de précision », #149).
-   Jetons uniquement : couleurs, typographie, espacements, rayons. Les composants sont dans styles.css. */
+   Jetons uniquement : couleurs, typographie, espacements, rayons. Les composants sont dans styles/*.css, importés dans l'ordre par styles.css. */
 
 :root {
   /* Marque */

@@ -6,7 +6,7 @@ traités. Quand toute la banque sera reprise, le contrôle pourra viser toutes l
 questions de difficulté 3 ou plus, comme le fait déjà `python -m app.contenu corrections`.
 
 Ce test ne dit rien de la justesse mathématique d'un corrigé : il vérifie que le
-gabarit est respecté. La validation pédagogique reste humaine (AGENTS.md § 8).
+gabarit est respecté. La validation pédagogique reste humaine (AGENTS.md § 1).
 """
 
 import json

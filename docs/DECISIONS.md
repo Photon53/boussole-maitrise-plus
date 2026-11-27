@@ -17,7 +17,7 @@ Pour lever l'ambiguïté, ce registre les **préfixe** ; les documents sources g
 | `ARCH` | `docs/ARCHITECTURE.md` « Décisions validées » (non numérotées à la source) | — |
 | `RGPD` | Décisions du propriétaire sur les données personnelles, consignées dans ce registre et `docs/RGPD.md` | 1 à 3 |
 | `FR-UI` | Refonte de l'interface Français (#231) ; arbitrages d'agent délégués par le propriétaire, révisables | D1 à D6 |
-| `AGENTS` | Règles de travail des agents (`AGENTS.md`) | 1 |
+| `AGENTS` | Règles de travail des agents (`AGENTS.md`) | 1 à 2 |
 
 Exemple : « D1 » seul est ambigu ; `SEC-D1` désigne le code personnel des élèves, `V2-D1` le premier client visé,
 `DEV-D1` la fusion de la PR #64.
@@ -98,6 +98,7 @@ te délègue les arbitrages »). **Arbitrages d'agent, révisables** (AGENTS.md 
 | Id | Date | Décision | Conséquence | Source |
 |---|---|---|---|---|
 | AGENTS-1 | 2026-11-27 | **L'agent avance par défaut** et ne s'arrête que pour une décision humaine obligatoire : coût financier supplémentaire, juridique et RGPD, sécurité et accès, production, action irréversible, produit et commerce, validation pédagogique, fusion et fermeture. Tout le reste est tranché par l'agent, tracé ici et annoncé dans la PR | `AGENTS.md` § 0, § 8 et § 9 réécrits | #231 (décision du propriétaire) |
+| AGENTS-2 | 2026-11-27 | **Consignes permanentes allégées, procédures à la demande** (arbitrage d'agent, révisable) : `AGENTS.md` réduit aux limites d'autonomie, interdits, invariants, circuit Git et renvois ; procédures dans `.claude/skills/` (intégration Git, contrôles CI, économie de contexte, recette, contenus, sécurité, livraison). Avancement suivi dans les issues et PR, plus dans des tableaux partagés ; fichiers générés régénérés, jamais fusionnés à la main (`scripts/synchroniser-branche.sh`) ; Node 24.15 partout (`.nvmrc`). Option écartée : déplacer les procédures dans `docs/` (pas de chargement à la demande) | `AGENTS.md` renuméroté (correspondance en pied de fichier) | #252 |
 | FR-UI-D1 | 2026-11-27 | **Rubriques affichées à l'élève** : Lire et comprendre (dossiers), Grammaire, Conjugaison, Rédaction. « Mon cours » est présenté comme « Ressources de ta professeure ». Complète A1 : la rubrique technique `mon_cours` reste dans le modèle | Aucune migration ; affichage seulement. Option écartée : quatre rubriques de A1 + cinquième entrée « Comprendre un texte » | #231 |
 | FR-UI-D2 | 2026-11-27 | **Les sept étapes de #177 sont le parcours guidé.** Correspondance avec les cinq étapes du cadrage de #111 : Comprendre ↔ Je comprends ; Appliquer et S'entraîner ↔ Je m'entraîne ; Approfondir et Réinvestir ↔ Je me dépasse ; Consolider ↔ Je mémorise et Je vérifie | `francais/CADRAGE-PARCOURS-GUIDE.md` lu avec cette correspondance | #231, #111, #177 |
 | FR-UI-D3 | 2026-11-27 | **Étapes 3 à 5 en affichage seulement** : le moteur choisit la question ; l'écran situe l'étape d'après la difficulté de la question servie. Aucun changement du moteur ni des règles de maîtrise | Option écartée pour le pilote : filtre de difficulté dans l'API d'exercice | #231 |

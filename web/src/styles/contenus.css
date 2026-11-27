@@ -1,0 +1,119 @@
+/* Issue #252 — Contenus pédagogiques, historique, méthode, parcours, anglais, dossiers (Claude) */
+
+/* Contenu pédagogique structuré : objectifs, méthodes, exemples résolus, erreurs fréquentes, corrections */
+.encadre { border-radius: var(--rayon-petit); padding: 10px 16px; margin: 16px 0; border-left: 4px solid var(--bordure-forte); background: var(--surface-2); }
+.encadre h3, .encadre h4 { margin: 4px 0 8px; color: var(--texte); }
+.encadre ul { margin: 4px 0; padding-left: 20px; }
+.encadre li { margin: 4px 0; }
+.objectifs { border-left-color: var(--accent); background: var(--accent-doux); }
+.methode { border-left-color: var(--action); background: var(--surface); border: 1px solid var(--bordure); border-left: 4px solid var(--action); }
+.methode .exemple { background: var(--fond); border-radius: var(--rayon-petit); padding: 8px 12px; margin-top: 8px; }
+.attention { border-left-color: var(--alerte); background: var(--alerte-doux); }
+.attention strong { color: var(--alerte); }
+.etapes { margin: 6px 0; padding-left: 22px; }
+.etapes li { margin: 4px 0; }
+details.correction { margin: 12px 0; }
+details.correction summary { cursor: pointer; font-weight: 600; color: var(--action); }
+
+/* Historique des réponses (élève, professeur) */
+.historique { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 10px; }
+.reponse-historique { border: 1px solid var(--bordure); border-left: 4px solid var(--bordure-forte); border-radius: var(--rayon-petit); padding: 10px 14px; background: var(--surface); }
+.reponse-historique.ok { border-left-color: var(--ok); }
+.reponse-historique.ko { border-left-color: var(--ko); }
+.reponse-historique p { margin: 6px 0; }
+
+/* Méthode PKP : page de présentation et étapes dans chaque leçon */
+.accroche { text-align: center; font-size: var(--t-l); font-weight: 700; color: var(--primaire); margin: 32px 0 8px; }
+.etapes-methode { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.etapes-methode li { display: flex; gap: 14px; align-items: flex-start; }
+.etapes-methode p { margin: 2px 0; }
+.etapes-methode .numero {
+  flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center;
+  background: var(--action); color: var(--action-texte); font-weight: 700;
+}
+.parcours-pkp { margin: 12px 0 20px; }
+.parcours-pkp ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.parcours-pkp li {
+  border: 1px solid var(--bordure); border-radius: var(--rayon-petit); padding: 10px; background: var(--surface);
+  display: flex; flex-direction: column; gap: 6px; font-size: var(--t-s);
+}
+.parcours-pkp li.acquis { border-color: var(--ok); background: var(--ok-doux); }
+.parcours-pkp li.suivante { border-color: var(--action); box-shadow: 0 0 0 2px var(--action-doux); }
+.parcours-pkp .titre-etape { font-weight: 700; display: flex; gap: 6px; align-items: center; }
+.parcours-pkp .numero { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); font-size: var(--t-xs); flex: none; }
+.parcours-pkp li.acquis .numero { background: var(--ok); color: #fff; }
+.parcours-pkp li.suivante .numero { background: var(--action); color: var(--action-texte); }
+.parcours-pkp button { margin-top: auto; }
+@media (max-width: 760px) { .parcours-pkp ol { grid-template-columns: 1fr; } }
+
+.schema-etapes { list-style: none; padding: 0; margin: 0 0 20px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.schema-etapes li {
+  position: relative; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 4px;
+  padding: 10px 6px; border-radius: var(--rayon-petit); background: var(--action-doux); font-size: var(--t-s);
+}
+.schema-etapes li:not(:last-child)::after { content: "→"; position: absolute; right: -12px; top: 50%; transform: translateY(-50%); color: var(--texte-doux); }
+.schema-etapes .numero, .gestes .numero {
+  width: 24px; height: 24px; border-radius: 50%; display: inline-grid; place-items: center;
+  background: var(--action); color: var(--action-texte); font-weight: 700; font-size: var(--t-xs);
+}
+.gestes { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px; }
+.gestes li { border: 1px solid var(--bordure); border-radius: var(--rayon-petit); padding: 12px 14px; background: var(--surface); }
+.gestes p { margin: 6px 0 0; }
+.parcours-methode { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.parcours-methode li { border: 1px solid var(--bordure); border-top: 3px solid var(--primaire); border-radius: var(--rayon-petit); padding: 12px 14px; background: var(--surface); display: flex; flex-direction: column; gap: 4px; }
+.parcours-methode p { margin: 6px 0 0; }
+.exemple-geste { font-size: var(--t-s); color: var(--texte-doux); border-left: 3px solid var(--accent); padding-left: 8px; }
+@media (max-width: 640px) {
+  .schema-etapes { grid-template-columns: 1fr; }
+  .schema-etapes li:not(:last-child)::after { content: "↓"; right: auto; top: auto; bottom: -14px; transform: none; }
+}
+.accroche.citation { text-align: left; margin: 20px 0 0; padding: 12px 16px; border-left: 4px solid var(--accent); background: var(--accent-doux); border-radius: var(--rayon-petit); }
+
+/* Autres parcours d'un élève (classes reliées) */
+.parcours-lies { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.parcours-lies ul { margin: 0; padding-left: 18px; }
+.parcours-lies li { margin: 2px 0; }
+.choix-parcours { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.choix-parcours label { margin: 0; }
+.choix-parcours select { width: auto; max-width: 100%; }
+
+/* PKP Anglais : le cours affiché comme le cahier élève */
+.anglais-accroche { font-weight: 700; font-size: var(--t-l); color: var(--primaire); margin: 4px 0 8px; }
+.anglais-rubrique h3 { margin-top: 0; }
+.anglais-visuels { list-style: none; padding: 0; margin: 0 0 8px; display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.anglais-visuels li {
+  display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 8px; font-weight: 700;
+  background: var(--surface-2); border: 1px solid var(--bordure); border-radius: var(--rayon-petit);
+}
+.anglais-encadre { padding: 10px 12px; border-radius: var(--rayon-petit); background: var(--surface-2); border: 1px solid var(--bordure); }
+.anglais-encadre.grammaire { background: var(--alerte-doux); }
+.anglais-encadre.culture { background: var(--accent-doux); }
+.anglais-encadre.prononciation { background: var(--ok-doux); }
+.anglais-encadre ul, .anglais-encadre p { margin: 4px 0; }
+.anglais-texte { white-space: pre-wrap; }
+.liste-eleves-anglais { list-style: none; padding: 0; margin: 8px 0 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 6px 16px; }
+.liste-eleves-anglais li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--bordure); border-radius: 8px; }
+.liste-eleves-anglais .actions-ligne { display: flex; gap: 10px; margin-left: auto; }
+.bandeau-non-valide { margin: 0 0 12px; padding: 8px 12px; border-radius: var(--rayon-petit); background: var(--ko-doux); color: var(--texte); border-left: 4px solid var(--ko); }
+.statut-anglais { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: var(--t-xs); font-weight: 600; background: var(--surface-2); border: 1px solid var(--bordure); }
+.statut-anglais.valide { background: var(--ok-doux); border-color: var(--ok); }
+.statut-anglais.soumis { background: var(--alerte-doux); border-color: var(--alerte); }
+.statut-anglais.refuse { background: var(--ko-doux); border-color: var(--ko); }
+.quiz-anglais { list-style: none; padding: 0; display: grid; gap: 12px; }
+.quiz-anglais fieldset { border: 1px solid var(--bordure); border-radius: var(--rayon-petit); padding: 10px 12px; margin: 0; }
+.quiz-anglais legend { font-weight: 600; padding: 0 4px; }
+.quiz-anglais label { display: flex; gap: 8px; align-items: center; margin: 4px 0; font-weight: normal; }
+.quiz-anglais label input { width: auto; flex: none; margin: 0; }
+/* Issue #217 : réponses rédigées et éditeur de dossier de français */
+.reponse-redigee { border-top: 1px solid var(--bordure); padding-top: 10px; margin-top: 10px; }
+.reponse-redigee .citation, .citation { white-space: pre-wrap; border-left: 3px solid var(--bordure-forte); padding-left: 10px; }
+textarea.code { font-family: var(--police-mono); font-size: var(--t-s); }
+.quiz-anglais .juste { border-color: var(--ok); background: var(--ok-doux); }
+.quiz-anglais .faux { border-color: var(--ko); background: var(--ko-doux); }
+.editeur-anglais fieldset { border: 1px solid var(--bordure); border-radius: var(--rayon-petit); padding: 10px 12px; margin: 0 0 12px; }
+.editeur-anglais legend { font-weight: 600; padding: 0 4px; }
+.editeur-anglais .ligne-edition { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 6px; margin-bottom: 6px; }
+.anglais-bulles { display: grid; gap: 6px; margin: 8px 0; }
+.anglais-bulles .bulle { margin: 0; padding: 8px 12px; border-radius: var(--rayon-petit); border: 1px solid var(--bordure); max-width: 80%; }
+.anglais-bulles .gauche { background: var(--surface-2); justify-self: start; }
+.anglais-bulles .droite { background: var(--accent-doux); justify-self: end; }

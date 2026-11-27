@@ -1,367 +1,108 @@
-# AGENTS.md — instructions aux agents IA
+# AGENTS.md — règles permanentes des agents IA
 
-Ce fichier s'applique à **tout agent IA** (DeepSeek, Claude, Codex ou autre) qui modifie ce dépôt.
-Chaque production est attribuée à **l'agent qui l'a réellement produite** (§ 2). L'attribution déclarative ne constitue pas une signature cryptographique.
+S'applique à tout agent (Claude, Codex, DeepSeek…) qui modifie ce dépôt. Une règle a **une seule source** : ce
+fichier pour les interdits et les limites d'autonomie, le document de domaine cité pour le reste (il fait foi en
+cas d'écart, et ce fichier se corrige). Les procédures détaillées se chargent **à la demande** (§ 5).
 
-> Version consolidée — 13/11/2026 — issue #83, préparation pour la PR #86.
+## 1. Autonomie et décisions humaines obligatoires
 
-## Historique
+L'agent avance par défaut et décide seul de tout choix technique réversible : architecture dans le périmètre,
+ergonomie, design, bugs, refactorisation, conflits Git, tests, découpage des PR, performances, modèles et
+sous-agents, organisation des skills et de la documentation, contradiction entre documents sans effet ci-dessous.
+Il consigne un choix structurant dans `docs/DECISIONS.md` (« arbitrage d'agent, révisable », date, issue) et
+l'annonce en une ligne dans la PR. Présenter des options et attendre sur ces points est une erreur de méthode.
 
-| Version | Date | Contribution |
-|---|---|---|
-| v1 | 13/11/2026 | DeepSeek : rédaction initiale, PR #84 fusionnée |
-| v2 | 13/11/2026 | DeepSeek : proposition de révision ; revues de Claude et Codex |
-| Correctifs PR #86 | 13/11/2026 | Claude : consignes, modèle de PR et transcription de la décision du propriétaire RGPD-1 |
-| Consolidation | 13/11/2026 | Codex : intégration documentaire des apports et corrections ; intégrée dans la PR #86 par Claude |
-| Autonomie | 27/11/2026 | Claude, sur instruction du propriétaire (#231) : l'agent tranche lui-même et ne s'arrête plus que pour une décision humaine obligatoire (§ 8) |
-
----
-
-## 0. Hiérarchie des consignes
-
-| Document | Responsabilité |
-|---|---|
-| `AGENTS.md` (ce fichier) | Règles propres aux agents IA : interdits, traçabilité, commandes, définition de « terminé » |
-| `docs/CONSIGNES-DEVELOPPEUR.md` | Façon de travailler et vocabulaire métier, pour tout développeur, humain ou agent |
-| `docs/ARCHITECTURE.md`, `docs/RGPD.md`, `docs/CONTENU.md`, `docs/DEPLOIEMENT.md` | Règles de leur domaine ; ils font foi sur ce domaine |
-| `docs/DECISIONS.md` | Décisions prises, en attente ou écartées (`ARCH-`, `SEC-D`, `V2-D`, `DEV-D`, `RGPD-`) |
-| `CLAUDE.md` ou autre fichier propre à un outil | **Complément sans duplication** : réglages de l'outil, renvoi vers ce fichier |
-
-Ce fichier résume certaines règles des documents métier ; en cas d'écart, **le document du domaine fait foi** et
-ce fichier doit être corrigé. Une contradiction entre documents, ou entre un document et le code, **se tranche par
-l'agent** dès qu'elle ne relève pas d'une décision humaine obligatoire (§ 8) : il choisit l'option qui respecte les
-règles absolues (§ 1) et les invariants (§ 5), l'applique, puis la trace (§ 8.2). Si elle touche un cas du § 8.1,
-il s'arrête et la signale (§ 9).
-
----
-
-## 1. Règles absolues
-
-Ces points ne se négocient pas et ne demandent pas d'arbitrage : ils sont déjà tranchés.
-
-| Interdit | Pourquoi |
-|---|---|
-| `git push` direct sur `main` ou `develop` | toute modification passe par une PR relue |
-| `terraform apply`, `terraform init` avec backend, `terraform plan` sur l'état réel | le déploiement DEV passe par GitHub Actions et WIF, jamais par un poste |
-| Lancer un script d'exploitation (liste ci-dessous) | ces scripts agissent sur GCP, la VM, l'IAM ou les sauvegardes |
-| Lire ou écrire un secret : `deploy/.env`, tout `.env`, `PKP_SECRET_KEY` hors démo, clé de compte de service, état Terraform (`*.tfstate`, sauvegardes et exports) | l'agent n'en a pas besoin |
-| Modifier `.github/workflows/**` sans issue dédiée | la CI est le contrat de qualité du dépôt |
-| Supprimer une question | une question s'archive (`archivee`), elle ne disparaît jamais |
-| Ajouter `eval`, `exec`, `os.system`, `subprocess` dans `engine/` ou `api/` | la correction est un parseur `ast` à liste blanche |
-| Renommer `pkp` / `PKP_*` | conservés pour compatibilité (voir `MIGRATION.md`) |
-| Versionner `sources/` | photos et extraits de manuels : droit d'auteur (voir § 5) |
-
-**Scripts d'exploitation — interdits** (ils supposent Cloud Shell, des identifiants GCP ou la VM) :
-
-- `deploy/*.sh` (dont `deploy/sauvegarde-prod.sh`, sauf son banc simulé) et `deploy/vm/boussole-dev-sync` ;
-- `scripts/audit-dev-compte-compute.sh`, `scripts/bootstrap-gcp-dev.sh`, `scripts/boussole-dev.sh`,
-  `scripts/controle-acces-sauvegardes.sh`, `scripts/deployer-dev-iap.sh`, `scripts/dev-publier-version.sh`,
-  `scripts/reprise-terraform-dev.sh`, `scripts/terraform-dev-cloudshell.sh`, `scripts/wif-dev-comptes-separes.sh` ;
-- `scripts/tester-ihm-gcp.ps1` (Windows : SSH via IAP sur la VM DEV, lecture de l'état des conteneurs, tunnel ; peut démarrer la VM après accord) ;
-- `scripts/troubleshooter_iam.py` (peut interroger Policy Troubleshooter) ;
-- `scripts/comparer-politique-bucket.py` (comparaison locale de fichiers IAM et de plan Terraform ; exécution réservée au propriétaire dans ce périmètre).
-- `scripts/recette/recette-francais.mjs` **pointé vers une instance partagée** (`BASE_URL` autre que la pile locale) : il y crée des comptes fictifs et, en `MODE=complet`, valide et ouvre un contenu ; exécution réservée au propriétaire (#217).
-
-Un nouveau script qui touche au cloud, à la VM ou aux secrets s'ajoute à cette liste dans la même PR.
-
-**Tests simulés — autorisés** (aucun accès cloud : faux `gcloud`, faux GCS, faux `docker`, faux services) :
-
-- `scripts/test-dev-publier-version.sh` ;
-- `deploy/vm/tests/test-boussole-dev-sync.sh`, `deploy/vm/tests/test-refus-deploiement-manuel.sh` ;
-- `scripts/tests/test-controle-acces-sauvegardes.sh` ;
-- `deploy/sauvegarde/tests/test-sauvegarde-prod.sh` (faux `docker` et faux `gcloud`, vrai `age`) ;
-- `scripts/recette/pile-locale.sh` (base SQLite temporaire, API et front locaux, recette Français multi-rôles dans Chromium ; aucun accès cloud, ne touche pas `api/pkp.db`) ;
-- `scripts/recette/accessibilite-francais.mjs` contre une pile locale jetable (axe-core, recomposition et parcours au clavier, comptes fictifs ; refuse toute adresse non locale, #231, #154) ;
-- `bash -n <script>` sur n'importe quel script (vérification de syntaxe, rien n'est exécuté).
-
-**Autres scripts** : lire et vérifier leurs effets ; demander une décision uniquement s'ils dépassent le périmètre autorisé ou restent ambigus. Le nom seul ne permet pas de décider : `installer-dev.sh` et `deployer-dev-iap.sh` ont des effets différents. Les interdictions explicites ci-dessus restent applicables.
-
-**Autres commandes autorisées** :
-
-- `scripts/tests.sh`, `scripts/tests.ps1` ; `scripts/preparer-environnement.sh` (outils et dépendances, sans
-  identifiant cloud ni base ; peut recréer `.venv`, télécharger des outils et réinstaller les dépendances) ;
-- `terraform fmt`, `terraform init -input=false -backend=false`, `terraform validate` ;
-- `scripts/charge_classe.py` et `scripts/mesure_import.py` **uniquement contre une API ou une base locale de
-  démonstration** ;
-- les commandes `gh` en lecture, la création d'issues et de PR.
-
-**Autorisé sous condition — `scripts/installer-dev.sh` / `installer-dev.ps1`** : ces scripts **suppriment puis
-recréent `api/pkp.db`**. Avant de les lancer, l'agent vérifie que `api/pkp.db` n'existe pas ou n'est qu'une base de
-démonstration jetable (aucune donnée saisie à conserver). En cas de doute, il ne les lance pas et utilise
-`scripts/preparer-environnement.sh`, qui ne touche pas à la base.
-
----
-
-## 2. Traçabilité — exigence du propriétaire
-
-Chaque production d'un agent (code, configuration, documentation) est **référencée à l'issue traitée et attribuée
-à l'agent qui l'a réellement produite**. Dans les exemples ci-dessous, `<Agent>` vaut le nom de cet agent :
-`DeepSeek`, `Claude`, `Codex`… Un humain qui reprend le travail d'un agent conserve l'attribution d'origine et ajoute
-la sienne. L'attribution historique d'un fichier ou d'un commit existant ne se réécrit pas.
-
-### 2.1 Le commit
-
-```
-type(portée): description courte (#N)
-
-Corps facultatif : ce qui change, pourquoi, ce qui n'est pas fait.
-
-Agent: <Agent>
-Refs: #N
-```
-
-- Types utilisés dans l'historique : `feat`, `fix`, `infra`, `ci`, `docs`, `test`, `ops`, `security`.
-- Messages en **français**, accents compris.
-- Le numéro d'issue est **obligatoire** dès qu'il existe.
-- `Agent: <Agent>` est une attribution déclarative, pas une signature cryptographique.
-- Si l'outil de l'agent impose ses propres lignes d'attribution (par exemple `Co-Authored-By`), elles s'ajoutent
-  à `Agent:` sans la remplacer.
-
-### 2.2 L'en-tête du fichier nouveau
-
-Tout fichier **source ou de configuration créé** porte, en tête, une référence courte dans la syntaxe de
-commentaire du format :
-
-```python
-# Issue #65 — Pipeline DEV (<Agent>)
-```
-
-```javascript
-// Issue #65 — Pipeline DEV (<Agent>)
-```
-
-L'en-tête **ne déplace jamais une déclaration technique** qui doit rester en première ligne : il se place juste
-après le shebang de tout fichier qui en possède un (shell ou Python, par exemple `#!/usr/bin/env bash` ou `#!/usr/bin/env python3`), la déclaration d'encodage, la ligne `<!doctype html>` ou la docstring de
-module exigée par l'outil.
-
-Cas particuliers :
-
-| Fichier | Traçabilité |
-|---|---|
-| Migration Alembic (`api/migrations/versions/`) | Préserver les métadonnées générées (`revision`, `down_revision`, docstring d'en-tête) ; la référence `Issue #N (<Agent>)` s'ajoute dans la docstring, après le message de révision |
-| Format sans commentaire (JSON) | Par le commit et la PR seulement |
-| Fichier généré (`package-lock.json`, `docs/CONTENU-INVENTAIRE.md`, sorties de build ; hors migrations Alembic) | Par le commit et la PR seulement |
-| Données pédagogiques (`contenu/**/*.yaml`) | Par le commit, la PR et le registre des sources (§ 5) ; pas d'en-tête dans chaque fichier |
-| Fichier modifié (non créé) | Par le commit et la PR ; ne pas ajouter d'en-tête |
-
-### 2.3 La pull request
-
-Titre identique au commit. Corps rempli avec `.github/pull_request_template.md`, section « Agent IA » renseignée
-avec le nom de l'agent. **Base : `develop`**, jamais `main`.
-
-### 2.4 Le commentaire dans l'issue
-
-Après ouverture de la PR, poster un commentaire sur l'issue traitée, dans ce format :
-
-```markdown
-## Traitement — PR #<numéro>
-
-**Ce qui a été fait**
-- …
-
-**Fichiers modifiés**
-- `chemin/fichier.py`
-
-**Tests exécutés**
-- `(cd engine && pytest -q)` → N passed
-- `(cd web && npm test)` → N passed
-- `…` → **non exécuté** : <raison> ; vérifié par la CI (job « … »)
-
-**Reste à faire / limites**
-- …
-
----
-<sub>🤖 Produit par **<Agent>** (<outil>), <date>.</sub>
-```
-
-L'agent ne ferme jamais une issue lui-même.
-
-### 2.5 `Closes` ou `Refs`
-
-- `Refs #N` pour référencer l'issue ; obligatoire pour les tickets de décision, de pilotage ou traités en plusieurs PR, jusqu'à décision explicite du propriétaire.
-- `Closes #N` exprime que la PR traite entièrement l'issue. La fermeture automatique par ce mot-clé ne fonctionne que pour une PR ciblant la branche par défaut. Ici, la branche par défaut est `main` et les PR de travail ciblent `develop` : ne pas attendre une clôture automatique à la fusion dans `develop`.
-- Après intégration dans `develop`, une personne vérifie les critères de clôture et ferme l'issue si nécessaire. L'agent ne fusionne ni ne ferme lui-même.
-
----
-
-## 3. Environnement et commandes
-
-| Élément | Version |
-|---|---|
-| Python | **3.12** (`.python-version`, comme la CI) ; 3.11 minimum (`pyproject.toml`) |
-| Node.js | **20** (`.nvmrc`) |
-| Outils et dépendances | `bash scripts/preparer-environnement.sh` (sans base ni identifiant cloud) |
-| Base de démonstration | `bash scripts/installer-dev.sh` — **supprime `api/pkp.db`**, voir § 1 |
-| Tests applicatifs | `bash scripts/tests.sh` (moteur, API, front) |
-
-Avant chaque PR, exécuter **depuis la racine du dépôt** les commandes de la CI (`.github/workflows/ci.yml`). Chaque
-ligne est un sous-shell : elle ne change pas le dossier courant.
-
-### 3.1 Installation
-
-```bash
-pip install -e "./engine[dev]" -e "./api[dev]"
-(cd web && npm ci --no-audit --no-fund)
-```
-
-Utiliser l'environnement virtuel du projet pour ces commandes.
-
-### 3.2 Job « Moteur, API et contenu »
-
-```bash
-(cd api && python -m app.contenu verifier)
-(cd engine && pytest -q)
-(cd api && pytest -q -n auto -W ignore::DeprecationWarning)
-```
-
-Les tests de l'API tournent en parallèle (`pytest-xdist`, #240) : chaque test a sa propre base SQLite ; `-n 0` (ou sans `-n`) les exécute en série, par exemple pour déboguer.
-
-Après modification de `contenu/`, régénérer l'inventaire avant les contrôles, puis inclure le diff généré :
-
-```bash
-(cd api && python -m app.contenu inventaire)
-```
-
-### 3.3 Job « Front »
-
-```bash
-(cd web && npm audit --omit=dev --audit-level=high)
-(cd web && npm test)
-(cd web && npm run build)
-```
-
-### 3.4 Job « Terraform DEV » et bancs simulés (sans accès GCP)
-
-```bash
-(cd infrastructure/terraform/dev && terraform fmt -check -recursive)
-(cd infrastructure/terraform/dev && terraform init -input=false -backend=false && terraform validate)
-for f in scripts/*.sh deploy/*.sh infrastructure/terraform/dev/*.sh; do bash -n "$f"; done
-bash scripts/test-dev-publier-version.sh
-bash -n deploy/vm/boussole-dev-sync
-bash deploy/vm/tests/test-boussole-dev-sync.sh
-bash deploy/vm/tests/test-refus-deploiement-manuel.sh
-bash scripts/tests/test-controle-acces-sauvegardes.sh
-bash deploy/sauvegarde/tests/test-sauvegarde-prod.sh
-```
-
-Si la CI évolue, `ci.yml` fait foi et cette liste doit être mise à jour dans la même PR.
-
-### 3.5 Tests impossibles en local
-
-**Test impossible en local** (outil absent, réseau fermé, plateforme différente) : ne jamais le cocher comme
-réussi. Ouvrir la PR **en brouillon**, indiquer « non exécuté », la raison, et le job de CI qui le vérifiera ; ne
-demander la relecture qu'une fois la CI verte.
-
-Une PR dont la CI est rouge ne se demande pas en relecture.
-
----
-
-## 4. Git
-
-| Règle | Valeur |
-|---|---|
-| Branche de base | `develop` |
-| Nom de branche | `<type>/issue-<n>-<sujet>` — ex. `fix/issue-65-liste-releases` |
-| Taille | **une PR = une issue**, petite et relisible |
-| Fusion | jamais par l'agent : une personne relit et fusionne |
-| Force-push | interdit sur une branche partagée (une PR ouverte) |
-| Attribution | `Agent: <nom>` obligatoire ; attribution déclarative, pas signature cryptographique |
-
----
-
-## 5. Invariants du projet
-
-Ces règles sont vérifiées par les tests, la CI ou la relecture. Le document cité fait foi.
-
-| Invariant | Détail |
-|---|---|
-| `engine/` reste pur | n'importe ni FastAPI ni SQLAlchemy ; la conversion passe par `api/app/db/conversions.py` (`ARCH-1`) |
-| Modèle modifié ⇒ migration | `alembic revision --autogenerate`, **relue à la main** ; utiliser `sa.false()` et non `sa.text('0')`, sinon PostgreSQL refuse ; `test_migrations_a_jour_avec_les_modeles` échoue sinon (`ARCH-2`) |
-| Question jamais supprimée | colonne `archivee`, garde ORM `SuppressionInterdite` (qui déclenche l'erreur vérifiée par les tests de suppression), clé étrangère `RESTRICT` depuis `reponse` (`ARCH-3`) |
-| Solution protégée | **aucune solution transmise à l'élève avant sa réponse** : `QuestionPublique` n'a pas de champ `solution`. Après réponse, `ResultatReponse` et `ReponseHistorique` la contiennent ; côté adultes, `QuestionEnseignant` la contient, et son accès est soumis aux habilitations (`exiger(permission, domaine)`) (`ARCH-4`) |
-| Correction sans `eval` | parseur `ast`, liste blanche de nœuds, saisie ≤ 200 caractères |
-| Données personnelles | **minimisation** (`docs/RGPD.md`) : élève identifié par prénom + code classe + code personnel haché, aucun e-mail élève. Décision **RGPD-1** : un enfant n'a **aucun nom de famille**, les nouveaux comptes reçoivent un identifiant prénom sans accents + numéro, sans séparateur (`Lina1`), unique sur la plateforme, comparé sans casse ni accents, limité à 40 caractères ; numéro jamais réattribué. Les identifiants déjà émis sont conservés. Le parent garde nom et prénom. **Appliquée** (#87, migration `0039`) : `Enfant.nom` n'existe plus ; l'agent ne réintroduit aucun nom de famille d'enfant ni aucune autre donnée nominative d'enfant, et crée les identifiants avec `enfants.identifiant_libre` |
-| Droit d'auteur | ne jamais versionner `sources/` (photos, extraits de manuels) ; exception : `referentiels/sources/` (textes officiels BO). Tout contenu de `contenu/**/*.yaml` remplit le registre des sources : `source`, `source_url`, `licence_source`, `adaptation` (`docs/CONTENU.md`) |
-| Style | UTF-8, fins de ligne LF, indentation 4 espaces (Python), 2 (JS/JSX/JSON/CSS/HTML/YAML), CRLF pour `.ps1`/`.bat` (`.editorconfig`) |
-| Langue | code métier, documentation, commits et messages d'interface **en français** (`ARCH-6`) |
-
----
-
-## 6. Lecture obligatoire avant d'agir
-
-1. `README.md`
-2. `docs/CONSIGNES-DEVELOPPEUR.md` — façon de travailler, vocabulaire métier
-3. `docs/ARCHITECTURE.md`
-4. `docs/DECISIONS.md` — décisions prises et en attente ; toujours citer un identifiant **préfixé** :
-   `SEC-D` (sécurité), `V2-D` (cahier des charges V2), `DEV-D` (pipeline DEV, #65), `ARCH-` (architecture), `RGPD-` (données personnelles).
-   « D1 » seul est ambigu.
-5. `docs/CONTENU.md`
-6. `docs/RGPD.md`
-7. `docs/CAHIER-DES-CHARGES-V2.md` — périmètre
-
-Et selon le sujet : `docs/DEPLOIEMENT.md` (infra), `docs/audit/` (sécurité), `docs/exploitation/` (exploitation).
-
----
-
-## 7. Définition de « terminé »
-
-- [ ] Les contrôles des § 3.2 et § 3.3 passent ; les preuves locales ou les jobs CI équivalents sur le SHA exact sont indiqués. Un contrôle requis encore sans résultat laisse le travail en préparation
-- [ ] Le § 3.4 est vérifié si la PR touche `infrastructure/`, `scripts/` ou `deploy/` ; la CI complète reste requise pour toute PR
-- [ ] Après modification de `contenu/`, l'inventaire est régénéré (§ 3.2)
-- [ ] La CI est verte sur la PR
-- [ ] Migration fournie et relue si un modèle a changé
-- [ ] Aucun secret, aucune donnée personnelle réelle, aucun fichier `sources/` dans le diff, sauf les textes officiels autorisés dans `referentiels/sources/`
-- [ ] Le registre des sources est rempli pour tout contenu ajouté
-- [ ] Commit, en-tête de fichier, PR et commentaire d'issue conformes au § 2, **au nom de l'agent réel**
-- [ ] La PR est liée à l'issue (`Closes #N` ou `Refs #N`, § 2.5)
-
----
-
-## 8. Quand l'agent s'arrête, quand il décide
-
-Décision du propriétaire du 27/11/2026 (#231) : **l'agent avance par défaut**. Il ne s'arrête que si une décision
-humaine est obligatoire.
-
-### 8.1 Décisions humaines obligatoires : les seuls cas d'arrêt
+Il ne s'arrête **que** pour :
 
 | Cas | Exemples |
 |---|---|
-| **Coût financier supplémentaire** | Service ou ressource cloud payant, montée en gamme d'une VM ou d'une base, abonnement, licence payante, prestataire, minutes de CI au-delà du forfait gratuit, achat de nom de domaine |
-| **Juridique et données personnelles** | Nouvelle donnée personnelle, levée d'une restriction RGPD (`PKP_REDACTION_ACTIVE`, `PKP_PDF_FRANCAIS_OUVERT`…), licence, CGU/CGV, contrat, droit d'auteur incertain |
-| **Sécurité et accès** | Secrets, IAM, protections de branche, environnements, règles d'habilitation ou de validation, affaiblissement d'un invariant du § 5 |
-| **Production** | Déploiement, release, GO de production (`docs/VERSIONNING.md`), action sur DEV ou une instance partagée (§ 1) |
-| **Irréversible** | Suppression ou migration destructive de données réelles |
-| **Produit et commerce** | Offres, prix, périmètre commercial, ouverture publique d'un domaine |
-| **Pédagogie** | Validation d'un contenu à la place d'un professeur (V2-D15) |
-| **Gouvernance du dépôt** | Fusion d'une PR, fermeture d'une issue |
+| Coût supplémentaire | service cloud payant, VM, runner, abonnement, licence, minutes CI au-delà du gratuit, API payante |
+| Juridique, RGPD | nouvelle donnée personnelle, levée d'une restriction (`PKP_REDACTION_ACTIVE`, `PKP_PDF_FRANCAIS_OUVERT`…), licence, CGU, droit d'auteur incertain |
+| Sécurité, accès | secrets, IAM, habilitations, règles de validation, affaiblissement d'un invariant (§ 3) |
+| Gouvernance GitHub | protections de branche, contrôles requis, environnements, fusion d'une PR, fermeture d'une issue |
+| Production | déploiement, release, GO de production (`docs/VERSIONNING.md`), action sur DEV ou une instance partagée |
+| Irréversible | suppression ou migration destructive de données réelles |
+| Produit, commerce | offres, prix, périmètre commercial, ouverture publique d'un domaine |
+| Pédagogie | validation d'un contenu à la place d'un professeur (V2-D15) |
 
-### 8.2 Tout le reste : l'agent décide, trace et continue
+Dans ce cas : commentaire dans l'issue (problème, impact, recommandation), sans contourner, et poursuite de tout
+le travail qui n'en dépend pas.
 
-Ergonomie, design, découpage des PR, nommage, choix techniques réversibles, ordre de travail, contradiction entre
-documents sans effet sur le § 8.1 : l'agent choisit l'option qu'il recommande et l'applique **sans attendre**.
+## 2. Interdits absolus
 
-1. Il consigne le choix dans `docs/DECISIONS.md`, avec la mention « arbitrage d'agent, révisable », la date et
-   l'issue.
-2. Il l'annonce dans la PR et dans le commentaire d'issue (§ 2.4), en une ligne par choix, avec l'option écartée.
-3. Le propriétaire peut le renverser à tout moment ; l'agent reprend alors le travail dans le sens indiqué.
+- `git push` sur `main` ou `develop` ; force-push sur une branche qui porte une PR ; contournement d'une protection.
+- `terraform apply`, `plan` sur l'état réel, `init` avec backend (le DEV passe par GitHub Actions et WIF).
+- Lire ou écrire un secret : tout `.env`, `PKP_SECRET_KEY` hors démo, clé de compte de service, `*.tfstate` et exports.
+- Modifier `.github/workflows/**` sans issue dédiée.
+- Supprimer une question (elle s'archive : `archivee`).
+- `eval`, `exec`, `os.system`, `subprocess` dans `engine/` ou `api/`.
+- Renommer `pkp` / `PKP_*` (`MIGRATION.md`) ; versionner `sources/` (droit d'auteur).
+- Lancer un script d'exploitation (Cloud Shell, GCP, VM, IAM, sauvegardes) :
+  `deploy/*.sh`, `deploy/vm/boussole-dev-sync`, `scripts/audit-dev-compte-compute.sh`, `scripts/bootstrap-gcp-dev.sh`,
+  `scripts/boussole-dev.sh`, `scripts/controle-acces-sauvegardes.sh`, `scripts/deployer-dev-iap.sh`,
+  `scripts/dev-publier-version.sh`, `scripts/reprise-terraform-dev.sh`, `scripts/terraform-dev-cloudshell.sh`,
+  `scripts/wif-dev-comptes-separes.sh`, `scripts/tester-ihm-gcp.ps1`, `scripts/troubleshooter_iam.py`,
+  `scripts/comparer-politique-bucket.py`, et `scripts/recette/*.mjs` pointé vers une instance non locale.
+  Tout nouveau script de ce type s'ajoute à cette liste dans sa PR.
 
-Présenter des options et attendre une réponse sur un point du § 8.2 est une **erreur de méthode** : cela bloque le
-travail sans protéger personne.
+**Autorisé** : `scripts/tests.sh`, `scripts/preparer-environnement.sh`, `scripts/synchroniser-branche.sh`,
+`scripts/resume-commande.sh`, les bancs simulés (faux `gcloud`, GCS, `docker`) et la pile locale de recette listés
+dans la skill `controles-ci`, `bash -n` sur tout script, `terraform fmt|validate` et `init -backend=false`,
+`scripts/charge_classe.py` et `scripts/mesure_import.py` contre une base locale de démonstration, `gh` en lecture,
+création d'issues et de PR. `scripts/installer-dev.sh` **supprime `api/pkp.db`** : seulement si cette base est
+absente ou jetable. Un autre script : lire ses effets avant de le lancer ; le nom ne suffit pas.
 
----
+## 3. Invariants métier, sécurité et RGPD
 
-## 9. Signaler un blocage
+| Invariant | Règle (source) |
+|---|---|
+| Moteur pur | `engine/` n'importe ni FastAPI ni SQLAlchemy ; conversion dans `api/app/db/conversions.py` (ARCH-1) |
+| Migration | modèle modifié ⇒ migration Alembic relue à la main, `sa.false()` et non `sa.text('0')` (ARCH-2) |
+| Question jamais supprimée | `archivee`, garde ORM `SuppressionInterdite`, clé étrangère `RESTRICT` (ARCH-3) |
+| Corrigé protégé | aucune solution envoyée à l'élève avant sa réponse : `QuestionPublique` sans `solution` ; côté adultes, accès par `exiger(permission, domaine)` (ARCH-4) |
+| Correction sûre | parseur `ast` à liste blanche, saisie ≤ 200 caractères |
+| Mineurs (RGPD-1) | élève : prénom, code classe, code personnel haché, aucun e-mail ; **aucun nom de famille d'enfant** ; identifiant `Lina1` créé par `enfants.identifiant_libre`, jamais réattribué (`docs/RGPD.md`) |
+| Isolation, habilitations | toute lecture d'adulte passe par les habilitations et le périmètre (classe, établissement, enfant) ; aucune donnée d'un autre périmètre |
+| Validation pédagogique | un agent signale, il ne valide jamais un contenu à la place d'un professeur |
+| Sources | tout `contenu/**/*.yaml` remplit `source`, `source_url`, `licence_source`, `adaptation` (`docs/CONTENU.md`) |
+| PKP Éducation | nom et spécificités associatives conservés ; aucun prix, paiement, abonnement ni secret commercial (`docs/PKP-LIVRAISON-ASSOCIATIVE.md`) |
+| Langue, style | français (code métier, docs, commits, interface, ARCH-6) ; UTF-8, LF, `.editorconfig` |
 
-Seulement pour un cas du § 8.1 : **ne pas contourner**, ouvrir un commentaire dans l'issue avec le blocage, le
-coût ou le risque, les options et la recommandation, puis continuer le reste du travail qui n'en dépend pas.
+## 4. Git, traçabilité et réussite
 
----
+- Branche depuis `develop` à jour : `<type>/issue-<n>-<sujet>` (ou la branche imposée par l'outil). PR vers
+  `develop`, jamais `main`. Une PR = un périmètre ; elle ne fusionne ni ne ferme rien elle-même.
+- Commit en français : `type(portée): description (#N)`, puis `Agent: <agent réel>` et `Refs: #N`. Les lignes
+  imposées par l'outil (`Co-Authored-By`…) s'ajoutent sans remplacer `Agent:`. L'attribution existante ne se réécrit pas.
+- Fichier source ou de configuration **créé** : en-tête `Issue #N — Sujet (<Agent>)` en commentaire, après un
+  éventuel shebang, encodage, doctype ou docstring imposée. Pas d'en-tête pour JSON, fichiers générés, YAML de
+  contenu, fichiers modifiés ; migration Alembic : référence dans la docstring.
+- PR : `.github/pull_request_template.md`, section « Agent IA » remplie ; `Refs #N` par défaut (`Closes` ne ferme
+  rien vers `develop`). Puis un commentaire de traitement dans l'issue (modèle : skill `integration-git`).
+- Avancement : dans l'issue et la PR, **pas** dans un tableau partagé d'un fichier versionné.
 
-<sub>🤖 Version initiale rédigée par **DeepSeek** (DeepSeek Harness) pour l'issue #83, 13/11/2026 (PR #84).
-Correctifs de relecture et transcription de RGPD-1 : **Claude** (Claude Code), PR #86.
-Consolidation documentaire : **Codex**, intégrée dans la PR #86, issue #83, 13/11/2026.</sub>
+**Terminé** quand : contrôles du job concerné passés en local ou sur le SHA exact en CI (jamais coché sans
+résultat) ; CI verte ; inventaires régénérés si `contenu/` change ; migration relue si un modèle change ; aucun
+secret, aucune donnée personnelle réelle, aucun fichier `sources/` (sauf `referentiels/sources/`) dans le diff ;
+traçabilité ci-dessus respectée. Un test impossible en local ⇒ PR en brouillon, « non exécuté », raison, job CI.
 
+## 5. Charger à la demande
 
-## Politique de versionnement et livraison multi-produits
+Ne pas tout lire avant d'agir : seulement les fichiers, sections et décisions utiles au ticket.
 
-Tout agent IA doit lire et appliquer `docs/VERSIONNING.md` avant toute modification affectant une release, un tag, une migration ou un déploiement. Cette politique concerne toutes les composantes (API, web, moteur, contenus, base de données et CI/CD) et distingue strictement `pkp-v*` de `boussole-v*`. Aucun agent ne peut autoriser seul un GO de production, créer une release de production ou déployer sans approbation humaine explicite. Le circuit PKP exclut paiement, abonnements, prix et secrets commerciaux. Si la politique n'est pas encore techniquement imposée par CI, signaler le contrôle manquant et ne jamais prétendre qu'il est automatisé.
+| Sujet | Skill (`.claude/skills/<nom>/SKILL.md`) ou document |
+|---|---|
+| Branches, PR, synchronisation, conflits, plusieurs agents en parallèle | `integration-git` |
+| Commandes CI, bancs simulés, tests ciblés, journaux | `controles-ci` |
+| Économie de tokens, choix du modèle, sous-agents | `economie-contexte` |
+| Recette navigateur, accessibilité | `recette-accessibilite` |
+| Contenus pédagogiques, ajout d'une matière | `contenus-matieres` |
+| Sécurité, RGPD, habilitations | `securite-rgpd` |
+| Release, livraison Boussole, synchronisation PKP | `livraison-pkp` |
+| Architecture, décisions | `docs/ARCHITECTURE.md`, `docs/DECISIONS.md` (identifiants préfixés : `ARCH-`, `SEC-D`, `V2-D`, `DEV-D`, `RGPD-`) |
+| Vocabulaire métier, périmètre | `docs/CONSIGNES-DEVELOPPEUR.md`, `docs/CAHIER-DES-CHARGES-V2.md` |
+
+Une skill détaille une procédure ; elle n'assouplit jamais les § 1 à 4, qui s'appliquent même si elle n'est pas chargée.
+
+<sub>Numérotation depuis #252 (les anciens renvois restent lisibles) : ancien § 1 → § 2, § 2 et § 4 → § 4,
+§ 3 et § 7 → § 4 et skill `controles-ci`, § 5 → § 3, § 6 → § 5, § 8 et § 9 → § 1. Historique : `git log AGENTS.md`.</sub>

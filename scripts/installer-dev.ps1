@@ -20,7 +20,7 @@ if (-not $BaseSeulement) {
     Etape "Vérification des prérequis"
     if (-not (Get-Command python -ErrorAction SilentlyContinue)) { throw "Python 3.11+ introuvable : https://www.python.org/downloads/" }
     Executer python @("-c", "import sys; assert sys.version_info >= (3, 11), 'Python 3.11 ou plus requis, trouvé ' + sys.version")
-    if (-not (Get-Command npm -ErrorAction SilentlyContinue)) { throw "Node.js 20+ introuvable : https://nodejs.org/" }
+    if (-not (Get-Command npm -ErrorAction SilentlyContinue)) { throw "Node.js 24+ introuvable : https://nodejs.org/" }
 
     Etape "Environnement Python (.venv)"
     if (-not (Test-Path $python)) { Executer python @("-m", "venv", ".venv") }

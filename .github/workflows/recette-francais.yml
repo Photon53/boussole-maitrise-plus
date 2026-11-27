@@ -10,6 +10,12 @@ on:
       - ".github/workflows/recette-francais.yml"
   workflow_dispatch:
 
+# Un push plus récent sur la même PR remplace l'exécution en cours. Hors PR, un groupe par commit :
+# aucune exécution de main n'est annulée, même en attente (#256).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 permissions:
   contents: read
 

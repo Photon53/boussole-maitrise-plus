@@ -1,0 +1,45 @@
+/* Issue #252 — Espace élève : Français (Claude) */
+
+/* --- Espace élève : Français (#231) --------------------------------------------------------------------- */
+.fr-eleve { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.fr-eleve h2, .fr-eleve h3 { margin: 0; }
+.fr-eleve-entete h2 { font-size: var(--t-xxl); }
+.fr-eleve .surtitre { font-size: var(--t-xs); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--francais); margin: 0; }
+.fr-reprise { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 20px; align-items: center; padding: 22px 24px;
+  background: var(--surface); border: 1px solid color-mix(in srgb, var(--francais) 35%, var(--bordure)); border-radius: var(--rayon); box-shadow: var(--ombre); }
+.fr-reprise-texte { display: grid; gap: 6px; min-width: 0; }
+.fr-reprise h3 { font-size: var(--t-xl); }
+.fr-reprise button { display: inline-flex; align-items: center; gap: 8px; }
+.fr-etapes { display: flex; gap: 4px; max-width: 420px; }
+.fr-etapes span { flex: 1; height: 6px; border-radius: 99px; background: var(--surface-2); }
+.fr-etapes span.fait { background: var(--francais); }
+.fr-etapes span.encours { background: linear-gradient(90deg, var(--francais) 50%, var(--surface-2) 50%); }
+.fr-bloc { display: grid; gap: 10px; }
+.fr-rubriques { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 12px; }
+.carte .fr-rubrique, button.fr-rubrique { display: grid; gap: 6px; align-content: start; text-align: left; padding: 16px;
+  background: var(--surface); color: var(--texte); border: 1px solid var(--bordure); border-radius: var(--rayon); box-shadow: var(--ombre); font-weight: 400; white-space: normal; }
+button.fr-rubrique, button.fr-plus-entree { justify-content: stretch; justify-items: start; align-items: start; width: 100%; }
+button.fr-rubrique:hover:not(:disabled) { background: var(--surface); color: var(--texte); border-color: var(--francais); }
+.fr-rubrique-titre { font-weight: 700; font-size: var(--t-m); color: var(--francais); }
+.fr-rubrique-pied { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: var(--t-xs); color: var(--texte-doux); margin-top: 4px; }
+.fr-cartes-cours { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); gap: 14px; }
+.fr-carte-cours { display: grid; grid-template-rows: auto auto auto 1fr; gap: 10px; padding: 16px; background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); box-shadow: var(--ombre); }
+.fr-carte-cours h3 { font-size: var(--t-m); line-height: 1.35; }
+.fr-carte-haut { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.fr-carte-haut .badge { white-space: nowrap; flex: none; }
+.fr-rub { font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--francais); }
+.fr-carte-etape { display: grid; gap: 4px; }
+.fr-carte-pied { display: flex; justify-content: space-between; align-items: end; gap: 8px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid var(--bordure); }
+.fr-carte-actions { display: inline-flex; gap: 8px; align-items: center; }
+.fr-plus { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+button.fr-plus-entree { display: grid; gap: 2px; width: 100%; text-align: left; padding: 14px 16px; background: var(--surface); color: var(--texte);
+  border: 1px solid var(--bordure); border-radius: var(--rayon); font-weight: 400; white-space: normal; }
+button.fr-plus-entree:hover:not(:disabled) { background: var(--surface); color: var(--texte); border-color: var(--francais); }
+.badge.action { background: var(--action-doux); color: var(--action); }
+@media (max-width: 640px) {
+  .fr-reprise { grid-template-columns: minmax(0, 1fr); padding: 18px; }
+  .fr-reprise button { width: 100%; justify-content: center; }
+  .fr-rubriques { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  button.fr-rubrique { padding: 12px; }
+  button.fr-rubrique > .doux { display: none; }
+}
