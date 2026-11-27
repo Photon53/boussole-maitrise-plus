@@ -11,7 +11,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 | Niveau | Parcours | Résultat seul | À compléter | Complet | Questions | Complets |
 |---|---|:-:|:-:|:-:|:-:|:-:|
 | 6e | tronc-commun | 0 | 125 | 19 | 144 | 13 % |
-| 5e | tronc-commun | 0 | 111 | 21 | 132 | 16 % |
+| 5e | tronc-commun | 0 | 121 | 29 | 150 | 19 % |
 | 4e | tronc-commun | 0 | 101 | 16 | 117 | 14 % |
 | 3e | tronc-commun | 0 | 79 | 14 | 93 | 15 % |
 | 2nde | tronc-commun | 73 | 200 | 22 | 295 | 7 % |
@@ -31,7 +31,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 | Tle | excellence | 65 | 15 | 0 | 80 | 0 % |
 | Tle | mise-a-niveau | 13 | 2 | 0 | 15 | 0 % |
 | Tle | examens | 29 | 1 | 0 | 30 | 0 % |
-| **Total** | | 555 | 1261 | 129 | 1945 | 7 % |
+| **Total** | | 555 | 1271 | 137 | 1963 | 7 % |
 
 ## Par chapitre
 
@@ -936,3 +936,11 @@ FR6-NATURE : 0 résultat seul, 4 à compléter, 5 complet(s).
 ### 6e · tronc-commun · Le présent de l’indicatif
 
 FR6-PRESENT : 0 résultat seul, 8 à compléter, 1 complet(s).
+
+### 5e · tronc-commun · Les fonctions : sujet, COD, COI et complément du nom
+
+FR5-FONCTIONS : 0 résultat seul, 3 à compléter, 6 complet(s).
+
+### 5e · tronc-commun · L’imparfait et le passé simple
+
+FR5-RECIT : 0 résultat seul, 7 à compléter, 2 complet(s).
