@@ -190,10 +190,18 @@ def domaines_valides(enseignant: models.Enseignant) -> set[str]:
 
 
 DOMAINES_MATHS = (MATHS_COLLEGE, MATHS_LYCEE)
+DOMAINES_FRANCAIS = ("francais-college", "francais-lycee")
+# Contenus validés question par question (chapitres YAML) : maths (#29) et français (#177, #217).
+DOMAINES_PAR_QUESTION = (*DOMAINES_MATHS, *DOMAINES_FRANCAIS)
+
+
+def valide_des_questions(enseignant: models.Enseignant) -> bool:
+    """Validateur d'au moins un domaine validé question par question : page « Validation » de l'espace professeur."""
+    return bool(domaines_valides(enseignant) & set(DOMAINES_PAR_QUESTION))
 
 
 def valide_les_maths(enseignant: models.Enseignant) -> bool:
-    """Validateur d'au moins un domaine de maths : page « Validation » de l'espace professeur (ticket #29)."""
+    """Validateur d'au moins un domaine de maths (ticket #29)."""
     return bool(domaines_valides(enseignant) & set(DOMAINES_MATHS))
 
 

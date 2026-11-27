@@ -1,6 +1,8 @@
-"""Espace professeur, page « Validation » des maths (ticket #29).
+"""Espace professeur, page « Validation » des contenus validés question par question : maths (ticket #29) et
+chapitres de français (#177, #217).
 
-Un professeur habilité « validateur » sur Maths collège ou Maths lycée (éventuellement pour un seul niveau) consulte,
+Un professeur habilité « validateur » sur Maths collège, Maths lycée, Français collège ou Français lycée
+(éventuellement pour un seul niveau) consulte,
 modifie et valide les cours et les exercices de son périmètre, sans compte administrateur. Les règles sont celles
 de l'administration (mêmes fonctions) :
 - lecture et modification limitées au périmètre ; hors périmètre, la ressource n'existe pas (404) ;
@@ -35,8 +37,8 @@ from app.schemas_admin import (
 
 
 def validateur_maths(enseignant: EnseignantAuthentifie) -> models.Enseignant:
-    if not permissions.valide_les_maths(enseignant):
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Réservé aux validateurs de mathématiques.")
+    if not permissions.valide_des_questions(enseignant):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Réservé aux validateurs de mathématiques ou de français.")
     return enseignant
 
 
@@ -47,15 +49,15 @@ Validateur = models.Enseignant
 def _habilitations(enseignant: models.Enseignant) -> list[models.Habilitation]:
     return [
         h for h in enseignant.habilitations
-        if h.role == permissions.VALIDATEUR and h.domaine_code in permissions.DOMAINES_MATHS
+        if h.role == permissions.VALIDATEUR and h.domaine_code in permissions.DOMAINES_PAR_QUESTION
     ]
 
 
 def perimetre(enseignant: models.Enseignant):
-    """Condition SQL sur `chapitre` : domaines (et niveaux) que ce professeur valide ; tous ceux des maths pour un
-    administrateur (V2-D15)."""
+    """Condition SQL sur `chapitre` : domaines (et niveaux) que ce professeur valide ; tous ceux des maths et du
+    français pour un administrateur (V2-D15)."""
     if enseignant.role == Role.ADMIN:
-        return models.Chapitre.domaine_code.in_(permissions.DOMAINES_MATHS)
+        return models.Chapitre.domaine_code.in_(permissions.DOMAINES_PAR_QUESTION)
     conditions = [
         and_(models.Chapitre.domaine_code == h.domaine_code, *([models.Chapitre.niveau == Niveau(h.niveau)] if h.niveau else []))
         for h in _habilitations(enseignant)
@@ -65,7 +67,7 @@ def perimetre(enseignant: models.Enseignant):
 
 def _dans_le_perimetre(enseignant: models.Enseignant, chapitre: models.Chapitre) -> bool:
     return permissions.peut_valider(enseignant, chapitre.domaine_code, chapitre.niveau.value) and (
-        chapitre.domaine_code in permissions.DOMAINES_MATHS
+        chapitre.domaine_code in permissions.DOMAINES_PAR_QUESTION
     )
 
 

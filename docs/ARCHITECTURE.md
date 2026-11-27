@@ -183,6 +183,7 @@ empreinte du fichier source, circuit de validation des séances d'anglais. Contr
 | `PUT /francais/eleve/dossiers/{code}/reponses/{question}`, `POST …/remise` | Réponses rédigées (#217, RGPD-2) ; 403 tant que `PKP_REDACTION_ACTIVE` est faux |
 | `GET /francais/classes`, `GET …/{classe_id}/progression`, `GET`/`PUT …/correction`, `PUT …/dossiers/{code}/correction` | Suivi de la classe (#217) : progression par dossier, mode de correction (#110) |
 | `GET /francais/classes/{classe_id}/reponses`, `PUT /francais/reponses/{id}/retour` | Réponses remises et retour, pour le seul professeur de la classe (RGPD-2) |
+| `GET /francais/chapitres`, `GET /francais/chapitres/{id}` | Cours interactifs de français (chapitres YAML, #177) du périmètre de l'adulte : leçons, questions et état de validation (onglet « Cours ») ; la validation question par question passe par `/enseignants/validation/*`, ouverte aux validateurs de français |
 | `GET /francais/dossiers/{code}/source`, `PUT …/brouillon`, `POST …/soumettre` | Édition par l'administrateur (#217) : brouillon contrôlé par le contrat d'import, puis soumission |
 
 Tables `ouverture_dossier_francais` (migration 0048), puis `progression_francais`, `reponse_quiz_francais`,
