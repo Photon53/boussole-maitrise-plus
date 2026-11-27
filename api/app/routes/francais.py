@@ -506,3 +506,70 @@ def soumettre(code: str, qui: MembreFrancais, session: SessionDB):
     journal.noter(session, qui, "soumettre", "dossier_francais", d.id, apres={"code": d.code, "version": d.courante.numero})
     session.commit()
     return francais.resume(d, qui)
+
+
+# --- Cours interactifs (chapitres YAML, #177) visibles dans l'espace Français ------------------------------------
+# Correctif du 27/11 : l'espace Français ne listait que les dossiers. Les chapitres de français (grammaire,
+# conjugaison, rédaction) y sont désormais consultables par les adultes habilités ; ils se valident question par
+# question dans la page « Validation » de l'espace professeur ou dans l'administration, comme les maths.
+
+def _chapitres_lisibles(session: Session, qui: models.Enseignant) -> list[models.Chapitre]:
+    chapitres = session.scalars(
+        select(models.Chapitre)
+        .where(models.Chapitre.domaine_code.like("francais-%"), models.Chapitre.masque.is_(False))
+        .order_by(models.Chapitre.niveau, models.Chapitre.ordre)
+    )
+    return [
+        ch for ch in chapitres
+        if francais.domaine_actif(session, ch.domaine_code) and francais.peut_lire(qui, ch.domaine_code, ch.niveau.value)
+    ]
+
+
+def _questions_actives(competence: models.Competence) -> list[models.Question]:
+    return [q for q in competence.questions if not q.archivee]
+
+
+def _resume_chapitre(session: Session, ch: models.Chapitre, qui: models.Enseignant) -> dict:
+    competences = [c for c in sorted(ch.competences, key=lambda c: (c.ordre, c.code)) if not c.masque]
+    questions = [q for c in competences for q in _questions_actives(c)]
+    statuts = [q.statut_validation.value for q in questions]
+    classes = [c.code for c in qui.classes if c.archivee_le is None and ch in c.chapitres_proposes]
+    return {
+        "id": ch.id, "code": ch.code, "titre": ch.titre, "niveau": ch.niveau.value, "domaine": ch.domaine_code,
+        "rubrique": ch.rubrique.value if ch.rubrique else None,
+        "nb_questions": len(questions), "nb_validees": statuts.count("validee"),
+        "nb_a_valider": statuts.count("a-valider"), "nb_a_corriger": statuts.count("a-corriger"),
+        "ouvert_dans": classes, "peut_valider": permissions.peut_valider(qui, ch.domaine_code, ch.niveau.value),
+        "competences": [{"id": c.id, "code": c.code, "libelle": c.libelle, "a_une_lecon": c.lecon is not None,
+                         "nb_questions": len(_questions_actives(c))} for c in competences],
+    }
+
+
+@router.get("/chapitres")
+def chapitres(qui: MembreFrancais, session: SessionDB, reponse: Response):
+    """Cours interactifs de français de son périmètre (domaine actif, habilitation au domaine et au niveau, ou
+    administrateur), avec l'état de validation de leurs questions et les classes du professeur où ils sont ouverts."""
+    _sans_cache(reponse)
+    return [_resume_chapitre(session, ch, qui) for ch in _chapitres_lisibles(session, qui)]
+
+
+@router.get("/chapitres/{chapitre_id}")
+def chapitre(chapitre_id: int, qui: MembreFrancais, session: SessionDB, reponse: Response):
+    """Le cours complet pour l'adulte : leçon et résumé de chaque compétence, questions avec leur solution et leur
+    statut de validation (vue professeur : jamais servie à un élève)."""
+    _sans_cache(reponse)
+    ch = next((c for c in _chapitres_lisibles(session, qui) if c.id == chapitre_id), None)
+    if ch is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Cours introuvable.")
+    detail = _resume_chapitre(session, ch, qui)
+    lecons = {c.id: c for c in ch.competences}
+    for c in detail["competences"]:
+        comp = lecons[c["id"]]
+        c.update({
+            "objectifs": comp.objectifs or [],
+            "cours": comp.lecon.cours if comp.lecon else None, "resume": comp.lecon.resume if comp.lecon else None,
+            "questions": [{"id": q.id, "code": q.code, "type": q.type.value, "difficulte": q.difficulte,
+                           "enonce": q.enonce, "solution": q.solution, "statut": q.statut_validation.value}
+                          for q in sorted(_questions_actives(comp), key=lambda q: (q.difficulte, q.code))],
+        })
+    return detail

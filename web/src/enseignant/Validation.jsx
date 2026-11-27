@@ -10,7 +10,8 @@ const BASE = "/enseignants/validation";
 const RACINE = "/enseignant/validation";
 
 /**
- * Page « Validation » d'un professeur validateur en maths (ticket #29) : il consulte, modifie et valide les
+ * Page « Validation » d'un professeur validateur en maths (ticket #29) ou en français (chapitres #177, #217) : il
+ * consulte, modifie et valide les
  * exercices et les cours de son périmètre (domaine et niveau de ses habilitations). L'API revérifie chaque action.
  * /enseignant/validation : exercices ; /enseignant/validation/cours : cours ; /enseignant/validation/cours/<id> : leçon.
  */

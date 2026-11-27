@@ -216,6 +216,18 @@ async function recette() {
         }
         await visible(page.getByRole("button", { name: "Refuser" }));
       }, { page });
+      // Correctif du 27/11 (#217) : les cours interactifs (#177) sont visibles et validables par le validateur.
+      await etape("validateur", "Onglet « Cours » : cours interactifs de 3e listés", async () => {
+        await page.getByRole("tab", { name: "Cours", exact: true }).click();
+        const titre = page.getByRole("heading", { name: "Troisième" });
+        await titre.or(page.getByText(/Aucun cours de français/)).first().waitFor({ timeout: 10_000 });
+        if (!(await titre.isVisible())) throw nonApplicable("aucun chapitre de français de 3e importé sur cette instance");
+        return `${await page.getByRole("button", { name: "Lire le cours" }).count()} cours`;
+      }, { page });
+      await etape("validateur", "Page « Validation » de l'espace professeur : questions de français de 3e", async () => {
+        await page.goto(`${BASE_URL}/enseignant/validation`);
+        await visible(page.getByText(/Vous validez : Français collège/));
+      }, { page });
     }
 
     // 3. Administrateur : connexion à l'écran, puis Français sans nouvelle connexion ; validation (mode complet)
@@ -299,11 +311,13 @@ async function recette() {
         const avant = await page.locator("body").innerText();
         const fuite = quiz.find((q) => avant.includes(q.explication.slice(0, 50)));
         verifier(!fuite, `explication du quiz visible avant la réponse : « ${fuite?.explication.slice(0, 50)}… »`);
+        // Limité au formulaire du quiz : l'onglet « S'entraîner », masqué, contient aussi des fieldsets (#177).
+        const formulaire = page.locator("form").filter({ has: page.getByRole("heading", { name: "Quiz" }) });
         for (let i = 0; i < quiz.length; i += 1) {
-          await page.locator(`input[name="quiz-${i}"]`).first().check();
-          await visible(page.locator("fieldset").nth(i).locator("p.petit"));
+          await formulaire.locator(`input[name="quiz-${i}"]`).first().check();
+          await visible(formulaire.locator("fieldset").nth(i).locator("p.petit"));
         }
-        await page.getByRole("button", { name: /Terminer le quiz|Voir la correction/ }).click();
+        await formulaire.getByRole("button", { name: /Terminer le quiz|Voir la correction/ }).click();
         await visible(page.getByText(/Score : \d+\/\d+/));
         return `${quiz.length} questions`;
       }, { page });
