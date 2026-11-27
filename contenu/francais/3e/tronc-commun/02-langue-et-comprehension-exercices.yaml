@@ -52,7 +52,7 @@ competences:
             - Le connecteur « cependant » oppose deux informations.
             - Ce qu’elle dit (elle va bien) est contredit par un détail (sa voix tremble).
             - On comprend qu’elle cache son émotion.
-          resultat: Elle cache son émotion ; l’indice est « cependant, tremblait ».
+          resultat: Elle cache son émotion ; les indices sont « cependant » et « tremblait ».
     erreurs_frequentes:
       - erreur: Attribuer un pronom au nom le plus proche.
         explication: Le pronom reprend le nom qui convient par le sens, le genre et le nombre.
@@ -64,7 +64,7 @@ competences:
       - code: FR3-LANGUE-LECTURE-01
         difficulte: 1
         type: qcm
-        enonce: "Dans « Marie ouvrit la lettre. Elle la lut deux fois », que reprend le pronom « la » ? A) Marie  B) la lettre  C) deux fois"
+        enonce: "Dans « Marie ouvrit la lettre. Elle la lut deux fois », que reprend le pronom « la » ? A) Marie  B) la lettre  C) une autre lettre"
         solution: B
         auteur: Brouillon IA (Claude)
         correction:
@@ -126,7 +126,7 @@ competences:
       - code: FR3-LANGUE-LECTURE-06
         difficulte: 3
         type: qcm
-        enonce: "Dans « Il viendra peut-être demain », que montre « peut-être » ? A) que le locuteur est certain  B) que le locuteur n’est pas certain  C) que le locuteur est en colère"
+        enonce: "Dans « Il viendra peut-être demain », que montre « peut-être » ? A) que le locuteur est certain  B) que le locuteur n’est pas certain  C) que le locuteur souhaite qu’il vienne"
         solution: B
         auteur: Brouillon IA (Claude)
         correction:
@@ -154,7 +154,7 @@ competences:
         difficulte: 4
         type: texte
         enonce: « Le chien aboyait sans cesse. L’animal, effrayé par l’orage, refusait de sortir. » Recopie le groupe nominal qui reprend « Le chien » dans la seconde phrase.
-        solution: L’animal
+        solution: L’animal|L’animal, effrayé par l’orage|L’animal effrayé par l’orage
         auteur: Brouillon IA (Claude)
         correction:
           methode: Chercher un nom plus général qui désigne le même être.
