@@ -1,8 +1,8 @@
 // Issue #179 — Rédaction en ligne et correction par le professeur (Claude)
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import Redactions from "../enseignant/Redactions.jsx";
+import Redactions, { PLAN_COMMENTAIRE } from "../enseignant/Redactions.jsx";
 import Redaction, { RAPPEL } from "../eleve/Redaction.jsx";
 import { fausseApi } from "./setup.js";
 
@@ -58,6 +58,51 @@ describe("rédaction : élève (#179)", () => {
 });
 
 describe("rédaction : professeur (#179)", () => {
+  it("#231 : fermée, un état expliqué plutôt qu'une erreur", async () => {
+    fausseApi({
+      "GET /enseignants/classes": { json: [{ id: 3, code: "5E-FR-AAAAA", matiere: "francais" }] },
+      "GET /enseignants/classes/3/redactions": { status: 403, json: { detail: "La rédaction en ligne n'est pas encore ouverte." } },
+    });
+    render(<Redactions jeton="j" onExpire={vi.fn()} />);
+    expect(await screen.findByRole("note")).toHaveTextContent("les élèves rédigent sur leur copie");
+    expect(screen.queryByRole("alert")).toBeNull();
+  });
+
+  it("#231 : remises à corriger d'abord, correction en deux colonnes, plan de commentaire, puis rédaction suivante", async () => {
+    const remise = (id, eleve, statut = "remise") => ({ id, eleve, sujet: "Raconte une aventure inventée au présent.", version: 1, statut, remise_le: "2026-11-27T08:00:00Z", corrigee_le: statut === "corrigee" ? "2026-11-27T10:00:00Z" : null });
+    const detail = (id, eleve, extra = {}) => ({ json: { id, eleve, sujet: "Raconte.\n\nTout est inventé.", guide: "Récit au présent.", correction: { methode: "Une réussite, une piste.", etapes: ["Cohérence du récit.", "Présent maîtrisé."] }, version: 1, texte: "Il était une fois.\n\nPuis un dragon arriva.", statut: "remise", commentaire: null, remise_le: "2026-11-27T08:00:00Z", ...extra } });
+    const appels = fausseApi({
+      "GET /enseignants/classes": { json: [{ id: 3, code: "5E-FR-AAAAA", matiere: "francais" }] },
+      "GET /enseignants/classes/3/redactions": { json: [remise(11, "Lina"), remise(12, "Noé"), remise(13, "Inès", "corrigee")] },
+      "GET /enseignants/redactions/11": detail(11, "Lina"),
+      "GET /enseignants/redactions/12": detail(12, "Noé"),
+      "POST /enseignants/redactions/11/correction": (corps) => detail(11, "Lina", { statut: "corrigee", commentaire: corps.commentaire }),
+    });
+    render(<Redactions jeton="j" onExpire={vi.fn()} />);
+    // Une seule classe de français : choisie d'office.
+    const aCorriger = await screen.findByRole("region", { name: "À corriger" });
+    expect(within(aCorriger).getAllByRole("listitem")).toHaveLength(2);
+    expect(within(screen.getByRole("region", { name: "Corrigées" })).getAllByRole("listitem")).toHaveLength(1);
+
+    await userEvent.click(within(aCorriger).getByRole("button", { name: /Lina — version 1/ }));
+    const copie = await screen.findByRole("article", { name: "Texte de l'élève" });
+    expect(within(copie).getAllByText(/./, { selector: "p" })).toHaveLength(2);
+    expect(screen.getByText(/8 mots · 2 paragraphe/)).toBeInTheDocument();
+    const guide = screen.getByRole("complementary", { name: "Guide et commentaire" });
+    await userEvent.click(within(guide).getByLabelText("Présent maîtrisé."));
+    expect(within(guide).getByLabelText("Présent maîtrisé.")).toBeChecked();
+
+    await userEvent.click(screen.getByRole("button", { name: "Partir du plan « réussite, piste »" }));
+    expect(screen.getByLabelText("Commentaire pour l'élève")).toHaveValue(PLAN_COMMENTAIRE);
+    await userEvent.type(screen.getByLabelText("Commentaire pour l'élève"), "Relis les accords.");
+    await userEvent.click(screen.getByRole("button", { name: "Envoyer la correction" }));
+    expect(await screen.findByRole("status")).toHaveTextContent("Correction envoyée à l'élève.");
+    expect(appels.find((a) => a.cle === "POST /enseignants/redactions/11/correction").corps.commentaire).toBe(`${PLAN_COMMENTAIRE}Relis les accords.`);
+
+    await userEvent.click(screen.getByRole("button", { name: "Rédaction suivante →" }));
+    expect(await screen.findByRole("heading", { name: "Noé — version 1" })).toBeInTheDocument();
+  });
+
   it("choisit une classe de français, lit une rédaction et envoie son commentaire", async () => {
     const appels = fausseApi({
       "GET /enseignants/classes": { json: [{ id: 3, code: "5E-FR-AAAAA", matiere: "francais" }, { id: 4, code: "2NDE-A", matiere: "maths" }] },
