@@ -49,8 +49,13 @@ class TestDepotReel:
         assert {"6e", "2nde", "1re", "Tle"} <= {f.chapitre.niveau.value for _, f in fichiers}
 
     def test_ordre_scolaire(self):
-        niveaux = [f.chapitre.niveau.value for _, f in charger()]
-        assert niveaux == sorted(niveaux, key=["6e", "5e", "4e", "3e", "2nde", "1re", "Tle"].index)
+        """Les maths d'abord, puis le français (#177) ; dans chaque matière, l'ordre des niveaux."""
+        fichiers = [f.chapitre for _, f in charger()]
+        matieres = [c.matiere for c in fichiers]
+        assert matieres == sorted(matieres, key=["maths", "francais"].index)
+        for matiere in set(matieres):
+            niveaux = [c.niveau.value for c in fichiers if c.matiere == matiere]
+            assert niveaux == sorted(niveaux, key=["6e", "5e", "4e", "3e", "2nde", "1re", "Tle"].index)
 
 
 class TestVerification:
