@@ -197,7 +197,9 @@ async function recette() {
     {
       const page = await connecterProfesseur(navigateur, "/enseignant", ctx.validateur.email);
       await etape("validateur", "Lien vers la validation du français depuis /enseignant", async () => {
-        await page.getByRole("link", { name: /Boussole Français : dossiers et validation/ }).first().click();
+        // Issue #231 : entrée « Dossiers et PDF » du groupe « Français » de l'espace professeur.
+        await page.getByRole("navigation", { name: "Navigation Espace professeur" })
+          .getByRole("link", { name: "Dossiers et PDF" }).click();
         await visible(page.getByRole("heading", { name: "Dossiers de français" }));
       }, { page });
       await etape("validateur", "File de validation : dossier soumis et bouton « Valider »", async () => {
