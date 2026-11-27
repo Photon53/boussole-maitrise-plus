@@ -13,12 +13,15 @@ import MonCours from "./MonCours.jsx";
 import Redaction from "./Redaction.jsx";
 import Progression from "./Progression.jsx";
 import EspaceEnfant, { CLE_ENFANT } from "./EspaceEnfant.jsx";
+import { AccueilFrancais, CoursFrancais, PlusFrancais } from "./FrancaisEleve.jsx";
 import PkpMath from "../pkpmath/PkpMath.jsx";
 import Remarques from "../ui/Remarques.jsx";
 import { naviguer } from "../navigation.js";
 import { ORIGINES, viderSessionEleve } from "../simulation.js";
 
 const CLE_COMPTE = "pkp.eleve";
+// Issue #231 : pages rangées sous « Plus » dans l'espace Français (FR-UI-D5).
+const SOUS_PLUS = ["redaction", "mon-cours", "pkp", "historique", "remarques"];
 
 export default function EspaceEleve() {
   // Carte scannée (ou saisie sur la mauvaise page) : c'est peut-être un autre élève sur le même appareil,
@@ -26,7 +29,10 @@ export default function EspaceEleve() {
   const [compte, setCompte] = useState(() => (lireCarte() ? null : lire(CLE_COMPTE)));
   // Enfant d'une famille : une seule carte, puis le choix de la matière (PKP Math, Anglais, Français).
   const [enfant, setEnfant] = useState(() => (lireCarte() ? null : lire(CLE_ENFANT)));
-  const [onglet, setOnglet] = useState("exercice");
+  // Issue #231 : l'élève de français arrive sur l'accueil de la matière.
+  const [onglet, setOnglet] = useState(() => (lire(CLE_COMPTE)?.eleve?.matiere === "francais" ? "accueil" : "exercice"));
+  const [rubriqueFr, setRubriqueFr] = useState("");
+  const [dossierOuvert, setDossierOuvert] = useState(null);
   const [leconOuverte, setLeconOuverte] = useState(null);
   const [ancreLecon, setAncreLecon] = useState(null); // section à montrer : « lecon-cours », « methode-2 »…
   // Leçon ouverte depuis un exercice : la leçon propose d'y revenir, l'exercice n'est pas perdu.
@@ -48,6 +54,14 @@ export default function EspaceEleve() {
     if (!compte) return setMesParcours([]);
     api("/eleves/moi/parcours", { jeton: compte.jeton }).then(setMesParcours, () => setMesParcours([]));
   }, [compte]);
+
+  // Issue #231 : à la connexion d'un élève de français, l'accueil de la matière remplace l'entraînement.
+  const matiereEleve = compte?.eleve?.matiere;
+  const idEleve = compte?.eleve?.id;
+  useEffect(() => {
+    if (matiereEleve === "francais") setOnglet((o) => (o === "exercice" ? "accueil" : o));
+    else setOnglet((o) => (["accueil", "plus"].includes(o) ? "exercice" : o));
+  }, [idEleve, matiereEleve]);
 
   async function changerParcours(eleveId) {
     try {
@@ -87,6 +101,11 @@ export default function EspaceEleve() {
   }
 
   function changerOnglet(nouvel) {
+    // « Mes cours » (français) revient toujours à la liste des cours.
+    if (nouvel === "cours" && compte?.eleve?.matiere === "francais") {
+      setDossierOuvert(null);
+      setLeconOuverte(null);
+    }
     if (nouvel !== "cours") setDepuisExercice(false);
     if (nouvel !== "historique") setHistoriqueDe(null);
     setOnglet(nouvel);
@@ -168,6 +187,25 @@ export default function EspaceEleve() {
     );
   if (!compte) return <ConnexionEleve onConnexion={connexionCarte} />;
 
+  const francais = compte.eleve.matiere === "francais";
+
+  /** Ouvre un cours de français : dossier ; leçon pour découvrir ; entraînement ensuite (#231). */
+  function ouvrirCoursFrancais(c) {
+    if (c.type === "dossier") {
+      setLeconOuverte(null);
+      setDossierOuvert(c.code);
+      setOnglet("cours");
+    } else if (c.rubrique === "redaction") {
+      if (c.a_une_lecon) voirCours(c.competence_id, { depuisLExercice: false });
+      else changerOnglet("redaction");
+    } else if ((c.etat === "pas_commence" || !c.nb_questions) && c.a_une_lecon) {
+      setDossierOuvert(null);
+      voirCours(c.competence_id, { depuisLExercice: false });
+    } else if (c.competence_id) {
+      entrainer(c.competence_id, c.titre);
+    }
+  }
+
   return (
     <>
       {compte.simulation && (
@@ -211,9 +249,15 @@ export default function EspaceEleve() {
       </div>
       <Erreur message={erreurParcours} />
       <Onglets
-        valeur={onglet}
+        valeur={francais && SOUS_PLUS.includes(onglet) ? "plus" : onglet}
         onChange={changerOnglet}
-        options={[
+        options={francais ? [
+          ["accueil", "Accueil"],
+          ["cours", "Mes cours"],
+          ["exercice", "S'entraîner"],
+          ["progression", "Ma progression"],
+          ["plus", "Plus"],
+        ] : [
           ...(diagnosticVisible ? [["diagnostic", "Diagnostic"]] : []),
           ["exercice", "S'entraîner"],
           ["cours", "Cours"],
@@ -229,22 +273,51 @@ export default function EspaceEleve() {
       />
       {/* Toujours monté, seulement masqué : aller au cours ne fait pas perdre la question ni sa correction. */}
       <div hidden={onglet !== "exercice"}>
-        {compte.eleve.matiere === "francais" && (
+        {francais && (
           <p className="carte doux" role="note">
-            En français, la leçon, les textes et les questions de tes dossiers se trouvent dans l'onglet « Cours ». Tu rédiges
-            tes réponses comme te l'indique ta professeure, qui les relit. Ici n'apparaissent que les exercices corrigés
-            automatiquement, quand ta professeure en ouvre.
+            Ici, les exercices des cours ouverts par ta professeure, corrigés tout de suite. Les textes, les dossiers et la
+            rédaction sont dans « Mes cours ».
           </p>
         )}
         <Exercice key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} onVoirCours={voirCours} cible={cible} />
       </div>
-      {onglet === "mon-cours" && <MonCours key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
+      {onglet === "accueil" && francais && (
+        <AccueilFrancais
+          key={`accueil-${compte.eleve.id}`}
+          jeton={compte.jeton}
+          onExpire={deconnecter}
+          onOuvrir={ouvrirCoursFrancais}
+          onRubrique={(r) => {
+            setRubriqueFr(r);
+            changerOnglet("cours");
+          }}
+          onAller={changerOnglet}
+        />
+      )}
+      {onglet === "plus" && francais && <PlusFrancais onAller={changerOnglet} />}
+      {onglet === "mon-cours" && <MonCours key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} sansDossiers={francais} />}
       {onglet === "redaction" && <Redaction key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
       {/* Issue #217 : les dossiers de français validés et ouverts à la classe apparaissent aussi dans « Cours ». */}
-      {onglet === "cours" && compte.eleve.matiere === "francais" && (
-        <DossiersFrancais key={`dossiers-${compte.eleve.id}`} jeton={compte.jeton} onExpire={deconnecter} />
-      )}
-      {onglet === "cours" && (
+      {onglet === "cours" && francais && leconOuverte == null && (dossierOuvert ? (
+        <DossiersFrancais
+          key={`dossier-${dossierOuvert}`}
+          jeton={compte.jeton}
+          onExpire={deconnecter}
+          codeOuvert={dossierOuvert}
+          onFermer={() => setDossierOuvert(null)}
+        />
+      ) : (
+        <CoursFrancais
+          key={`cours-${compte.eleve.id}`}
+          jeton={compte.jeton}
+          onExpire={deconnecter}
+          rubrique={rubriqueFr}
+          onRubrique={setRubriqueFr}
+          onOuvrir={ouvrirCoursFrancais}
+          onLecon={(c) => voirCours(c.competence_id, { depuisLExercice: false })}
+        />
+      ))}
+      {onglet === "cours" && (!francais || leconOuverte != null) && (
         <Cours
           key={compte.eleve.id}
           jeton={compte.jeton}

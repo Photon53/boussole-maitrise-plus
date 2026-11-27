@@ -8,7 +8,8 @@ import { Erreur } from "../composants.jsx";
 import DossiersFrancais from "./DossiersFrancais.jsx";
 import { Ressources } from "./Cours.jsx";
 
-export default function MonCours({ jeton, onExpire }) {
+/** `sansDossiers` (#231) : dans l'espace Français, les dossiers sont dans « Mes cours ». */
+export default function MonCours({ jeton, onExpire, sansDossiers = false }) {
   const [chapitres, setChapitres] = useState(null);
   const [erreur, setErreur] = useState(null);
 
@@ -23,7 +24,7 @@ export default function MonCours({ jeton, onExpire }) {
 
   return (
     <>
-      <DossiersFrancais jeton={jeton} onExpire={onExpire} />
+      {!sansDossiers && <DossiersFrancais jeton={jeton} onExpire={onExpire} />}
       <section className="carte" aria-labelledby="titre-mon-cours">
         <h2 id="titre-mon-cours">Mon cours</h2>
         <p className="doux">Les fiches et les liens de ta professeure, chapitre par chapitre, au fil du cours.</p>
