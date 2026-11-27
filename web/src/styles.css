@@ -967,3 +967,54 @@ button.fr-plus-entree:hover:not(:disabled) { background: var(--surface); color: 
   button.fr-rubrique { padding: 12px; }
   button.fr-rubrique > .doux { display: none; }
 }
+
+/* --- Écran de cours et dossier de lecture : sept étapes (#231) ------------------------------------------- */
+.ecran-cours { display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 24px; align-items: start; }
+.rail-etapes { position: sticky; top: 12px; display: grid; gap: 12px; padding: 16px; background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); }
+.rail-retour { justify-self: start; padding-left: 0; }
+.rail-titre { display: grid; gap: 4px; }
+.rail-titre strong { font-family: var(--police-titres); line-height: 1.3; }
+.rail-rubrique { font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--francais); }
+.rail-mobile { display: none; margin: 0; font-weight: 600; color: var(--francais); }
+.rail-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+button.rail-etape { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: center; width: 100%; text-align: left;
+  padding: 7px 8px; border: 0; border-radius: 8px; background: transparent; color: var(--texte-doux); font-weight: 500; white-space: normal; }
+button.rail-etape:hover:not(:disabled) { background: var(--surface-2); color: var(--texte); border: 0; }
+button.rail-etape:disabled { opacity: 0.55; }
+button.rail-etape.active { background: color-mix(in srgb, var(--francais) 12%, var(--surface)); color: var(--texte); font-weight: 700; }
+.rail-rond { width: 26px; height: 26px; border-radius: 50%; border: 1.5px solid var(--bordure-forte); display: grid; place-items: center; font-size: var(--t-xs); font-weight: 700; background: var(--surface); }
+button.rail-etape.active .rail-rond { border-color: var(--francais); color: var(--francais); }
+button.rail-etape.faite .rail-rond { background: var(--francais); border-color: var(--francais); color: #fff; }
+.rail-texte { display: grid; }
+.rail-texte small { font-weight: 400; font-size: var(--t-xs); color: var(--texte-doux); }
+.contenu-etape { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; min-width: 0; }
+.contenu-etape > h2 { margin: 0; font-size: var(--t-xxl); }
+.contenu-etape > .surtitre { margin: 0; font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--francais); }
+.lecture { font-family: var(--police-lecture); font-size: 1.125rem; line-height: 1.7; max-width: 68ch; display: grid; gap: 4px; }
+.lecture h3 { font-family: var(--police-titres); }
+.navigation-etapes { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid var(--bordure); }
+.lecture-partagee { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.lecture-texte { position: sticky; top: 12px; display: grid; gap: 10px; max-height: calc(100vh - 24px); overflow: auto;
+  background: color-mix(in srgb, var(--accent-doux) 35%, var(--surface)); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 18px 20px; }
+.lecture-activite { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; min-width: 0; }
+.texte-source h3 { margin: 0 0 8px; font-family: var(--police-lecture); font-size: var(--t-l); }
+.texte-numerote { margin: 0; padding: 0 0 0 2.4em; font-family: var(--police-lecture); font-size: 1rem; line-height: 1.65; }
+.texte-numerote li { padding-left: 6px; border-radius: 4px; }
+.texte-numerote li::marker { font-family: var(--police-mono); font-size: var(--t-xs); color: var(--texte-doux); }
+.texte-numerote li.citee { box-shadow: inset 3px 0 0 var(--francais); background: color-mix(in srgb, var(--francais) 8%, transparent); }
+.texte-numerote li.citee::marker { color: var(--francais); font-weight: 700; }
+.questions-dossier { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.questions-dossier > li { padding: 14px 16px; background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); display: grid; gap: 6px; }
+.questions-dossier > li.en-cours { border-color: var(--francais); box-shadow: inset 3px 0 0 var(--francais); }
+button.question-entete { display: flex; gap: 8px; align-items: center; justify-self: start; padding: 0; border: 0; background: none; color: var(--texte); }
+button.question-entete:hover:not(:disabled) { background: none; color: var(--texte); border: 0; }
+.question-consigne { margin: 0; font-weight: 600; }
+.coup-de-pouce summary { cursor: pointer; color: var(--action); font-weight: 600; }
+@media (max-width: 980px) {
+  .ecran-cours { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .rail-etapes { position: static; padding: 12px 14px; }
+  .rail-liste { display: none; }
+  .rail-mobile { display: block; }
+  .lecture-partagee { grid-template-columns: minmax(0, 1fr); }
+  .lecture-texte { position: static; max-height: 45vh; }
+}

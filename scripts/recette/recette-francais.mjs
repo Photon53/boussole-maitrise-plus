@@ -305,8 +305,16 @@ async function recette() {
         const carte = page.locator("article").filter({ hasText: "Lire et comprendre" }).first();
         await visible(carte);
         await carte.getByRole("button", { name: /Commencer|Reprendre|Revoir/ }).click();
+        // Issue #231 : le dossier est rangé en sept étapes ; on lit chaque étape disponible avant de chercher un corrigé.
+        const rail = page.getByRole("navigation", { name: "Étapes du cours" });
+        await visible(rail);
+        let texte = "";
+        for (const etape of await rail.locator("button.rail-etape:not([disabled])").all()) {
+          await etape.click();
+          texte += await page.locator("body").innerText();
+        }
+        await rail.getByRole("button", { name: /S'entraîner/ }).click();
         await visible(page.getByText(/Rédige ta réponse/));
-        const texte = await page.locator("body").innerText();
         const fuite = corriges.find((p) => texte.includes(p.slice(0, 60)));
         verifier(!fuite, `corrigé visible côté élève : « ${fuite?.slice(0, 60)}… »`);
       }, { page });
@@ -315,6 +323,7 @@ async function recette() {
         if (!ouvert) throw nonApplicable("mode lecture : aucun dossier ouvert");
         const quiz = (await apiOk(`/francais/dossiers/${CODE}/professeur`, { jeton: ctx.admin })).professeur.quiz ?? [];
         if (quiz.length === 0) throw nonApplicable("la version validée n'a pas de quiz");
+        await page.getByRole("navigation", { name: "Étapes du cours" }).getByRole("button", { name: /Appliquer/ }).click();
         await visible(page.getByRole("heading", { name: "Quiz" }));
         const avant = await page.locator("body").innerText();
         const fuite = quiz.find((q) => avant.includes(q.explication.slice(0, 50)));
