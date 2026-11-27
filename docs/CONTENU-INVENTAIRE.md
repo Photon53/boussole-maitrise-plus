@@ -2,8 +2,8 @@
 
 Fichier **généré** par `python -m app.contenu inventaire` (depuis `api/`) : ne pas modifier à la main.
 
-- Chapitres : **172** · compétences : **375** · questions actives : **1967**
-- Validation pédagogique : 0 validée(s), 1967 à valider, 0 à corriger
+- Chapitres : **174** · compétences : **377** · questions actives : **1985**
+- Validation pédagogique : 0 validée(s), 1985 à valider, 0 à corriger
 
 ## Matrice de couverture
 
@@ -542,6 +542,8 @@ Nombre de questions actives par difficulté (1 = application directe … 5 = niv
 
 | Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| 1. Accords et réécriture : exercices associés au dossier brevet | `FR3-ACCORDS-REECRIRE` Contrôler les chaînes d’accord et réécrire un passage en propageant les changements | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+| 2. Les outils de la langue pour comprendre un texte : exercices associés au dossier brevet | `FR3-LANGUE-LECTURE` Utiliser les reprises, les connecteurs, la valeur des temps et la modalisation pour comprendre un texte | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 | 3. Rédaction : sujet de réflexion dans l’esprit du brevet | `FR3-RED-REFLEXION-DEVELOPPEMENT` Construire un développement argumenté et organisé à partir d’une question | ✓ | — | — | — | 1 | — | 1 | 1 |
 
 ## Trous à combler
@@ -552,7 +554,7 @@ Aucun.
 
 | Source | Licence de la source | Adaptation | Questions |
 |---|---|---|:-:|
-| PKP Math | — | originale | 1924 |
+| PKP Math | — | originale | 1942 |
 | math.ma | non clarifiée | inspiree | 33 |
 | MathALÉA | CC BY-SA 4.0 | inspiree | 5 |
 | STACK | à vérifier | inspiree | 3 |

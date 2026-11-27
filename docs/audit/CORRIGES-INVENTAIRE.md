@@ -13,7 +13,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 | 6e | tronc-commun | 0 | 125 | 20 | 145 | 14 % |
 | 5e | tronc-commun | 0 | 121 | 30 | 151 | 20 % |
 | 4e | tronc-commun | 0 | 101 | 17 | 118 | 14 % |
-| 3e | tronc-commun | 0 | 79 | 15 | 94 | 16 % |
+| 3e | tronc-commun | 0 | 86 | 26 | 112 | 23 % |
 | 2nde | tronc-commun | 73 | 200 | 22 | 295 | 7 % |
 | 2nde | professionnel | 4 | 15 | 0 | 19 | 0 % |
 | 2nde | excellence | 21 | 39 | 0 | 60 | 0 % |
@@ -31,7 +31,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 | Tle | excellence | 65 | 15 | 0 | 80 | 0 % |
 | Tle | mise-a-niveau | 13 | 2 | 0 | 15 | 0 % |
 | Tle | examens | 29 | 1 | 0 | 30 | 0 % |
-| **Total** | | 555 | 1271 | 141 | 1967 | 7 % |
+| **Total** | | 555 | 1278 | 152 | 1985 | 8 % |
 
 ## Par chapitre
 
@@ -956,6 +956,14 @@ FR5-RED-EVENEMENT : 0 résultat seul, 0 à compléter, 1 complet(s).
 ### 4e · tronc-commun · Rédaction : défendre son opinion
 
 FR4-RED-OPINION : 0 résultat seul, 0 à compléter, 1 complet(s).
+
+### 3e · tronc-commun · Accords et réécriture : exercices associés au dossier brevet
+
+FR3-ACCORDS : 0 résultat seul, 5 à compléter, 4 complet(s).
+
+### 3e · tronc-commun · Les outils de la langue pour comprendre un texte : exercices associés au dossier brevet
+
+FR3-LANGUE-TEXTE : 0 résultat seul, 2 à compléter, 7 complet(s).
 
 ### 3e · tronc-commun · Rédaction : sujet de réflexion dans l’esprit du brevet
 

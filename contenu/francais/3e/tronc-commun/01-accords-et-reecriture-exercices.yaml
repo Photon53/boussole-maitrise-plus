@@ -1,0 +1,196 @@
+chapitre:
+  code: FR3-ACCORDS
+  matiere: francais
+  rubrique: grammaire
+  niveau: 3e
+  parcours: tronc-commun
+  ordre: 1
+  titre: "Accords et réécriture : exercices associés au dossier brevet"
+
+competences:
+  - code: FR3-ACCORDS-REECRIRE
+    libelle: Contrôler les chaînes d’accord et réécrire un passage en propageant les changements
+    objectifs:
+      - Trouver le donneur d’accord d’un verbe, d’un adjectif et d’un participe passé.
+      - Accorder le participe passé employé avec être et avec avoir (COD placé avant ou après).
+      - Réécrire une phrase en changeant le temps, la personne, le genre ou le nombre, sans oublier aucun mot concerné.
+    resume: |
+      - Le verbe s’accorde avec le **noyau** de son sujet, même éloigné : *La couleur des volets plaît.*
+      - Avec **être**, le participe passé s’accorde avec le sujet : *Mes amies sont arrivées.*
+      - Avec **avoir**, il s’accorde avec le **COD placé avant** : *les romans que tu m’as prêtés*. COD après ou pas de COD : pas d’accord (*elles ont dormi*).
+      - **Réécrire** : entourer la transformation, relever tous les mots concernés, recopier tout le passage, relire les accords.
+    cours: |
+      ## 1. Découvrir
+      **Objectif** : réussir les questions de réécriture et d’accord de l’épreuve de français. **Durée indicative** : deux séances de 45 minutes, après le dossier « Accorder et réécrire ».
+      **Ce qu’il faut déjà savoir** : reconnaître un sujet, un COD, un auxiliaire.
+
+      ## 2. Comprendre
+      Ces exercices prolongent la leçon du dossier : chaque question demande un seul accord ou une seule réécriture, corrigés automatiquement. Les explications détaillées et les textes longs restent dans le dossier, avec le retour de ton professeur.
+
+      | Cas | Règle | Exemple |
+      |---|---|---|
+      | Sujet éloigné | accord avec le noyau du sujet | La couleur des volets **plaît**. |
+      | Participe avec être | accord avec le sujet | Elles sont **parties**. |
+      | Participe avec avoir, COD avant | accord avec le COD | Ces photos, je les ai **imprimées**. |
+      | Participe avec avoir, COD après ou absent | pas d’accord | J’ai **imprimé** les photos. |
+
+      ## 3. Appliquer et s’entraîner
+      Les premières questions portent sur un seul accord ; les suivantes demandent de recopier une phrase entière transformée.
+
+      ## 4. Approfondir
+      En réécriture, un seul changement en entraîne souvent plusieurs : passer de « je » à « nous » modifie le verbe, l’auxiliaire, les participes accordés avec le sujet et les possessifs.
+
+      ## 5. Réinvestir
+      Refais la réécriture n° 7 du dossier « Accorder et réécrire » sans regarder le corrigé, puis compare avec le retour de ton professeur.
+    methodes:
+      - titre: Réécrire une phrase en changeant la personne
+        quand: La consigne remplace un pronom ou un nom sujet par un autre.
+        etapes:
+          - Entourer le sujet à remplacer et noter son genre et son nombre.
+          - Relever les verbes, les auxiliaires, les participes accordés avec le sujet et les possessifs.
+          - Recopier toute la phrase en modifiant ces mots, et seulement eux.
+          - Relire pour le sens, puis pour les terminaisons.
+        exemple:
+          enonce: Réécrire « Il est rentré et il a rangé son sac » en remplaçant « il » par « elles ».
+          resolution:
+            - "Nouveau sujet : féminin pluriel."
+            - « est rentré » devient « sont rentrées » (être, accord avec le sujet).
+            - « a rangé » devient « ont rangé » (avoir, COD placé après, pas d’accord).
+            - « son sac » devient « leur sac » ou « leurs sacs » selon le sens à conserver.
+          resultat: Elles sont rentrées et elles ont rangé leur sac.
+    erreurs_frequentes:
+      - erreur: Accorder le verbe avec le nom le plus proche.
+        explication: Le verbe s’accorde avec le noyau du sujet, que l’on trouve par « qui est-ce qui ? ».
+      - erreur: Accorder le participe passé avec le sujet quand l’auxiliaire est avoir.
+        explication: Avec avoir, seul un COD placé avant le participe commande l’accord.
+      - erreur: Oublier un mot lors d’une réécriture (auxiliaire, possessif).
+        explication: Relever tous les mots concernés avant de recopier.
+    questions:
+      - code: FR3-ACCORDS-REECRIRE-01
+        difficulte: 1
+        type: texte
+        enonce: Accorde l’adjectif entre parenthèses et écris seulement l’adjectif accordé. « Il a acheté des chemises (blanc). »
+        solution: blanches
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le nom que l’adjectif qualifie.
+          etapes:
+            - « Blanc » qualifie « chemises », féminin pluriel.
+            - "Féminin de « blanc » : « blanche » ; au pluriel : « blanches »."
+          resultat: blanches
+      - code: FR3-ACCORDS-REECRIRE-02
+        difficulte: 1
+        type: qcm
+        enonce: "Quelle forme complète la phrase « Mes amies sont … hier soir » ? A) arrivé  B) arrivées  C) arrivés"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Identifier l’auxiliaire, puis le sujet.
+          etapes:
+            - L’auxiliaire est « être » (« sont »).
+            - Avec être, le participe passé s’accorde avec le sujet « Mes amies », féminin pluriel.
+          resultat: B
+      - code: FR3-ACCORDS-REECRIRE-03
+        difficulte: 2
+        type: texte
+        enonce: Conjugue le verbe au présent et écris seulement la forme verbale. « La couleur des volets (plaire) aux passants. »
+        solution: plaît|plait
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Trouver le noyau du sujet.
+          etapes:
+            - "Qu’est-ce qui plaît ? La couleur des volets : le noyau est « couleur », singulier."
+            - "« Des volets » est complément du nom : il ne commande pas l’accord."
+            - "Plaire au présent, 3e personne du singulier : « plaît » (ou « plait » en orthographe rectifiée)."
+          resultat: plaît
+          erreurs_frequentes:
+            - Écrire « plaisent » en accordant avec « volets ».
+      - code: FR3-ACCORDS-REECRIRE-04
+        difficulte: 3
+        type: qcm
+        enonce: "Quelle forme complète la phrase « J’ai lu les romans que tu m’as … » ? A) prêté  B) prêtés  C) prêtées"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le COD et sa place par rapport au participe.
+          etapes:
+            - L’auxiliaire est « avoir » (« as »).
+            - Le COD est « que », qui reprend « les romans », masculin pluriel ; il est placé avant le participe.
+            - "Le participe s’accorde avec ce COD : « prêtés »."
+          resultat: B
+          erreurs_frequentes:
+            - Écrire « prêté » en croyant qu’on n’accorde jamais avec avoir.
+      - code: FR3-ACCORDS-REECRIRE-05
+        difficulte: 3
+        type: qcm
+        enonce: "Quelle forme complète la phrase « Elles ont … toute la nuit » ? A) dormi  B) dormies  C) dormis"
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher l’auxiliaire, puis un éventuel COD.
+          etapes:
+            - L’auxiliaire est « avoir » (« ont »).
+            - Il n’y a pas de COD (« toute la nuit » indique la durée).
+            - "Sans COD placé avant, le participe ne s’accorde pas : « dormi »."
+          resultat: A
+          erreurs_frequentes:
+            - Accorder avec le sujet « Elles » comme avec l’auxiliaire être.
+      - code: FR3-ACCORDS-REECRIRE-06
+        difficulte: 3
+        type: texte
+        enonce: Réécris la phrase « Le chat est sorti » en remplaçant « Le chat » par « Les chattes ». Recopie la phrase entière.
+        solution: Les chattes sont sorties
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Relever les mots qui dépendent du sujet.
+          etapes:
+            - "Nouveau sujet : féminin pluriel."
+            - L’auxiliaire « est » devient « sont ».
+            - "Avec être, le participe s’accorde avec le sujet : « sorties »."
+          resultat: Les chattes sont sorties
+          erreurs_frequentes:
+            - Oublier de modifier l’auxiliaire ou le participe.
+      - code: FR3-ACCORDS-REECRIRE-07
+        difficulte: 4
+        type: texte
+        enonce: Réécris la phrase « Les enfants regardent les étoiles » au passé composé. Recopie la phrase entière.
+        solution: Les enfants ont regardé les étoiles
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Former le passé composé, puis vérifier l’accord du participe.
+          etapes:
+            - "Regarder se conjugue avec avoir : « ont regardé »."
+            - "Le COD « les étoiles » est placé après le participe : pas d’accord."
+          resultat: Les enfants ont regardé les étoiles
+          erreurs_frequentes:
+            - Écrire « regardés » ou « regardées » en accordant avec le sujet ou le COD placé après.
+      - code: FR3-ACCORDS-REECRIRE-08
+        difficulte: 4
+        type: qcm
+        enonce: "Quelle forme complète la phrase « Ces photos, je les ai … hier » ? A) imprimé  B) imprimées  C) imprimés"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Identifier le pronom COD et son antécédent.
+          etapes:
+            - « Les » est COD de « ai imprimé » ; il reprend « ces photos », féminin pluriel.
+            - "Ce COD est placé avant le participe : accord : « imprimées »."
+          resultat: B
+          erreurs_frequentes:
+            - Ne pas voir que le pronom « les » est un COD placé avant.
+      - code: FR3-ACCORDS-REECRIRE-09
+        difficulte: 5
+        type: texte
+        enonce: Réécris la phrase « Je suis partie tôt et j’ai fermé la porte » en remplaçant « je » par « nous » (le groupe n’est composé que de filles). Recopie la phrase entière.
+        solution: Nous sommes parties tôt et nous avons fermé la porte|Nous sommes parties tôt et avons fermé la porte
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Relever tous les mots qui dépendent du sujet, puis appliquer les règles de chaque auxiliaire.
+          etapes:
+            - "Nouveau sujet : « nous », féminin pluriel."
+            - « suis partie » devient « sommes parties » (être, accord avec le sujet).
+            - « ai fermé » devient « avons fermé » (avoir, COD « la porte » placé après, pas d’accord).
+          resultat: Nous sommes parties tôt et nous avons fermé la porte
+          erreurs_frequentes:
+            - Écrire « avons fermées » en accordant avec le sujet.
+            - Oublier le s de « parties ».

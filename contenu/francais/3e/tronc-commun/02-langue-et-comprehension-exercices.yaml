@@ -1,0 +1,182 @@
+chapitre:
+  code: FR3-LANGUE-TEXTE
+  matiere: francais
+  rubrique: grammaire
+  niveau: 3e
+  parcours: tronc-commun
+  ordre: 2
+  titre: "Les outils de la langue pour comprendre un texte : exercices associés au dossier brevet"
+
+competences:
+  - code: FR3-LANGUE-LECTURE
+    libelle: Utiliser les reprises, les connecteurs, la valeur des temps et la modalisation pour comprendre un texte
+    objectifs:
+      - Retrouver ce que reprend un pronom ou un groupe nominal (chaîne de référence).
+      - Identifier la relation logique exprimée par un connecteur (cause, conséquence, opposition).
+      - Reconnaître la valeur d’un présent et le degré de certitude exprimé par le locuteur.
+    resume: |
+      - **Reprises** : un pronom (*elle, la, lui*) ou un groupe nominal (*cet homme, l’animal*) reprend un mot déjà cité ; retrouver ce mot évite les contresens.
+      - **Connecteurs** : *car, parce que* (cause) ; *donc, si bien que, c’est pourquoi* (conséquence) ; *mais, pourtant, cependant* (opposition).
+      - **Valeurs du présent** : d’énonciation (au moment où l’on parle), de vérité générale, de narration (dans un récit au passé, pour rendre la scène vivante).
+      - **Modalisation** : *peut-être, sans doute, sûrement* et le conditionnel indiquent le degré de certitude.
+    cours: |
+      ## 1. Découvrir
+      **Objectif** : s’appuyer sur la grammaire pour répondre aux questions de compréhension de l’épreuve. **Durée indicative** : deux séances de 45 minutes, avec le dossier « Comprendre un texte ».
+      **Ce qu’il faut déjà savoir** : reconnaître un pronom, une conjonction, les temps de l’indicatif.
+
+      ## 2. Comprendre
+      Ces exercices travaillent des **outils valables pour tous les textes**. Les questions propres aux textes du dossier, qui demandent une réponse rédigée, restent dans le dossier, avec le retour de ton professeur.
+
+      « Le vieux marin regardait la mer. **Cet homme** avait connu bien des tempêtes ; **pourtant**, il **semblait** inquiet. »
+      - « Cet homme » reprend « Le vieux marin ».
+      - « Pourtant » oppose son expérience à son inquiétude : c’est cette opposition qu’une question de compréhension invite à expliquer.
+
+      ## 3. Appliquer et s’entraîner
+      Les exercices commencent par des reprises et des connecteurs simples, puis demandent d’interpréter un temps ou une modalisation.
+
+      ## 4. Approfondir
+      Une **inférence** est ce que le texte laisse comprendre sans le dire. Elle s’appuie sur des indices : un connecteur d’opposition, un détail physique, un choix de mot. Justifie toujours une inférence par un indice précis.
+
+      ## 5. Réinvestir
+      Pour chaque réponse rédigée du dossier, cite un indice (un mot, un connecteur, un temps) qui justifie ton interprétation.
+    methodes:
+      - titre: Justifier une inférence par un indice de langue
+        quand: Une question demande ce que le texte laisse comprendre.
+        etapes:
+          - Repérer les connecteurs et les reprises du passage.
+          - Chercher un détail qui contredit ou complète ce qui est dit explicitement.
+          - Formuler l’inférence, puis citer l’indice entre guillemets.
+        exemple:
+          enonce: « Elle répondit qu’elle allait très bien. Sa voix, cependant, tremblait. » Que comprend-on ?
+          resolution:
+            - Le connecteur « cependant » oppose deux informations.
+            - Ce qu’elle dit (elle va bien) est contredit par un détail (sa voix tremble).
+            - On comprend qu’elle cache son émotion.
+          resultat: Elle cache son émotion ; les indices sont « cependant » et « tremblait ».
+    erreurs_frequentes:
+      - erreur: Attribuer un pronom au nom le plus proche.
+        explication: Le pronom reprend le nom qui convient par le sens, le genre et le nombre.
+      - erreur: Confondre cause et conséquence.
+        explication: La cause explique pourquoi (car, parce que) ; la conséquence dit ce qui en résulte (donc, si bien que).
+      - erreur: Donner une interprétation sans indice.
+        explication: À l’épreuve, une réponse justifiée cite un mot ou un passage du texte.
+    questions:
+      - code: FR3-LANGUE-LECTURE-01
+        difficulte: 1
+        type: qcm
+        enonce: "Dans « Marie ouvrit la lettre. Elle la lut deux fois », que reprend le pronom « la » ? A) Marie  B) la lettre  C) une autre lettre"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Remplacer le pronom par chacun des noms possibles.
+          etapes:
+            - « Elle » reprend Marie, sujet de « lut ».
+            - "« La » est COD : elle lut la lettre."
+          resultat: B
+      - code: FR3-LANGUE-LECTURE-02
+        difficulte: 1
+        type: qcm
+        enonce: "Dans « Il pleuvait ; pourtant, nous sommes sortis », quelle relation exprime « pourtant » ? A) la cause  B) l’opposition  C) la conséquence"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Remplacer le connecteur par un connecteur connu.
+          etapes:
+            - On peut écrire « Il pleuvait, mais nous sommes sortis ».
+            - « Pourtant » oppose la pluie à la décision de sortir.
+          resultat: B
+      - code: FR3-LANGUE-LECTURE-03
+        difficulte: 2
+        type: texte
+        enonce: « Le vieux marin regardait la mer. Cet homme avait connu bien des tempêtes. » Recopie le groupe nominal qui reprend « Le vieux marin » dans la seconde phrase.
+        solution: Cet homme
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher un groupe nominal qui désigne la même personne.
+          etapes:
+            - La seconde phrase parle d’une personne qui a connu des tempêtes.
+            - "« Cet homme » désigne le vieux marin : le déterminant démonstratif « cet » signale la reprise."
+          resultat: Cet homme
+      - code: FR3-LANGUE-LECTURE-04
+        difficulte: 3
+        type: qcm
+        enonce: "Dans « Le train était en retard, si bien que nous avons manqué le début du film », quelle relation exprime « si bien que » ? A) la cause  B) la conséquence  C) le but"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Se demander quel fait entraîne l’autre.
+          etapes:
+            - Le retard du train entraîne le fait de manquer le début du film.
+            - "« Si bien que » introduit ce qui résulte du retard : c’est une conséquence."
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « cause » en confondant le fait de départ et son résultat.
+      - code: FR3-LANGUE-LECTURE-05
+        difficulte: 3
+        type: qcm
+        enonce: "Quelle est la valeur du présent dans « Le soleil se lève à l’est » ? A) présent d’énonciation  B) présent de vérité générale  C) présent de narration"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Se demander si le fait est vrai à un moment précis ou toujours.
+          etapes:
+            - Le fait est vrai tous les jours, quel que soit le moment où l’on parle.
+            - C’est un présent de vérité générale.
+          resultat: B
+      - code: FR3-LANGUE-LECTURE-06
+        difficulte: 3
+        type: qcm
+        enonce: "Dans « Il viendra peut-être demain », que montre « peut-être » ? A) que le locuteur est certain  B) que le locuteur n’est pas certain  C) que le locuteur souhaite qu’il vienne"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Repérer les mots qui expriment le degré de certitude.
+          etapes:
+            - « Peut-être » est un adverbe de modalisation.
+            - Il indique que l’arrivée est possible mais pas sûre.
+          resultat: B
+      - code: FR3-LANGUE-LECTURE-07
+        difficulte: 4
+        type: qcm
+        enonce: "Dans un récit au passé, on lit « Soudain, la porte s’ouvre : un homme entre et regarde autour de lui ». À quoi sert surtout le présent ? A) à exprimer une habitude  B) à rendre la scène plus vivante  C) à énoncer une vérité générale"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Comparer avec le temps du reste du récit.
+          etapes:
+            - Le récit est au passé, et ce passage passe soudain au présent.
+            - Le présent de narration rapproche l’action du lecteur et la rend plus vivante.
+            - « Soudain » souligne cet effet de surprise.
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « habitude » sans tenir compte du mot « soudain ».
+      - code: FR3-LANGUE-LECTURE-08
+        difficulte: 4
+        type: texte
+        enonce: « Le chien aboyait sans cesse. L’animal, effrayé par l’orage, refusait de sortir. » Recopie le groupe nominal qui reprend « Le chien » dans la seconde phrase.
+        solution: L’animal|L’animal, effrayé par l’orage|L’animal effrayé par l’orage
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher un nom plus général qui désigne le même être.
+          etapes:
+            - « L’animal » est un terme plus général que « le chien ».
+            - "Il désigne le même chien : c’est une reprise nominale par un mot générique."
+            - "« L’orage » ne peut pas reprendre « le chien » : il désigne autre chose."
+          resultat: L’animal
+          erreurs_frequentes:
+            - Recopier « l’orage », le groupe nominal le plus proche du verbe.
+      - code: FR3-LANGUE-LECTURE-09
+        difficulte: 5
+        type: qcm
+        enonce: "« Il affirma qu’il n’avait rien vu. Ses mains, pourtant, tremblaient encore. » Que laisse comprendre ce passage ? A) Il dit sûrement la vérité.  B) Il cache peut-être quelque chose ou il a eu peur.  C) Il a seulement froid."
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Relier le connecteur à l’indice qui contredit la parole du personnage.
+          etapes:
+            - Le personnage affirme n’avoir rien vu.
+            - "« Pourtant » introduit un détail qui contredit cette affirmation : ses mains tremblent."
+            - Le texte suggère donc qu’il cache quelque chose ou qu’il a été effrayé ; rien n’indique qu’il a froid.
+          resultat: B
+          erreurs_frequentes:
+            - S’en tenir à ce que dit le personnage sans tenir compte du connecteur « pourtant ».
