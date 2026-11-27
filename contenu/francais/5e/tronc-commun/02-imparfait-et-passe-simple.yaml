@@ -1,0 +1,195 @@
+chapitre:
+  code: FR5-RECIT
+  matiere: francais
+  rubrique: conjugaison
+  niveau: 5e
+  parcours: tronc-commun
+  ordre: 2
+  titre: L’imparfait et le passé simple
+
+competences:
+  - code: FR5-RECIT-TEMPS
+    libelle: Conjuguer et employer l’imparfait et le passé simple dans un récit
+    objectifs:
+      - Conjuguer à l’imparfait tous les verbes, et au passé simple les verbes des 1er et 2e groupes et les verbes fréquents du 3e groupe.
+      - Choisir entre imparfait (arrière-plan, description, habitude) et passé simple (action de premier plan, soudaine ou unique).
+    resume: |
+      - **Imparfait** : radical de « nous » au présent (sauf être : j’étais) + -ais, -ais, -ait, -ions, -iez, -aient. *Nous jouons → je jouais.*
+      - **Passé simple, 1er groupe** : -ai, -as, -a, -âmes, -âtes, -èrent. *Il cria, ils crièrent.*
+      - **Passé simple, 2e groupe et beaucoup de verbes du 3e** : -is, -is, -it, -îmes, -îtes, -irent. *Elles finirent, il prit.*
+      - **D’autres verbes du 3e groupe** : -us, -us, -ut… (*il voulut*) ou -ins… (*ils vinrent*).
+      - L’imparfait installe le décor et les habitudes ; le passé simple fait avancer l’histoire.
+    cours: |
+      ## 1. Découvrir
+      **Objectif** : raconter au passé sans erreur de forme et en choisissant le bon temps. **Durée indicative** : trois séances de 45 minutes.
+      **Ce qu’il faut déjà savoir** : le présent de l’indicatif (6e).
+
+      ## 2. Comprendre
+      « Il **faisait** nuit. Le vent **soufflait**. Soudain, la porte **claqua**. »
+      - « faisait », « soufflait » : imparfait, le **décor** (états ou actions vus dans leur durée, sans limite précise).
+      - « claqua » : passé simple, une **action de premier plan**, soudaine, qui fait avancer le récit.
+
+      | Personne | Jouer (imparfait) | Crier (passé simple) | Finir (passé simple) | Venir (passé simple) |
+      |---|---|---|---|---|
+      | je | jouais | criai | finis | vins |
+      | tu | jouais | crias | finis | vins |
+      | il, elle | jouait | cria | finit | vint |
+      | nous | jouions | criâmes | finîmes | vînmes |
+      | vous | jouiez | criâtes | finîtes | vîntes |
+      | ils, elles | jouaient | crièrent | finirent | vinrent |
+
+      Les verbes en -cer et -ger gardent leur son : *je commençais, il mangea*.
+
+      ## 3. Appliquer et s’entraîner
+      Les exercices font d’abord conjuguer chaque temps séparément, puis demandent de choisir le temps dans un récit.
+
+      ## 4. Approfondir
+      Pour choisir, demande-toi : l’action est-elle un **décor** ou une **habitude** (imparfait), ou un **événement** qui fait avancer l’histoire (passé simple) ? Les mots « soudain », « tout à coup », « alors » annoncent souvent un passé simple.
+
+      ## 5. Réinvestir
+      Le sujet de rédaction R2 demande de raconter un événement passé à l’imparfait et au passé simple.
+    methodes:
+      - titre: Choisir entre imparfait et passé simple
+        quand: Un verbe d’un récit au passé doit être conjugué.
+        etapes:
+          - Se demander si l’action dure sans limite précise, décrit ou se répète (imparfait).
+          - Se demander si l’action est unique, brève et fait avancer l’histoire (passé simple).
+          - "Repérer les indices : « chaque jour », « souvent » (imparfait) ; « soudain », « alors » (passé simple)."
+        exemple:
+          enonce: Conjuguer « entrer » dans « Les enfants dormaient quand leur père (entrer) ».
+          resolution:
+            - « Dormaient » est le décor, à l’imparfait.
+            - L’arrivée du père est un événement unique qui interrompt le décor.
+            - On emploie le passé simple, 3e personne du singulier.
+          resultat: entra
+    erreurs_frequentes:
+      - erreur: Écrire « il cria » avec un t (« il criat »).
+        explication: Au passé simple, les verbes du 1er groupe se terminent par -a à la 3e personne du singulier.
+      - erreur: Confondre « il chanta » (passé simple) et « il chantait » (imparfait).
+        explication: Le passé simple raconte un événement ; l’imparfait décrit ou exprime une habitude.
+      - erreur: Oublier la cédille dans « je commençais ».
+        explication: Devant a, le c doit garder le son [s].
+    questions:
+      - code: FR5-RECIT-TEMPS-01
+        difficulte: 1
+        type: texte
+        enonce: Conjugue le verbe à l’imparfait et écris seulement la forme verbale. « Nous (jouer) dans le jardin. »
+        solution: jouions|nous jouions
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Prendre le radical de « nous » au présent et ajouter la terminaison de l’imparfait.
+          etapes:
+            - "Nous jouons : le radical est « jou- »."
+            - Avec « nous », la terminaison de l’imparfait est -ions.
+          resultat: jouions
+          erreurs_frequentes:
+            - Écrire « jouons », qui est le présent.
+      - code: FR5-RECIT-TEMPS-02
+        difficulte: 1
+        type: texte
+        enonce: Conjugue le verbe à l’imparfait et écris seulement la forme verbale. « Ils (regarder) la mer. »
+        solution: regardaient|ils regardaient
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Radical de « nous » au présent et terminaison -aient.
+          etapes:
+            - "Nous regardons : le radical est « regard- »."
+            - Avec « ils », la terminaison est -aient.
+          resultat: regardaient
+      - code: FR5-RECIT-TEMPS-03
+        difficulte: 2
+        type: texte
+        enonce: Conjugue le verbe au passé simple et écris seulement la forme verbale. « Soudain, il (crier) très fort. »
+        solution: cria|il cria
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Appliquer les terminaisons du passé simple du 1er groupe.
+          etapes:
+            - Crier est un verbe du 1er groupe.
+            - À la 3e personne du singulier, la terminaison est -a.
+          resultat: cria
+          erreurs_frequentes:
+            - Ajouter un t (« criat ») ou écrire l’imparfait « criait ».
+      - code: FR5-RECIT-TEMPS-04
+        difficulte: 3
+        type: texte
+        enonce: Conjugue le verbe au passé simple et écris seulement la forme verbale. « Elles (finir) leur repas en silence. »
+        solution: finirent|elles finirent
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Appliquer les terminaisons du passé simple du 2e groupe.
+          etapes:
+            - "Finir est du 2e groupe : passé simple en -is, -is, -it, -îmes, -îtes, -irent."
+            - Avec « elles », on écrit « finirent ».
+          resultat: finirent
+          erreurs_frequentes:
+            - Écrire « finissaient », qui est l’imparfait.
+      - code: FR5-RECIT-TEMPS-05
+        difficulte: 3
+        type: texte
+        enonce: Conjugue le verbe à l’imparfait et écris seulement la forme verbale. « Je (commencer) à comprendre. »
+        solution: commençais|je commençais
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Garder le son [s] du radical devant la terminaison.
+          etapes:
+            - "Commencer, à l’imparfait avec « je » : terminaison -ais."
+            - Devant a, le c prend une cédille pour garder le son [s].
+          resultat: commençais
+          erreurs_frequentes:
+            - Écrire « commencais » sans cédille.
+      - code: FR5-RECIT-TEMPS-06
+        difficulte: 3
+        type: qcm
+        enonce: "Quel verbe complète correctement le récit ? « Il faisait nuit. Soudain, le loup … de la forêt. » A) sortait  B) sortit  C) sort"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Distinguer le décor de l’événement.
+          etapes:
+            - « Il faisait nuit » est le décor, à l’imparfait.
+            - La sortie du loup, annoncée par « soudain », est un événement unique qui fait avancer le récit.
+            - "On emploie le passé simple : « sortit »."
+          resultat: B
+          erreurs_frequentes:
+            - Choisir « sortait » pour garder le même temps que « faisait ».
+      - code: FR5-RECIT-TEMPS-07
+        difficulte: 4
+        type: texte
+        enonce: Conjugue le verbe au passé simple et écris seulement la forme verbale. « Le chevalier (prendre) son épée. »
+        solution: prit|il prit
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Connaître le passé simple des verbes fréquents du 3e groupe.
+          etapes:
+            - "Prendre fait au passé simple : je pris, tu pris, il prit, nous prîmes, vous prîtes, ils prirent."
+            - Avec « le chevalier » (3e personne du singulier), on écrit « prit ».
+          resultat: prit
+          erreurs_frequentes:
+            - Écrire « prena » en appliquant les terminaisons du 1er groupe.
+      - code: FR5-RECIT-TEMPS-08
+        difficulte: 4
+        type: qcm
+        enonce: "Dans « Chaque matin, la vieille femme allait au puits », que traduit l’imparfait ? A) une action soudaine  B) une habitude  C) une action future"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher l’indice de temps dans la phrase.
+          etapes:
+            - « Chaque matin » indique une action qui se répète.
+            - L’imparfait exprime ici une habitude dans le passé.
+          resultat: B
+      - code: FR5-RECIT-TEMPS-09
+        difficulte: 5
+        type: texte
+        enonce: Conjugue le verbe au passé simple et écris seulement la forme verbale. « Alertés par les cris, les voisins (venir) aussitôt. »
+        solution: vinrent|ils vinrent
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Trouver le sujet, puis la forme irrégulière du passé simple.
+          etapes:
+            - "Qui est-ce qui vint ? Les voisins : 3e personne du pluriel."
+            - "Venir fait au passé simple : je vins, il vint, nous vînmes, ils vinrent."
+          resultat: vinrent
+          erreurs_frequentes:
+            - Écrire « venirent » ou « venèrent » en appliquant une terminaison régulière.

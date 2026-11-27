@@ -1,0 +1,197 @@
+chapitre:
+  code: FR6-PRESENT
+  matiere: francais
+  rubrique: conjugaison
+  niveau: 6e
+  parcours: tronc-commun
+  ordre: 2
+  titre: Le présent de l’indicatif
+
+competences:
+  - code: FR6-PRESENT-CONJ
+    libelle: Conjuguer un verbe au présent de l’indicatif et l’accorder avec son sujet
+    objectifs:
+      - Reconnaître le groupe d’un verbe à partir de son infinitif.
+      - Conjuguer au présent les verbes des 1er et 2e groupes et les verbes fréquents du 3e groupe (être, avoir, aller, faire, dire, venir, pouvoir, vouloir, prendre).
+      - Accorder le verbe avec son sujet, même quand le sujet est éloigné ou placé après le verbe.
+    resume: |
+      - **1er groupe** (infinitif en -er, sauf aller) : -e, -es, -e, -ons, -ez, -ent. *Je chante, nous chantons.*
+      - **2e groupe** (infinitif en -ir, participe présent en -issant) : -is, -is, -it, -issons, -issez, -issent. *Je finis, ils finissent.*
+      - **3e groupe** : tous les autres verbes, à apprendre. *Vous faites, vous dites, ils peuvent, ils vont.*
+      - Verbes en -cer et -ger : *nous lançons, nous mangeons* (on garde le son).
+      - Pour accorder, on cherche le sujet en posant la question « qui est-ce qui ? » (ou « qu’est-ce qui ? ») devant le verbe.
+    cours: |
+      ## 1. Découvrir
+      **Objectif** : conjuguer sans erreur au présent, le temps le plus utilisé à l’écrit comme à l’oral. **Durée indicative** : deux séances de 45 minutes.
+      **Ce qu’il faut déjà savoir** : trouver le verbe d’une phrase et son infinitif.
+
+      ## 2. Comprendre
+      Le présent exprime ce qui se passe au moment où l’on parle (*il pleut*), une habitude (*je me lève tôt*) ou une vérité générale (*l’eau bout à 100 °C*).
+
+      | Personne | Chanter (1er gr.) | Finir (2e gr.) | Faire (3e gr.) | Aller (3e gr.) |
+      |---|---|---|---|---|
+      | je | chante | finis | fais | vais |
+      | tu | chantes | finis | fais | vas |
+      | il, elle, on | chante | finit | fait | va |
+      | nous | chantons | finissons | faisons | allons |
+      | vous | chantez | finissez | faites | allez |
+      | ils, elles | chantent | finissent | font | vont |
+
+      **Reconnaître le 2e groupe** : un verbe en -ir est du 2e groupe si l’on dit « nous …issons » (*nous grandissons*). Sinon, il est du 3e groupe (*nous courons, nous sortons*).
+
+      ## 3. Appliquer et s’entraîner
+      Les premiers exercices portent sur des verbes réguliers ; viennent ensuite les verbes en -cer et -ger, puis les verbes irréguliers les plus fréquents.
+
+      ## 4. Approfondir
+      Le verbe s’accorde avec son **sujet**, pas avec le nom le plus proche : « Le chien **de mes voisins** aboie ». Quand le sujet est placé après le verbe, on le retrouve en posant la question « qui est-ce qui ? ».
+
+      ## 5. Réinvestir
+      Le sujet de rédaction R1 demande de raconter une aventure au présent : relis chaque verbe et cherche son sujet.
+    methodes:
+      - titre: Accorder le verbe avec un sujet éloigné ou inversé
+        quand: Un groupe de mots sépare le sujet du verbe, ou le sujet est placé après le verbe.
+        etapes:
+          - Repérer le verbe conjugué.
+          - Poser la question « qui est-ce qui + verbe ? ».
+          - Encadrer le sujet par « c’est … qui » (« ce sont … qui » au pluriel) pour le vérifier.
+          - Accorder le verbe avec le noyau du sujet, puis relire.
+        exemple:
+          enonce: Conjuguer « jouer » au présent dans « Dans la cour (jouer) les élèves de 6e ».
+          resolution:
+            - Qui est-ce qui joue ? Les élèves de 6e.
+            - "Ce sont **les élèves** qui jouent : le sujet est au pluriel, à la 3e personne."
+            - Le verbe prend la terminaison -ent.
+          resultat: jouent
+    erreurs_frequentes:
+      - erreur: Écrire « il finis » ou « il finie ».
+        explication: Au présent, les verbes du 2e groupe se terminent par -it à la 3e personne du singulier.
+      - erreur: Écrire « nous mangons » ou « nous lancons ».
+        explication: On ajoute un e après le g et une cédille sous le c pour garder le son devant -ons.
+      - erreur: Accorder le verbe avec le nom le plus proche.
+        explication: Le verbe s’accorde avec son sujet, trouvé par la question « qui est-ce qui ? ».
+    questions:
+      - code: FR6-PRESENT-CONJ-01
+        difficulte: 1
+        type: texte
+        enonce: Conjugue le verbe au présent et écris seulement la forme verbale. « Nous (chanter) ensemble. »
+        solution: chantons|nous chantons
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Trouver le groupe, puis la terminaison de la personne.
+          etapes:
+            - Chanter est un verbe du 1er groupe (infinitif en -er).
+            - Avec « nous », la terminaison est -ons.
+          resultat: chantons
+      - code: FR6-PRESENT-CONJ-02
+        difficulte: 1
+        type: texte
+        enonce: Conjugue le verbe au présent et écris seulement la forme verbale. « Tu (regarder) le ciel. »
+        solution: regardes|tu regardes
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Trouver le groupe, puis la terminaison de la personne.
+          etapes:
+            - Regarder est un verbe du 1er groupe.
+            - Avec « tu », la terminaison est -es.
+          resultat: regardes
+          erreurs_frequentes:
+            - Oublier le s de la 2e personne du singulier.
+      - code: FR6-PRESENT-CONJ-03
+        difficulte: 2
+        type: texte
+        enonce: Conjugue le verbe au présent et écris seulement la forme verbale. « Ils (finir) leur travail. »
+        solution: finissent|ils finissent
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Vérifier le groupe avec « nous …issons ».
+          etapes:
+            - "On dit « nous finissons » : finir est du 2e groupe."
+            - Avec « ils », la terminaison est -issent.
+          resultat: finissent
+          erreurs_frequentes:
+            - Écrire « finirent », qui est une forme du passé simple.
+      - code: FR6-PRESENT-CONJ-04
+        difficulte: 3
+        type: texte
+        enonce: Conjugue le verbe au présent et écris seulement la forme verbale. « Nous (manger) à la cantine. »
+        solution: mangeons|nous mangeons
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Garder le son « je » du radical devant la terminaison -ons.
+          etapes:
+            - Manger est du 1er groupe ; avec « nous », la terminaison est -ons.
+            - "Devant o, le g se prononcerait « gu » : on ajoute un e pour garder le son « je »."
+          resultat: mangeons
+          erreurs_frequentes:
+            - Écrire « mangons ».
+      - code: FR6-PRESENT-CONJ-05
+        difficulte: 3
+        type: texte
+        enonce: Conjugue le verbe au présent et écris seulement la forme verbale. « Vous (faire) vos exercices. »
+        solution: faites|vous faites
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Reconnaître un verbe irrégulier du 3e groupe.
+          etapes:
+            - Faire est un verbe du 3e groupe, irrégulier.
+            - Avec « vous », on écrit « faites », comme « vous dites » et « vous êtes ».
+          resultat: faites
+          erreurs_frequentes:
+            - Écrire « faisez » en appliquant la terminaison -ez des autres verbes.
+      - code: FR6-PRESENT-CONJ-06
+        difficulte: 3
+        type: qcm
+        enonce: "Quel verbe est du 2e groupe ? A) courir  B) grandir  C) sortir"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Conjuguer chaque verbe avec « nous ».
+          etapes:
+            - "Nous courons, nous sortons : pas de -issons, ce sont des verbes du 3e groupe."
+            - "Nous grandissons : grandir est du 2e groupe."
+          resultat: B
+          erreurs_frequentes:
+            - Penser que tous les verbes en -ir sont du 2e groupe.
+      - code: FR6-PRESENT-CONJ-07
+        difficulte: 4
+        type: texte
+        enonce: Conjugue le verbe au présent et écris seulement la forme verbale. « Elles (pouvoir) venir demain. »
+        solution: peuvent|elles peuvent
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Connaître les verbes irréguliers fréquents.
+          etapes:
+            - "Pouvoir est un verbe du 3e groupe : je peux, tu peux, il peut, nous pouvons, vous pouvez, ils peuvent."
+            - "Pouvoir a trois radicaux : peu- (je peux, il peut), pouv- (nous pouvons, vous pouvez), peuv- (ils peuvent)."
+          resultat: peuvent
+          erreurs_frequentes:
+            - Écrire « pouvent » en gardant le radical de « nous pouvons ».
+      - code: FR6-PRESENT-CONJ-08
+        difficulte: 4
+        type: texte
+        enonce: Conjugue le verbe au présent et écris seulement la forme verbale. « Le chien de mes voisins (aboyer) toute la nuit. »
+        solution: aboie|il aboie
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Trouver le vrai sujet, puis appliquer la règle des verbes en -yer.
+          etapes:
+            - "Qui est-ce qui aboie ? Le chien (et non les voisins) : sujet au singulier."
+            - Aboyer est du 1er groupe ; devant un e muet, le y devient i.
+            - Avec un sujet singulier, on écrit « aboie ».
+          resultat: aboie
+          erreurs_frequentes:
+            - Écrire « aboient » en accordant avec « voisins », le nom le plus proche.
+      - code: FR6-PRESENT-CONJ-09
+        difficulte: 5
+        type: texte
+        enonce: Conjugue le verbe au présent et écris seulement la forme verbale. « Au bout du chemin (apparaître) les deux tours du château. »
+        solution: apparaissent
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Retrouver le sujet placé après le verbe.
+          etapes:
+            - "Qu’est-ce qui apparaît ? Les deux tours du château : le sujet est inversé et au pluriel."
+            - "Apparaître se conjugue comme connaître : ils apparaissent."
+          resultat: apparaissent
+          erreurs_frequentes:
+            - Accorder avec « chemin », placé avant le verbe, et écrire « apparaît ».
