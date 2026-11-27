@@ -20,6 +20,7 @@ from app.db import models
 from app.db.conversions import historique_eleve
 from app.progression import ids_ouverts_eleve, nb_questions_servables
 from app.routes.francais_tableau import _etat_chapitre, _etat_dossier
+from app.routes.redactions import _sujets as sujets_de_redaction
 
 router = APIRouter(prefix="/francais/eleve", tags=["français-élève"])
 
@@ -103,6 +104,23 @@ def accueil(eleve: EleveCourant, session: SessionDB, reponse: Response) -> dict:
         "reprise": reprise["cle"] if reprise else None,
         "rubriques": {r: sum(c["rubrique"] == r for c in cours) for r in RUBRIQUES},
         "redaction_ouverte": settings.redaction_active,
+    }
+
+
+@router.get("/redaction/{competence_id}")
+def consignes_de_redaction(competence_id: int, eleve: EleveCourant, session: SessionDB, reponse: Response) -> dict:
+    """Consigne des sujets de rédaction d'une compétence, pour l'atelier de rédaction de l'écran de cours (#231).
+
+    Du **contenu** seulement, comme la leçon : mêmes règles que les sujets de rédaction (chapitre ouvert à la classe,
+    accès au domaine, question validée). Servie même quand la rédaction en ligne est fermée, pour que l'élève rédige
+    sur sa copie : aucun texte d'élève n'est lu ni enregistré ici, la fermeture des routes de rédaction (RGPD-2)
+    reste entière. Ni solution ni guide du professeur (ARCH-4).
+    """
+    reponse.headers["Cache-Control"] = "private, no-store"
+    sujets = [q for q in sujets_de_redaction(session, eleve) if q.competence_id == competence_id]
+    return {
+        "ouverte": settings.redaction_active,
+        "sujets": [{"question_id": q.id, "enonce": q.enonce} for q in sujets],
     }
 
 

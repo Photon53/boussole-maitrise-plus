@@ -325,7 +325,7 @@ class TestCorriges:
     def test_aucune_route_ne_recoit_de_reponse_d_eleve(self):
         chemins = {c: m for c, m in app.openapi()["paths"].items() if c.startswith("/francais")}
         # dont /francais/etat (#212), réservée aux administrateurs, l'export PDF, le suivi des classes et l'édition (#217)
-        assert len(chemins) == 34  # dont /francais/chapitres et /francais/chapitres/{chapitre_id} (lecture seule)
+        assert len(chemins) == 35  # dont /francais/chapitres et /francais/chapitres/{chapitre_id} (lecture seule)
         assert set(chemins["/francais/etat"]) == {"get"}
         # Tableau de bord du professeur (#231) : lecture seule.
         assert set(chemins["/francais/classes/{classe_id}/tableau"]) == {"get"}
@@ -333,6 +333,7 @@ class TestCorriges:
         # Côté élève (#217) : quiz corrigé, auto-évaluation et réponses rédigées ; rien d'autre n'est reçu.
         assert {c: set(m) for c, m in chemins.items() if c.startswith("/francais/eleve")} == {
             "/francais/eleve/accueil": {"get"},  # #231 : accueil Français, lecture seule
+            "/francais/eleve/redaction/{competence_id}": {"get"},  # #231 : consigne du sujet, lecture seule
             "/francais/eleve/dossiers": {"get"}, "/francais/eleve/dossiers/{code}": {"get"},
             "/francais/eleve/dossiers/{code}/quiz/{rang}": {"post"}, "/francais/eleve/dossiers/{code}/corriger": {"post"},
             "/francais/eleve/dossiers/{code}/auto-evaluation": {"put"},

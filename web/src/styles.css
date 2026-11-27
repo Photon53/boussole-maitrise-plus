@@ -172,6 +172,36 @@ button.icone:hover:not(:disabled) { background: var(--surface-2); color: var(--t
 .resultat.ok .verdict { color: var(--ok); }
 .resultat.ko .verdict { color: var(--ko); }
 
+/* Issue #231 — Atelier de rédaction (maquette 9) */
+.atelier-redaction { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 280px); gap: 24px; align-items: start; }
+@media (max-width: 1440px) { .atelier-redaction { grid-template-columns: minmax(0, 1fr); } }
+.atelier-principal { display: grid; gap: 16px; min-width: 0; }
+.sujet-redaction { display: grid; gap: 12px; }
+.consigne-redaction {
+  padding: 16px 20px; background: var(--surface-2); border: 1px solid var(--bordure);
+  border-left: 4px solid var(--francais); border-radius: var(--rayon-petit);
+}
+.consigne-titre { margin: 0 0 6px; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--francais); }
+.consigne-texte { font-family: var(--police-lecture); font-size: 1.08rem; line-height: 1.6; margin: 0 0 10px; overflow-wrap: anywhere; }
+.consigne-texte:last-child { margin-bottom: 0; }
+.etat-ferme {
+  display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; margin: 0;
+  border: 1px dashed var(--bordure-forte); border-radius: var(--rayon-petit); background: var(--surface);
+}
+.etat-ferme p { margin: 0; }
+.etat-ferme-icone { font-size: 1.3rem; line-height: 1.2; flex: none; color: var(--francais); }
+.texte-a-ecrire { font-family: var(--police-lecture); font-size: 1.05rem; line-height: 1.7; width: 100%; }
+.compteur-redaction { margin: 4px 0 8px; }
+.retour-professeure { margin-top: 8px; padding: 10px 14px; border-left: 4px solid var(--francais); background: var(--surface-2); border-radius: var(--rayon-petit); }
+.retour-professeure p { margin: 4px 0 0; }
+.atelier-cote { display: grid; gap: 16px; min-width: 0; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); align-items: start; }
+@media (min-width: 1441px) { .atelier-cote { grid-template-columns: minmax(0, 1fr); } }
+.atelier-bloc { padding: 14px 16px; border: 1px solid var(--bordure); border-radius: var(--rayon-petit); background: var(--surface); }
+.atelier-bloc h3 { margin: 0 0 6px; font-size: 1rem; }
+.criteres-reussite { list-style: none; padding: 0; margin: 8px 0; display: grid; gap: 8px; }
+.criteres-reussite label { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; font-weight: 400; }
+.criteres-reussite input { width: 20px; height: 20px; margin-top: 2px; flex: none; accent-color: var(--francais); }
+
 .bilan { display: flex; gap: 24px; color: var(--texte-doux); font-size: 0.9rem; flex-wrap: wrap; }
 .bilan strong { color: var(--texte); font-variant-numeric: tabular-nums; }
 
