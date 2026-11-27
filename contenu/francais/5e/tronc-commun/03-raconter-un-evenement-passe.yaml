@@ -1,0 +1,91 @@
+chapitre:
+  code: FR5-RED-EVENEMENT
+  matiere: francais
+  rubrique: redaction
+  niveau: 5e
+  parcours: tronc-commun
+  ordre: 3
+  titre: 'Rédaction : raconter un événement passé'
+competences:
+- code: FR5-RED-EVENEMENT-RECIT
+  libelle: Raconter un événement fictif à l’imparfait et au passé simple
+  objectifs:
+  - Employer l’imparfait pour le décor et les habitudes, le passé simple pour les actions de premier plan.
+  - Enchaîner les actions avec des connecteurs temporels.
+  - Garder un récit cohérent du début à la fin.
+  resume: '- Imparfait : le décor, les descriptions, les habitudes.
+
+    - Passé simple : les actions qui font avancer l’histoire.
+
+    - Connecteurs : d’abord, soudain, puis, alors, enfin.
+
+    '
+  cours: '## 1. Découvrir
+
+    **Objectif** : raconter un événement inventé en choisissant le bon temps du passé. **Durée indicative** : une séance de
+    55 minutes, puis une réécriture.
+
+
+    ## 2. Comprendre la méthode
+
+    1. Installer le décor à l’imparfait (lieu, moment, atmosphère).
+
+    2. Introduire l’événement par un connecteur comme « soudain » et passer au passé simple.
+
+    3. Raconter les actions dans l’ordre avec des connecteurs temporels.
+
+    4. Conclure en disant ce que cet événement a changé.
+
+
+    ## 3. Mes critères de réussite
+
+    - Le décor est à l’imparfait, les actions au passé simple.
+
+    - J’utilise au moins trois connecteurs temporels.
+
+    - Mon récit est cohérent du début à la fin.
+
+    - J’ai relu les terminaisons des verbes.
+
+
+    ## 4. Relire et réécrire
+
+    Relis une fois pour le sens, une fois pour les accords et la conjugaison. Ton professeur te fait un retour ; tu peux ensuite
+    réécrire ton texte en tenant compte de ses remarques.
+
+
+    ## 5. Réinvestir
+
+    Relis ton texte avec le chapitre « L’imparfait et le passé simple ».
+
+    '
+  erreurs_frequentes:
+  - erreur: Tout écrire à l’imparfait.
+    explication: Les actions qui font avancer l’histoire sont au passé simple.
+  - erreur: Mélanger passé composé et passé simple.
+    explication: Choisir le passé simple pour le récit et s’y tenir.
+  questions:
+  - code: FR5-RED-EVENEMENT-RECIT-01
+    difficulte: 3
+    type: redaction
+    enonce: 'Raconte un événement inventé qui a surpris un personnage fictif pendant une sortie (une fête, une promenade,
+      un voyage scolaire…).
+
+
+      Installe le décor à l’imparfait, puis raconte l’événement et ses suites au passé simple. Utilise au moins trois connecteurs
+      temporels. Longueur indicative : 20 lignes.
+
+
+      Tout est inventé : n’écris ni ton nom, ni celui d’une personne réelle, ni adresse, ni information personnelle ou intime.'
+    solution: 'Récit au passé : décor à l’imparfait, actions au passé simple, connecteurs temporels, récit cohérent avec une
+      fin.'
+    auteur: Brouillon IA (Claude)
+    correction:
+      methode: 'Guide du professeur : observer chaque critère, puis rédiger un retour qui cite une réussite et une piste de
+        réécriture. Les longueurs sont indicatives et ne sont pas éliminatoires.'
+      etapes:
+      - 'Consigne : un événement fictif et surprenant, raconté au passé.'
+      - 'Temps du récit : imparfait pour le décor, passé simple pour les actions de premier plan, sans mélange injustifié.'
+      - 'Organisation : connecteurs temporels (au moins trois) et paragraphes.'
+      - 'Langue : formes de l’imparfait et du passé simple correctes, accords.'
+      - 'Révision : la réécriture corrige au moins une erreur de temps signalée.'

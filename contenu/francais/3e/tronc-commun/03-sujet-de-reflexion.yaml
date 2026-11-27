@@ -1,0 +1,93 @@
+chapitre:
+  code: FR3-RED-REFLEXION
+  matiere: francais
+  rubrique: redaction
+  niveau: 3e
+  parcours: tronc-commun
+  ordre: 3
+  titre: 'Rédaction : sujet de réflexion dans l’esprit du brevet'
+competences:
+- code: FR3-RED-REFLEXION-DEVELOPPEMENT
+  libelle: Construire un développement argumenté et organisé à partir d’une question
+  objectifs:
+  - Analyser la question posée et en dégager une problématique.
+  - Organiser un développement en paragraphes argumentés, avec des exemples tirés des lectures et de l’expérience.
+  - Soigner la langue, en particulier les accords (dossier « Accorder et réécrire »).
+  resume: '- Introduction : reformuler la question et annoncer le plan.
+
+    - Développement : un paragraphe par argument, avec un exemple précis.
+
+    - Conclusion : répondre à la question.
+
+    '
+  cours: '## 1. Découvrir
+
+    **Objectif** : répondre à une question de réflexion de façon organisée et nuancée. **Durée indicative** : une séance de
+    60 minutes, puis une réécriture.
+
+
+    ## 2. Comprendre la méthode
+
+    1. Lire la question et souligner ses mots importants.
+
+    2. Chercher des arguments pour et, si besoin, des nuances.
+
+    3. Rédiger l’introduction, puis un paragraphe par argument avec un exemple.
+
+    4. Conclure en répondant clairement à la question.
+
+
+    ## 3. Mes critères de réussite
+
+    - Je réponds à la question posée.
+
+    - Mon développement est organisé en paragraphes.
+
+    - Chaque argument est appuyé par un exemple précis.
+
+    - J’ai relu les accords et la ponctuation.
+
+
+    ## 4. Relire et réécrire
+
+    Relis une fois pour le sens, une fois pour les accords et la conjugaison. Ton professeur te fait un retour ; tu peux ensuite
+    réécrire ton texte en tenant compte de ses remarques.
+
+
+    ## 5. Réinvestir
+
+    Appuie-toi sur les textes du dossier « Comprendre un texte » pour trouver un exemple.
+
+    '
+  erreurs_frequentes:
+  - erreur: Raconter au lieu d’argumenter.
+    explication: Un exemple sert à prouver une idée ; il ne remplace pas l’argument.
+  - erreur: Ne pas répondre à la question dans la conclusion.
+    explication: La conclusion donne une réponse claire et nuancée.
+  questions:
+  - code: FR3-RED-REFLEXION-DEVELOPPEMENT-01
+    difficulte: 4
+    type: redaction
+    enonce: 'Oser prendre la parole devant les autres aide-t-il à grandir ?
+
+
+      Vous répondrez à cette question dans un développement argumenté et organisé. Vous vous appuierez sur des exemples tirés
+      de vos lectures, des textes étudiés en classe (dont ceux du dossier « Comprendre un texte ») et de situations que vous
+      imaginerez. Longueur indicative : une quarantaine de lignes ; ce n’est pas une exigence officielle de l’épreuve.
+
+
+      Tout est inventé : n’écris ni ton nom, ni celui d’une personne réelle, ni adresse, ni information personnelle ou intime.'
+    solution: 'Développement argumenté : introduction, paragraphes organisés avec exemples, réponse nuancée à la question,
+      langue soignée.'
+    auteur: Brouillon IA (Claude)
+    correction:
+      methode: 'Guide du professeur : observer chaque critère, puis rédiger un retour qui cite une réussite et une piste de
+        réécriture. Les longueurs sont indicatives et ne sont pas éliminatoires.'
+      etapes:
+      - 'Consigne : la réponse traite la question posée (prendre la parole et grandir).'
+      - 'Argumentation : arguments variés et explicités ; nuance éventuelle ; exemples précis tirés des lectures ou des textes
+        étudiés.'
+      - 'Organisation : introduction, paragraphes, conclusion ; connecteurs logiques.'
+      - 'Langue : accords, conjugaison, ponctuation, vocabulaire précis.'
+      - 'Révision : la réécriture améliore l’organisation ou un paragraphe signalé.'
+      - 'Modalités de l’épreuve 2027 : vérifier le format officiel avant de présenter ce sujet comme un sujet type.'
