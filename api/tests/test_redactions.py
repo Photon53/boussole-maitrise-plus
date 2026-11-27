@@ -74,6 +74,16 @@ def test_sujet_de_redaction_seulement_dans_la_rubrique_redaction(tmp_path):
     assert "réservés aux chapitres de diagnostic" in erreurs(tmp_path)
 
 
+def test_inventaire_sans_cinq_difficultes_pour_un_sujet(tmp_path):
+    """#177 : un sujet de rédaction n'est jamais servi par le moteur adaptatif ; l'inventaire n'y signale pas de trou
+    de difficulté (le cours reste exigé)."""
+    from app import contenu
+
+    ecrire(tmp_path, SUJET_REDACTION, "francais/5e/tronc-commun/02-raconter.yaml")
+    texte = contenu.inventaire(charger(tmp_path))
+    assert "aucune question de difficulté" not in texte and "`FR5-RED-C` (Écrire un court récit) : pas de cours" in texte
+
+
 def test_fermee_par_defaut(client, session, tmp_path):
     """Tant que PKP_REDACTION_ACTIVE est faux, aucune route ne sert ni n'enregistre de rédaction."""
     ctx = _preparer(client, session, tmp_path)

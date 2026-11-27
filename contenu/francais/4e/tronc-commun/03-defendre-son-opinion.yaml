@@ -1,0 +1,91 @@
+chapitre:
+  code: FR4-RED-OPINION
+  matiere: francais
+  rubrique: redaction
+  niveau: 4e
+  parcours: tronc-commun
+  ordre: 3
+  titre: 'Rédaction : défendre son opinion'
+competences:
+- code: FR4-RED-OPINION-ARGUMENTER
+  libelle: Défendre une opinion par des arguments illustrés d’exemples
+  objectifs:
+  - Formuler clairement son opinion (sa thèse).
+  - Développer deux arguments, chacun illustré par un exemple.
+  - Relier ses idées par des connecteurs logiques et des phrases complexes.
+  resume: '- Thèse : l’opinion que je défends, annoncée dès l’introduction.
+
+    - Un paragraphe par argument : idée, explication, exemple.
+
+    - Connecteurs : d’abord, de plus, en effet, par exemple, donc, enfin.
+
+    '
+  cours: '## 1. Découvrir
+
+    **Objectif** : convaincre un lecteur en organisant ses idées. **Durée indicative** : une séance de 55 minutes, puis une
+    réécriture.
+
+
+    ## 2. Comprendre la méthode
+
+    1. Annoncer son opinion dans une courte introduction.
+
+    2. Rédiger un premier argument, l’expliquer et l’illustrer par un exemple.
+
+    3. Rédiger un second argument de la même façon, introduit par un connecteur.
+
+    4. Conclure en reformulant son opinion.
+
+
+    ## 3. Mes critères de réussite
+
+    - Mon opinion est claire dès l’introduction.
+
+    - J’ai deux arguments, chacun avec un exemple.
+
+    - J’utilise des connecteurs logiques.
+
+    - Bonus : j’emploie au moins une relative et une conjonctive.
+
+
+    ## 4. Relire et réécrire
+
+    Relis une fois pour le sens, une fois pour les accords et la conjugaison. Ton professeur te fait un retour ; tu peux ensuite
+    réécrire ton texte en tenant compte de ses remarques.
+
+
+    ## 5. Réinvestir
+
+    Vérifie tes phrases complexes avec le chapitre « La phrase complexe et les propositions subordonnées ».
+
+    '
+  erreurs_frequentes:
+  - erreur: Donner des exemples sans argument.
+    explication: 'L’exemple illustre une idée : formuler l’idée d’abord.'
+  - erreur: Changer d’opinion en cours de texte.
+    explication: Garder la même thèse du début à la fin.
+  questions:
+  - code: FR4-RED-OPINION-ARGUMENTER-01
+    difficulte: 3
+    type: redaction
+    enonce: 'Pensez-vous qu’il soit utile de lire des livres à l’heure des écrans ? Donnez votre opinion et défendez-la.
+
+
+      Rédigez une introduction qui annonce votre opinion, deux paragraphes qui développent chacun un argument illustré d’un
+      exemple, puis une conclusion. Longueur indicative : 20 à 25 lignes.
+
+
+      Vos exemples peuvent venir de vos lectures, des textes étudiés, de films, de personnages historiques ou de situations
+      imaginées. N’écrivez ni votre nom, ni celui de vos proches ou camarades, ni adresse, ni information personnelle ou intime.'
+    solution: 'Texte argumentatif : opinion claire, deux arguments expliqués et illustrés, connecteurs logiques, introduction
+      et conclusion.'
+    auteur: Brouillon IA (Claude)
+    correction:
+      methode: 'Guide du professeur : observer chaque critère, puis rédiger un retour qui cite une réussite et une piste de
+        réécriture. Les longueurs sont indicatives et ne sont pas éliminatoires.'
+      etapes:
+      - 'Consigne : une opinion sur l’utilité de la lecture, clairement annoncée.'
+      - 'Argumentation : deux arguments distincts, expliqués, chacun illustré par un exemple pertinent.'
+      - 'Organisation : introduction, deux paragraphes, conclusion ; connecteurs logiques.'
+      - 'Langue : phrases complexes correctes (relatives, conjonctives), accords, ponctuation.'
+      - 'Révision : la réécriture renforce un argument ou un exemple signalé comme faible.'

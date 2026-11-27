@@ -2,8 +2,8 @@
 
 Fichier **généré** par `python -m app.contenu inventaire` (depuis `api/`) : ne pas modifier à la main.
 
-- Chapitres : **172** · compétences : **375** · questions actives : **1999**
-- Validation pédagogique : 0 validée(s), 1999 à valider, 0 à corriger
+- Chapitres : **176** · compétences : **379** · questions actives : **2003**
+- Validation pédagogique : 0 validée(s), 2003 à valider, 0 à corriger
 
 ## Matrice de couverture
 
@@ -522,6 +522,7 @@ Nombre de questions actives par difficulté (1 = application directe … 5 = niv
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | 1. La nature des mots | `FR6-NATURE-MOTS` Identifier la classe grammaticale d’un mot dans une phrase | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 | 2. Le présent de l’indicatif | `FR6-PRESENT-CONJ` Conjuguer un verbe au présent de l’indicatif et l’accorder avec son sujet | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+| 3. Rédaction : raconter une aventure au présent | `FR6-RED-AVENTURE-RECIT` Raconter une aventure fictive cohérente au présent | ✓ | — | 1 | — | — | — | 1 | 1 |
 
 ### 5e — Tronc commun
 
@@ -529,6 +530,7 @@ Nombre de questions actives par difficulté (1 = application directe … 5 = niv
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | 1. Les fonctions : sujet, COD, COI et complément du nom | `FR5-FONCTIONS-ID` Identifier le sujet, le COD, le COI et le complément du nom | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 | 2. L’imparfait et le passé simple | `FR5-RECIT-TEMPS` Conjuguer et employer l’imparfait et le passé simple dans un récit | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+| 3. Rédaction : raconter un événement passé | `FR5-RED-EVENEMENT-RECIT` Raconter un événement fictif à l’imparfait et au passé simple | ✓ | — | — | 1 | — | — | 1 | 1 |
 
 ### 4e — Tronc commun
 
@@ -536,6 +538,7 @@ Nombre de questions actives par difficulté (1 = application directe … 5 = niv
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | 1. La phrase complexe et les propositions subordonnées | `FR4-PHRASE-COMPLEXE` Analyser une phrase complexe et reconnaître ses propositions subordonnées | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 | 2. Les temps et les modes verbaux | `FR4-MODES-EMPLOI` Identifier et employer le subjonctif présent, le conditionnel présent et l’impératif | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+| 3. Rédaction : défendre son opinion | `FR4-RED-OPINION-ARGUMENTER` Défendre une opinion par des arguments illustrés d’exemples | ✓ | — | — | 1 | — | — | 1 | 1 |
 
 ### 3e — Tronc commun
 
@@ -543,6 +546,7 @@ Nombre de questions actives par difficulté (1 = application directe … 5 = niv
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | 1. Accords et réécriture : exercices associés au dossier brevet | `FR3-ACCORDS-REECRIRE` Contrôler les chaînes d’accord et réécrire un passage en propageant les changements | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 | 2. Les outils de la langue pour comprendre un texte : exercices associés au dossier brevet | `FR3-LANGUE-LECTURE` Utiliser les reprises, les connecteurs, la valeur des temps et la modalisation pour comprendre un texte | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+| 3. Rédaction : sujet de réflexion dans l’esprit du brevet | `FR3-RED-REFLEXION-DEVELOPPEMENT` Construire un développement argumenté et organisé à partir d’une question | ✓ | — | — | — | 1 | — | 1 | 1 |
 
 ## Trous à combler
 
@@ -552,7 +556,7 @@ Aucun.
 
 | Source | Licence de la source | Adaptation | Questions |
 |---|---|---|:-:|
-| PKP Math | — | originale | 1956 |
+| PKP Math | — | originale | 1960 |
 | math.ma | non clarifiée | inspiree | 33 |
 | MathALÉA | CC BY-SA 4.0 | inspiree | 5 |
 | STACK | à vérifier | inspiree | 3 |
