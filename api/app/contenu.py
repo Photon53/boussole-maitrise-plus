@@ -814,12 +814,15 @@ def inventaire(fichiers: list[tuple[Path, FichierContenu]]) -> str:
         for c in f.competences:
             qs = [q for q in c.questions if not q.archivee]
             par_difficulte = Counter(q.difficulte for q in qs)
-            vide = "—" if ch.diagnostic else "⚠ 0"
+            # Un sujet de rédaction (#177, #179) est corrigé par un professeur et jamais servi par le moteur
+            # adaptatif : la règle des cinq difficultés ne le concerne pas (son cours reste exigé).
+            redaction = ch.rubrique is RubriqueFrancais.REDACTION
+            vide = "—" if ch.diagnostic or redaction else "⚠ 0"
             cellules = [str(par_difficulte[d]) if par_difficulte[d] else vide for d in DIFFICULTES]
             manquantes = [str(d) for d in DIFFICULTES if not par_difficulte[d]]
             # Un diagnostic interroge les acquis antérieurs et renvoie au cours du prérequis : ni cours propre,
             # ni les cinq difficultés. L'exemption ne vaut que pour les chapitres de nature « diagnostic ».
-            if manquantes and not ch.diagnostic:
+            if manquantes and not ch.diagnostic and not redaction:
                 trous.append(f"`{c.code}` ({c.libelle}) : aucune question de difficulté {', '.join(manquantes)}")
             if c.cours is None and not ch.diagnostic:
                 trous.append(f"`{c.code}` ({c.libelle}) : pas de cours")

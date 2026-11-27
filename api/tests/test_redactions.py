@@ -18,7 +18,7 @@ from tests.test_contenu import ecrire, erreurs
 
 TEXTE = "Il était une fois un dragon qui n'aimait pas le feu. RÉDACTION-TÉMOIN."
 SUJET_REDACTION = """
-chapitre: {code: FR5-RED, matiere: francais, rubrique: redaction, niveau: 5e, parcours: tronc-commun, ordre: 2, titre: Raconter}
+chapitre: {code: FR5-RED, matiere: francais, rubrique: redaction, niveau: 5e, parcours: tronc-commun, ordre: 92, titre: Raconter}
 competences:
   - code: FR5-RED-C
     libelle: Écrire un court récit
@@ -72,6 +72,16 @@ def test_sujet_de_redaction_seulement_dans_la_rubrique_redaction(tmp_path):
     ecrire(tmp_path, SUJET_REDACTION.replace("rubrique: redaction", "rubrique: conjugaison"),
            "francais/5e/tronc-commun/02-raconter.yaml")
     assert "réservés aux chapitres de diagnostic" in erreurs(tmp_path)
+
+
+def test_inventaire_sans_cinq_difficultes_pour_un_sujet(tmp_path):
+    """#177 : un sujet de rédaction n'est jamais servi par le moteur adaptatif ; l'inventaire n'y signale pas de trou
+    de difficulté (le cours reste exigé)."""
+    from app import contenu
+
+    ecrire(tmp_path, SUJET_REDACTION, "francais/5e/tronc-commun/02-raconter.yaml")
+    texte = contenu.inventaire(charger(tmp_path))
+    assert "aucune question de difficulté" not in texte and "`FR5-RED-C` (Écrire un court récit) : pas de cours" in texte
 
 
 def test_fermee_par_defaut(client, session, tmp_path):

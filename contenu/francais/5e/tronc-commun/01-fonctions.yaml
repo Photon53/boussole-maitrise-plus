@@ -1,0 +1,198 @@
+chapitre:
+  code: FR5-FONCTIONS
+  matiere: francais
+  rubrique: grammaire
+  niveau: 5e
+  parcours: tronc-commun
+  ordre: 1
+  titre: "Les fonctions : sujet, COD, COI et complément du nom"
+
+competences:
+  - code: FR5-FONCTIONS-ID
+    libelle: Identifier le sujet, le COD, le COI et le complément du nom
+    objectifs:
+      - Identifier le sujet d’un verbe, même placé après le verbe ou éloigné de lui.
+      - Distinguer le complément d’objet direct (COD) et le complément d’objet indirect (COI), y compris quand ce sont des pronoms.
+      - Distinguer un COI d’un complément du nom, tous deux introduits par une préposition comme « de ».
+    resume: |
+      - **Sujet** : il répond à « qui est-ce qui ? » posé devant le verbe ; on peut l’encadrer par « c’est … qui » (« ce sont … qui » au pluriel).
+      - **COD** : il complète le verbe sans préposition ; il répond à « qui ? » ou « quoi ? » posé après le verbe. Pronoms COD : *le, la, les, l’, me, te, nous, vous*.
+      - **COI** : il complète le verbe avec une préposition (*à, de*) ; il répond à « à qui ? », « à quoi ? », « de qui ? », « de quoi ? ». Pronoms COI : *lui, leur, en, y*, mais aussi *me, te, nous, vous* (*il me parle*).
+      - **Complément du nom** : il complète un **nom** (et non le verbe) ; il fait partie du groupe nominal. *Le récit **de son voyage**.*
+      - Test décisif : on remplace le nom et le groupe qui le suit par un pronom. Si le groupe disparaît avec le nom (*Le récit de son voyage passionne la classe → Il passionne la classe*), c’est un complément du nom ; s’il dépend du verbe (*Il parle de son voyage → Il en parle*), c’est un COI.
+    cours: |
+      ## 1. Découvrir
+      **Objectif** : savoir à quoi sert chaque groupe de la phrase. **Durée indicative** : trois séances de 45 minutes.
+      **Ce qu’il faut déjà savoir** : la nature des mots, le verbe et son sujet (6e).
+
+      ## 2. Comprendre
+      Dans « **Le récit de son voyage** passionne **la classe** » :
+      - « Le récit de son voyage » est le **sujet** de « passionne » (c’est … qui passionne) ;
+      - dans ce groupe, « de son voyage » complète le nom « récit » : **complément du nom** ;
+      - « la classe » complète le verbe sans préposition : **COD**.
+
+      Dans « Il parle **de son voyage** », le même groupe « de son voyage » complète cette fois le **verbe** « parle » : c’est un **COI** (il en parle).
+
+      | Fonction | Ce qu’il complète | Préposition ? | Pronom possible |
+      |---|---|---|---|
+      | COD | le verbe | non | le, la, les |
+      | COI | le verbe | oui (à, de) | lui, leur, en, y |
+      | Complément du nom | un nom | oui le plus souvent | remplacé avec son nom (le récit de son voyage → il) |
+
+      ## 3. Appliquer et s’entraîner
+      Les premiers exercices demandent la fonction d’un groupe souligné ; les suivants demandent de recopier le COI ou le sujet.
+
+      ## 4. Approfondir
+      Les pronoms compliquent l’analyse : dans « Je **lui** offre un livre », « lui » est COI (offrir quelque chose **à** quelqu’un) et « un livre » est COD. Quand le sujet est inversé, on encadre par « c’est … qui ».
+
+      ## 5. Réinvestir
+      Dans ton récit du sujet R2, souligne un COD, un COI et un complément du nom.
+    methodes:
+      - titre: Distinguer un COI d’un complément du nom
+        quand: Un groupe introduit par « de » ou « à » suit un verbe et un nom.
+        etapes:
+          - "Chercher le mot que le groupe complète : le verbe ou un nom."
+          - "Remplacer le nom et le groupe qui le suit par un pronom : si le groupe disparaît avec le nom, c’est un complément du nom."
+          - Si le groupe dépend du verbe et se remplace par « en », « y » ou « lui » placé devant lui (il en parle, il y pense), c’est un COI.
+        exemple:
+          enonce: Quelle est la fonction de « de ses vacances » dans « Elle se souvient de ses vacances » ?
+          resolution:
+            - Le groupe complète le verbe « se souvient » (se souvenir de quelque chose).
+            - On peut dire « Elle s’en souvient ».
+            - C’est donc un COI.
+          resultat: COI
+    erreurs_frequentes:
+      - erreur: Prendre le premier groupe nominal de la phrase pour le sujet.
+        explication: Le sujet peut être placé après le verbe ; on le vérifie par « c’est … qui » (« ce sont … qui » au pluriel).
+      - erreur: Confondre COI et complément du nom parce que tous deux commencent par « de ».
+        explication: Le COI complète le verbe, le complément du nom complète un nom.
+      - erreur: Prendre « lui » pour un COD.
+        explication: "Placé devant le verbe, « lui » remplace un groupe introduit par « à » : c’est un COI."
+    questions:
+      - code: FR5-FONCTIONS-ID-01
+        difficulte: 1
+        type: qcm
+        enonce: "Dans « Le vent agite les branches », quelle est la fonction de « les branches » ? A) sujet  B) COD  C) COI"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Poser la question « quoi ? » après le verbe.
+          etapes:
+            - Le vent agite quoi ? Les branches.
+            - Le groupe complète le verbe sans préposition.
+            - C’est un COD (on peut dire « le vent les agite »).
+          resultat: B
+      - code: FR5-FONCTIONS-ID-02
+        difficulte: 1
+        type: qcm
+        enonce: "Dans « Mes cousins arrivent ce soir », quelle est la fonction de « Mes cousins » ? A) sujet  B) COD  C) complément du nom"
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Poser la question « qui est-ce qui ? » devant le verbe.
+          etapes:
+            - Qui est-ce qui arrive ? Mes cousins.
+            - "Ce sont mes cousins qui arrivent : le groupe est sujet."
+          resultat: A
+      - code: FR5-FONCTIONS-ID-03
+        difficulte: 2
+        type: texte
+        enonce: Recopie le complément d’objet indirect (COI) de la phrase « Elle parle à son professeur ».
+        solution: à son professeur|son professeur
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le complément du verbe introduit par une préposition.
+          etapes:
+            - Elle parle à qui ? À son professeur.
+            - "Le groupe complète le verbe avec la préposition « à » : c’est un COI."
+          resultat: à son professeur
+      - code: FR5-FONCTIONS-ID-04
+        difficulte: 3
+        type: qcm
+        enonce: "Dans « Le récit de son voyage passionne la classe », quelle est la fonction de « de son voyage » ? A) COI  B) complément du nom  C) COD"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le mot complété par le groupe.
+          etapes:
+            - « De son voyage » suit le nom « récit » et le précise.
+            - Il fait partie du groupe sujet « Le récit de son voyage ».
+            - Un groupe qui complète un nom est un complément du nom.
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « COI » à cause de la préposition « de ».
+      - code: FR5-FONCTIONS-ID-05
+        difficulte: 3
+        type: texte
+        enonce: Recopie le COI de la phrase « Pendant le cours, Léo pense à ses vacances ».
+        solution: à ses vacances|ses vacances
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Poser la question « à quoi ? » après le verbe.
+          etapes:
+            - Léo pense à quoi ? À ses vacances.
+            - "« Pendant le cours » indique le moment : c’est un complément circonstanciel, pas un COI."
+            - Le COI est « à ses vacances » (il y pense).
+          resultat: à ses vacances
+          erreurs_frequentes:
+            - Recopier « pendant le cours », qui ne complète pas le sens du verbe « penser ».
+      - code: FR5-FONCTIONS-ID-06
+        difficulte: 3
+        type: qcm
+        enonce: "Dans « Je la regarde », quelle est la fonction du pronom « la » ? A) sujet  B) COD  C) COI"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Remplacer le pronom par un groupe nominal.
+          etapes:
+            - « Je la regarde » correspond, par exemple, à « Je regarde la mer ».
+            - "« La mer » complète le verbe sans préposition : c’est un COD."
+            - Le pronom « la » est donc COD.
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « sujet » parce que le pronom est placé avant le verbe.
+      - code: FR5-FONCTIONS-ID-07
+        difficulte: 4
+        type: qcm
+        enonce: "Dans « Il parle de son voyage », quelle est la fonction de « de son voyage » ? A) complément du nom  B) COI  C) COD"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le mot complété, puis faire le test du pronom.
+          etapes:
+            - « De son voyage » complète le verbe « parle » (parler de quelque chose).
+            - On peut dire « Il en parle ».
+            - "C’est un COI, et non un complément du nom : aucun nom n’est complété."
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « complément du nom » par analogie avec « le récit de son voyage ».
+      - code: FR5-FONCTIONS-ID-08
+        difficulte: 4
+        type: qcm
+        enonce: "Dans « Je lui offre un livre », quelle est la fonction du pronom « lui » ? A) COD  B) COI  C) sujet"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Retrouver la construction du verbe « offrir ».
+          etapes:
+            - "On offre quelque chose à quelqu’un : « J’offre un livre à mon frère »."
+            - « Un livre » est COD ; « à mon frère » est COI.
+            - "« Lui » remplace « à mon frère » : c’est un COI."
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « COD » parce que « lui » n’est pas précédé d’une préposition.
+      - code: FR5-FONCTIONS-ID-09
+        difficulte: 5
+        type: texte
+        enonce: Recopie le sujet du verbe « brillent » dans la phrase « Sur la table du salon brillent les bougies ».
+        solution: les bougies|bougies
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Poser la question « qui est-ce qui ? » et encadrer par « c’est … qui ».
+          etapes:
+            - Qui est-ce qui brille ? Les bougies.
+            - "Ce sont les bougies qui brillent : le sujet est placé après le verbe."
+            - « Sur la table du salon » indique le lieu ; « du salon » y est complément du nom « table ».
+          resultat: les bougies
+          erreurs_frequentes:
+            - Recopier « la table » ou « du salon », placés avant le verbe.

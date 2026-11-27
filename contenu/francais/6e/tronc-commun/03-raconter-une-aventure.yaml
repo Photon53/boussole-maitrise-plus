@@ -1,0 +1,92 @@
+chapitre:
+  code: FR6-RED-AVENTURE
+  matiere: francais
+  rubrique: redaction
+  niveau: 6e
+  parcours: tronc-commun
+  ordre: 3
+  titre: 'Rédaction : raconter une aventure au présent'
+competences:
+- code: FR6-RED-AVENTURE-RECIT
+  libelle: Raconter une aventure fictive cohérente au présent
+  objectifs:
+  - 'Construire un récit en trois temps : situation initiale, péripéties, dénouement.'
+  - Employer le présent de l’indicatif en accordant chaque verbe avec son sujet.
+  - Ponctuer ses phrases et organiser son texte en paragraphes.
+  resume: '- Un récit a un début (où, quand, qui ?), des péripéties (que se passe-t-il ?) et une fin.
+
+    - Au présent, chaque verbe s’accorde avec son sujet.
+
+    - Un paragraphe par étape du récit.
+
+    '
+  cours: '## 1. Découvrir
+
+    **Objectif** : raconter une aventure imaginaire, du début à la fin. **Durée indicative** : une séance de 55 minutes, puis
+    une réécriture.
+
+
+    ## 2. Comprendre la méthode
+
+    1. Choisir un personnage inventé, un lieu et un problème à résoudre.
+
+    2. Écrire la situation initiale en deux ou trois phrases.
+
+    3. Raconter deux péripéties, chacune dans un paragraphe.
+
+    4. Terminer par un dénouement qui résout le problème.
+
+
+    ## 3. Mes critères de réussite
+
+    - Mon récit a un début, des péripéties et une fin.
+
+    - J’écris au présent et chaque verbe est accordé.
+
+    - Mes phrases commencent par une majuscule et se terminent par un point, un point d’exclamation ou d’interrogation.
+
+    - J’ai fait au moins quatre paragraphes.
+
+
+    ## 4. Relire et réécrire
+
+    Relis une fois pour le sens, une fois pour les accords et la conjugaison. Ton professeur te fait un retour ; tu peux ensuite
+    réécrire ton texte en tenant compte de ses remarques.
+
+
+    ## 5. Réinvestir
+
+    Relis ton texte avec le chapitre « Le présent de l’indicatif » : vérifie chaque verbe et son sujet.
+
+    '
+  erreurs_frequentes:
+  - erreur: Changer de temps au milieu du récit.
+    explication: Raconter les actions principales au présent du début à la fin ; un passé composé reste possible pour un fait
+      antérieur.
+  - erreur: Oublier le dénouement.
+    explication: Prévoir la fin avant de commencer à écrire.
+  questions:
+  - code: FR6-RED-AVENTURE-RECIT-01
+    difficulte: 2
+    type: redaction
+    enonce: 'Raconte, au présent, une aventure vécue par un personnage que tu inventes : il découvre un lieu inconnu et doit
+      y surmonter un obstacle.
+
+
+      Ton récit comprend une situation initiale, au moins deux péripéties et un dénouement. Organise-le en paragraphes. Longueur
+      indicative : 15 à 20 lignes.
+
+
+      Tout est inventé : n’écris ni ton nom, ni celui d’une personne réelle, ni adresse, ni information personnelle ou intime.'
+    solution: 'Récit au présent, en paragraphes : situation initiale, au moins deux péripéties, dénouement ; verbes accordés
+      ; ponctuation correcte.'
+    auteur: Brouillon IA (Claude)
+    correction:
+      methode: 'Guide du professeur : observer chaque critère, puis rédiger un retour qui cite une réussite et une piste de
+        réécriture. Les longueurs sont indicatives et ne sont pas éliminatoires.'
+      etapes:
+      - 'Consigne : le récit raconte une aventure fictive, au présent, autour d’un lieu inconnu et d’un obstacle.'
+      - 'Cohérence : situation initiale, péripéties et dénouement s’enchaînent ; le personnage reste le même.'
+      - 'Organisation : au moins quatre paragraphes (situation initiale, deux péripéties, dénouement).'
+      - 'Langue : présent de l’indicatif maîtrisé (terminaisons, accord sujet-verbe) ; ponctuation et majuscules.'
+      - 'Révision : la réécriture tient compte du retour (un passage amélioré au moins).'

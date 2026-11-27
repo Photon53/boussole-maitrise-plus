@@ -10,10 +10,10 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 
 | Niveau | Parcours | Résultat seul | À compléter | Complet | Questions | Complets |
 |---|---|:-:|:-:|:-:|:-:|:-:|
-| 6e | tronc-commun | 0 | 113 | 13 | 126 | 10 % |
-| 5e | tronc-commun | 0 | 111 | 21 | 132 | 16 % |
-| 4e | tronc-commun | 0 | 101 | 16 | 117 | 14 % |
-| 3e | tronc-commun | 0 | 79 | 14 | 93 | 15 % |
+| 6e | tronc-commun | 0 | 125 | 20 | 145 | 14 % |
+| 5e | tronc-commun | 0 | 121 | 30 | 151 | 20 % |
+| 4e | tronc-commun | 0 | 108 | 28 | 136 | 21 % |
+| 3e | tronc-commun | 0 | 86 | 26 | 112 | 23 % |
 | 2nde | tronc-commun | 73 | 200 | 22 | 295 | 7 % |
 | 2nde | professionnel | 4 | 15 | 0 | 19 | 0 % |
 | 2nde | excellence | 21 | 39 | 0 | 60 | 0 % |
@@ -31,7 +31,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 | Tle | excellence | 65 | 15 | 0 | 80 | 0 % |
 | Tle | mise-a-niveau | 13 | 2 | 0 | 15 | 0 % |
 | Tle | examens | 29 | 1 | 0 | 30 | 0 % |
-| **Total** | | 555 | 1249 | 123 | 1927 | 6 % |
+| **Total** | | 555 | 1285 | 163 | 2003 | 8 % |
 
 ## Par chapitre
 
@@ -928,3 +928,51 @@ TLE-DIAG-SPE : 0 résultat seul, 5 à compléter, 1 complet(s).
 ### Tle · technologique · Diagnostic d'entrée, acquis de 1re technologique
 
 TLE-DIAG-TECH : 0 résultat seul, 6 à compléter, 0 complet(s).
+
+### 6e · tronc-commun · La nature des mots
+
+FR6-NATURE : 0 résultat seul, 4 à compléter, 5 complet(s).
+
+### 6e · tronc-commun · Le présent de l’indicatif
+
+FR6-PRESENT : 0 résultat seul, 8 à compléter, 1 complet(s).
+
+### 6e · tronc-commun · Rédaction : raconter une aventure au présent
+
+FR6-RED-AVENTURE : 0 résultat seul, 0 à compléter, 1 complet(s).
+
+### 5e · tronc-commun · Les fonctions : sujet, COD, COI et complément du nom
+
+FR5-FONCTIONS : 0 résultat seul, 3 à compléter, 6 complet(s).
+
+### 5e · tronc-commun · L’imparfait et le passé simple
+
+FR5-RECIT : 0 résultat seul, 7 à compléter, 2 complet(s).
+
+### 5e · tronc-commun · Rédaction : raconter un événement passé
+
+FR5-RED-EVENEMENT : 0 résultat seul, 0 à compléter, 1 complet(s).
+
+### 4e · tronc-commun · La phrase complexe et les propositions subordonnées
+
+FR4-PHRASE : 0 résultat seul, 3 à compléter, 6 complet(s).
+
+### 4e · tronc-commun · Les temps et les modes verbaux
+
+FR4-MODES : 0 résultat seul, 4 à compléter, 5 complet(s).
+
+### 4e · tronc-commun · Rédaction : défendre son opinion
+
+FR4-RED-OPINION : 0 résultat seul, 0 à compléter, 1 complet(s).
+
+### 3e · tronc-commun · Accords et réécriture : exercices associés au dossier brevet
+
+FR3-ACCORDS : 0 résultat seul, 5 à compléter, 4 complet(s).
+
+### 3e · tronc-commun · Les outils de la langue pour comprendre un texte : exercices associés au dossier brevet
+
+FR3-LANGUE-TEXTE : 0 résultat seul, 2 à compléter, 7 complet(s).
+
+### 3e · tronc-commun · Rédaction : sujet de réflexion dans l’esprit du brevet
+
+FR3-RED-REFLEXION : 0 résultat seul, 0 à compléter, 1 complet(s).
