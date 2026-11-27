@@ -2,7 +2,7 @@
 
 Issue #175 — Claude — 26/11/2026. Base examinée : `develop` `88e6ea6`.
 
-**Statut : GO PRÉPARATION — NO GO DÉVELOPPEMENT.** Ce document rassemble les livrables demandés par le
+**Statut au 27/11/2026 : GO développement et production des contenus** pour le périmètre de #177 (voir `../DECISIONS.md`, « arbitrages du 27/11/2026 ») ; le reste (#231, #223, suivi parental, EX.4) demeure en préparation. Ce document rassemble les livrables demandés par le
 propriétaire le 26/11/2026 avant tout développement fonctionnel. Il ne prouve aucune implémentation, aucune
 recette ni aucune validation pédagogique. Les décisions citées sont consignées dans
 [`../DECISIONS.md`](../DECISIONS.md), section « Module Français — arbitrages du 26/11/2026 ».
@@ -32,7 +32,7 @@ Au 26/11/2026, **aucun constat n'atteint D**. Le niveau N n'a été atteint qu'e
 | | Liste des 8 cours et 4 sujets | Professeur |
 | | Maquettes (§ 8) | Propriétaire |
 | | Configuration et coûts de #223 (§ 7) | Propriétaire |
-| | Contribution des quiz de dossier à la maîtrise (§ 10) | Professeur (pertinence), propriétaire (évolution) |
+| **27/11 : GO de développement et de production des contenus** (#177) ; quiz de dossier : option M1 retenue pour le pilote (exercices associés) | Plan de répartition des exercices associés de 3e | Professeur |
 | | Alignement documentaire de la version de Node (§ 11) | Propriétaire |
 
 ### Fonctionnalités

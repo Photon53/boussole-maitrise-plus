@@ -2,11 +2,60 @@
 
 Issue #175 / #177 — Claude — 26/11/2026.
 
-**Statut : PROPOSITION, non validée pédagogiquement.** Liste arbitrée par le propriétaire le 26/11/2026 pour être
-**soumise au professeur** (`V2-D12 — huit cours pilotes (A2)`, [`../DECISIONS.md`](../DECISIONS.md)). Le
-professeur peut valider, demander des modifications ou proposer une autre liste. Aucune question n'est rédigée
-avant son accord sur la liste. La conformité aux programmes en vigueur en 2026-2027 est vérifiée dans #55 ; les
-repères ci-dessous sont à contrôler, pas des citations du programme.
+**Statut au 27/11/2026 : thèmes retenus pour le pilote, contenus en production, AUCUNE validation pédagogique.**
+Le propriétaire a donné le GO de production le 27/11 (`V2-D12 — production des contenus`,
+[`../DECISIONS.md`](../DECISIONS.md) ; description de #177). Il s'appuie sur une revue pédagogique assistée par
+ChatGPT, qui ne remplace pas la validation par un professeur. Chaque question est importée « à valider ». Elle n'est
+servie qu'après validation par une personne différente de l'auteur (V2-D15), et seulement aux classes pilotes
+(SEC-D6). Le professeur peut encore valider, modifier ou remplacer chaque cours et chaque sujet.
+
+## 0. Mise à jour du 27/11 : prescriptions et références officielles
+
+### Programmes applicables en 2026-2027
+
+| Niveau | Programme de français applicable | Remarque pour le pilote |
+|---|---|---|
+| 6e | Cycle 3, arrêté du 10 avril 2025, BO n° 16 du 17 avril 2025 | |
+| 5e | **Nouveau** cycle 4, arrêté du 18 février 2026, BO n° 10 du 5 mars 2026 | Les graphies ancienne et rectifiée (1990) sont acceptées à égalité : les réponses courtes acceptent les deux |
+| 4e | Cycle 4, BO n° 31 du 30 juillet 2020 | Le nouveau programme ne s'applique en 4e qu'à la rentrée 2027 |
+| 3e | Cycle 4, BO n° 31 du 30 juillet 2020 ; brevet 2027 | Le nouveau programme ne s'applique en 3e qu'à la rentrée 2028 |
+
+Sources consultées le 27/11/2026 : page Éduscol « Enseigner au cycle 4 » et « Enseigner au cycle 3 » ; annexe 1 du
+programme du cycle 3 (2025) et annexe 1 du programme du cycle 4 (2026), sur education.gouv.fr. Les références
+précises et les écarts sont suivis dans #55.
+
+### Écarts relevés, à faire trancher par le professeur
+
+| Cours | Constat dans le programme applicable | Conséquence proposée |
+|---|---|---|
+| C1 (6e) | La section « Analyser le groupe nominal » demande de distinguer l'épithète et le complément du nom ; la distinction nature / fonction relève de la terminologie et du CM2 | Introduction du complément du nom dans le groupe nominal, conforme |
+| C2 (6e) | Le présent n'est pas nommé dans les objectifs de 6e (traité en CM1 et CM2). La 6e consolide les marques des temps étudiés et vise les temps composés, l'impératif présent et le conditionnel présent | C2 est un cours de **consolidation**. Le professeur peut préférer élargir aux temps composés |
+| C3 (5e) | Sujet, COD, COI, attribut et compléments circonstanciels sont nommés ; le complément du nom ne l'est pas : seul le « groupe nominal étendu » apparaît | Complément du nom traité comme constituant du groupe nominal étendu, pour le distinguer du COI |
+| C4 (5e) | La morphologie de l'imparfait et du passé simple est au programme | Conforme |
+| C5, C6 (4e) | Programme de 2020 : phrase complexe, temps et modes, sans répartition annuelle aussi fine que celle du nouveau programme | Attendus annuels à confirmer par le professeur. Le conditionnel est présenté comme un temps de l'indicatif, terminologie du nouveau programme de 3e |
+| C7, C8 (3e) | Programme de 2020 et épreuve du brevet 2027 | Les longueurs de rédaction sont **indicatives** : aucune n'est présentée comme une exigence officielle sans source |
+
+### Exercices associés aux dossiers de 3e (option M1)
+
+| Cours | Chapitre YAML associé | Rubrique | Contenu |
+|---|---|---|---|
+| C7 | Accords et réécriture : exercices | Grammaire | Chaînes d'accord (sujet-verbe, groupe nominal, participe passé) et réécriture avec changements de temps, de personne, de genre et de nombre, ce qui intègre les révisions de conjugaison |
+| C8 | Outils de la langue pour comprendre un texte : exercices | Grammaire | Compétences transférables d'un texte à l'autre : reprises nominales et pronominales, connecteurs logiques, valeur des temps, modalisation. **Plan à faire valider** : ces notions relèvent de l'étude de la langue, et non de la compréhension d'un texte donné |
+
+Les 9 questions de chaque chapitre associé constituent le quota du cours. Les quiz des dossiers gardent un score
+distinct. Les questions rédigées des dossiers restent au retour humain.
+
+### Méthode en sept étapes, portée par les champs existants
+
+| Étape | Champ du chapitre YAML | Dans un dossier |
+|---|---|---|
+| 1. Découvrir | `objectifs`, `prerequis`, durée indiquée dans `cours` | Fiche « objectifs » du dossier |
+| 2. Comprendre | `cours`, `resume`, `methodes` avec un exemple résolu | Leçon et textes |
+| 3. Appliquer | Questions de difficulté 1 et 2 | Quiz |
+| 4. S'entraîner | Questions de difficulté 3, correction expliquée | Entraînement |
+| 5. Approfondir | Questions de difficulté 4 et 5, `erreurs_frequentes` | Transfert |
+| 6. Réinvestir | Rubrique « Réinvestir » du `cours`, renvoi au sujet de rédaction du niveau | Questions rédigées, réécriture |
+| 7. Consolider | `resume`, reprise des erreurs ; progression et révisions par le moteur | « Je sais » |
 
 ## 1. Vue d'ensemble
 
