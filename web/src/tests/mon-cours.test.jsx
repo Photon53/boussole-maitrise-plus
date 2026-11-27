@@ -37,6 +37,16 @@ describe("Mon cours (#180)", () => {
   });
 });
 
+const ACCUEIL_VIDE = {
+  eleve: { prenom: "Lina", classe: "5E-FR-AAAAA", niveau: "5e" }, acces: true, presentation: { mode: "guide", origine: "defaut" },
+  etapes: ["Découvrir", "Comprendre", "Appliquer", "S'entraîner", "Approfondir", "Réinvestir", "Consolider"],
+  cours: [], reprise: null, rubriques: { lire: 0, grammaire: 0, conjugaison: 0, redaction: 0 }, redaction_ouverte: false,
+};
+const DOSSIER = {
+  cle: "dossier-FR3-DNB27-01", type: "dossier", code: "FR3-DNB27-01", titre: "Comprendre un texte", rubrique: "lire",
+  nb_quiz: 6, etat: "pas_commence", score: null, total: null, tentatives: 0, etape: 1, derniere_activite: null,
+};
+
 describe("onglet « Mon cours » selon la matière (#180)", () => {
   const session = (matiere) =>
     sessionStorage.setItem(
@@ -44,25 +54,32 @@ describe("onglet « Mon cours » selon la matière (#180)", () => {
       JSON.stringify({ jeton: "j", eleve: { id: 1, prenom: "Lina", code_classe: "5E-FR-AAAAA", niveau: "5e", matiere } }),
     );
 
-  it("apparaît pour une classe de français", async () => {
+  // Issue #231 : « Mon cours » devient « Ressources de ta professeure », sous « Plus » (FR-UI-D1, FR-UI-D5).
+  it("apparaît sous « Plus » pour une classe de français", async () => {
     session("francais");
-    fausseApi({});
+    fausseApi({
+      "GET /francais/eleve/accueil": { json: ACCUEIL_VIDE },
+      "GET /cours/mon-cours": { json: [{ id: 1, titre: "Le présent", ressources: [LIEN] }] },
+    });
     render(<EspaceEleve />);
-    expect(await screen.findByRole("tab", { name: "Mon cours" })).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("tab", { name: "Plus" }));
+    await userEvent.click(screen.getByRole("button", { name: /Ressources de ta professeure/ }));
+    expect(await screen.findByRole("heading", { name: "Mon cours" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Plus" })).toHaveAttribute("aria-selected", "true");
     sessionStorage.clear();
   });
 
-  it("les dossiers ouverts à la classe apparaissent aussi dans « Cours » (#217)", async () => {
+  it("les dossiers ouverts à la classe sont dans « Mes cours », avec les chapitres (#217, #231)", async () => {
     session("francais");
     fausseApi({
+      "GET /francais/eleve/accueil": { json: { ...ACCUEIL_VIDE, cours: [DOSSIER], rubriques: { lire: 1, grammaire: 0, conjugaison: 0, redaction: 0 } } },
+      "GET /cours/mon-cours": { json: [] },
       "GET /francais/eleve/dossiers": { json: [{ code: "FR3-DNB27-01", titre: "Comprendre un texte", niveau: "3e", version: 1 }] },
-      "GET /eleves/moi/cours": { json: [] },
     });
     render(<EspaceEleve />);
-    expect(await screen.findByText(/les questions de tes dossiers se trouvent dans l'onglet « Cours »/)).toBeInTheDocument();
-    await userEvent.click(await screen.findByRole("tab", { name: "Cours" }));
-    expect(await screen.findByRole("heading", { name: "Mes dossiers" })).toBeInTheDocument();
-    expect(screen.getByText(/Comprendre un texte/)).toBeInTheDocument();
+    await userEvent.click(await screen.findByRole("tab", { name: "Mes cours" }));
+    expect(await screen.findByRole("heading", { name: "Comprendre un texte" })).toBeInTheDocument();
+    expect(screen.getByText("Lire et comprendre")).toBeInTheDocument();
     sessionStorage.clear();
   });
 
