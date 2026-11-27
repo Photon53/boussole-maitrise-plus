@@ -239,7 +239,10 @@ async function recette() {
         await page.getByLabel("Mot de passe").fill(process.env.ADMIN_MDP);
         if (process.env.ADMIN_TOTP) await page.getByLabel("Code de l'application d'authentification").fill(process.env.ADMIN_TOTP);
         await page.getByRole("button", { name: /Se connecter/ }).click();
-        await page.getByRole("link", { name: "Boussole Français (préparation)" }).first().click();
+        // Issue #231 : page « Boussole Français » de l'administration, puis l'espace des dossiers.
+        await page.getByRole("link", { name: "Boussole Français", exact: true }).first().click();
+        await visible(page.getByRole("heading", { name: "À traiter" }));
+        await page.getByRole("link", { name: /Dossiers, validation et PDF/ }).click();
         await visible(page.getByRole("heading", { name: "Dossiers de français" }));
         await visible(page.getByText(CODE));
       }, { page });
