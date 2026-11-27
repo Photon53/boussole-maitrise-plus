@@ -87,4 +87,18 @@ describe("dossier de lecture (#231)", () => {
     expect(screen.getByRole("heading", { name: "Quiz" })).toBeInTheDocument();
     expect(screen.getByRole("article", { name: "La place près de la fenêtre" })).toBeInTheDocument();
   });
+
+  it("au changement d'étape, le focus va au titre de l'étape (#154)", async () => {
+    render(<LectureDossier dossier={DOSSIER} jeton="j" onExpire={vi.fn()} onFermer={vi.fn()} />);
+    expect(screen.getByRole("heading", { name: "Découvrir", level: 2 })).not.toHaveFocus();
+    await userEvent.click(screen.getByRole("button", { name: "Comprendre →" }));
+    expect(screen.getByRole("heading", { name: "Comprendre", level: 2 })).toHaveFocus();
+  });
+
+  it("le texte qui défile est une région nommée, atteignable au clavier (#154)", async () => {
+    render(<LectureDossier dossier={DOSSIER} jeton="j" onExpire={vi.fn()} onFermer={vi.fn()} />);
+    await userEvent.click(within(screen.getByRole("navigation", { name: "Étapes du cours" })).getByRole("button", { name: /S'entraîner/ }));
+    const region = screen.getByRole("region", { name: "Texte : La place près de la fenêtre" });
+    expect(region).toHaveAttribute("tabindex", "0");
+  });
 });

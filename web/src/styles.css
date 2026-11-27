@@ -144,15 +144,15 @@ button.icone:hover:not(:disabled) { background: var(--surface-2); color: var(--t
    passent à la ligne entre les mots, jamais au milieu d'un mot. */
 .badges { display: flex; flex-wrap: wrap; gap: 4px; min-width: 12rem; max-width: 22rem; }
 .badges .badge { overflow-wrap: normal; }
-.badge.ok { background: var(--ok-doux); color: var(--ok); }
-.badge.alerte { background: var(--alerte-doux); color: var(--alerte); }
+.badge.ok { background: var(--ok-doux); color: var(--ok-texte); }
+.badge.alerte { background: var(--alerte-doux); color: var(--alerte-texte); }
 .badge.ko { background: var(--ko-doux); color: var(--ko); }
 .badge.neutre { background: var(--surface-2); color: var(--texte-doux); }
-.badge.accent { background: var(--accent-doux); color: var(--accent); }
+.badge.accent { background: var(--accent-doux); color: var(--accent-texte); }
 .difficulte { color: var(--action); letter-spacing: 2px; font-size: 0.8rem; white-space: nowrap; }
 .difficulte .eteint { color: var(--bordure-forte); }
 .pastille { font-size: var(--t-xs); font-weight: 700; padding: 1px 8px; border-radius: 99px; margin-left: 8px; }
-.pastille.ok { background: var(--ok-doux); color: var(--ok); }
+.pastille.ok { background: var(--ok-doux); color: var(--ok-texte); }
 .pastille.archivee { background: var(--fond); color: var(--texte-doux); border: 1px solid var(--bordure); }
 
 /* --- Exercices (élève) ------------------------------------------------------------------- */
@@ -172,6 +172,38 @@ button.icone:hover:not(:disabled) { background: var(--surface-2); color: var(--t
 .resultat.ok .verdict { color: var(--ok); }
 .resultat.ko .verdict { color: var(--ko); }
 
+/* Issue #231 — Exercice et correction expliquée en français (maquettes 4, 5 et 7) */
+.enonce-francais { margin: 8px 0 16px; }
+.consigne-exercice { color: var(--texte-doux); margin: 0 0 10px; }
+.phrase-exercice {
+  font-family: var(--police-lecture); font-size: 1.4rem; line-height: 1.5; margin: 0;
+  padding: 16px 20px; background: var(--surface-2); border: 1px solid var(--bordure);
+  border-left: 4px solid var(--francais); border-radius: var(--rayon-petit); overflow-wrap: anywhere;
+}
+.phrase-exercice .cible { text-decoration: underline 2px var(--francais); text-underline-offset: 4px; font-weight: 600; }
+.exercice-fr .options { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.exercice-fr .options button { justify-content: flex-start; text-align: left; padding: 14px 16px; font-size: 1.05rem; }
+.clavier-accents { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.clavier-accents button { min-width: 40px; min-height: 40px; padding: 4px 8px; font-size: 1.05rem; }
+.resultat.exercice-fr { border-left: 0; }
+.verdict-francais { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: var(--rayon-petit); }
+.verdict-francais.juste { background: var(--ok-doux); }
+.verdict-francais.a-revoir { background: var(--alerte-doux); }
+.verdict-icone { font-size: 1.5rem; line-height: 1; flex: none; }
+.verdict-titre { font-size: 1.2rem; font-weight: 700; margin: 0; }
+.reponses-comparees { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; overflow-wrap: anywhere; }
+.reponses-comparees .badge { margin-right: 6px; }
+.methode-francais { margin-top: 16px; }
+.surtitre-methode { font-weight: 600; margin: 0 0 8px; }
+.etapes-correction { list-style: none; counter-reset: etape; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+.etapes-correction li { counter-increment: etape; display: flex; gap: 10px; align-items: baseline; }
+.etapes-correction li::before {
+  content: counter(etape); flex: none; width: 26px; height: 26px; border-radius: 50%; display: inline-grid;
+  place-items: center; background: var(--francais); color: var(--surface); font-weight: 700; font-size: 0.85rem;
+}
+.erreur-frequente { padding: 10px 14px; border-left: 4px solid var(--alerte); background: var(--surface-2); border-radius: var(--rayon-petit); }
+.erreur-frequente ul { margin: 6px 0 0; padding-left: 20px; }
+.correction-francais > .lien { margin-top: 12px; }
 /* Issue #231 — Atelier de rédaction (maquette 9) */
 .atelier-redaction { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 280px); gap: 24px; align-items: start; }
 @media (max-width: 1440px) { .atelier-redaction { grid-template-columns: minmax(0, 1fr); } }
@@ -418,7 +450,7 @@ fieldset.choix-chapitres label.case { margin: 6px 0; }
 
 /* --- Application professeur et administrateur : navigation latérale ------------------------ */
 
-.app { display: grid; grid-template-columns: var(--largeur-nav) 1fr; min-height: 100vh; }
+.app { display: grid; grid-template-columns: var(--largeur-nav) minmax(0, 1fr); min-height: 100vh; }
 .app-nav {
   background: var(--primaire); color: var(--primaire-texte); padding: 16px 12px;
   display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
@@ -440,7 +472,8 @@ fieldset.choix-chapitres label.case { margin: 6px 0; }
   .app-nav { background: #161a26; color: var(--texte); border-right: 1px solid var(--bordure); }
   .app-nav .logo { color: var(--primaire); }
 }
-.app-contenu { padding: 24px 32px 48px; max-width: var(--largeur-app); width: 100%; }
+/* min-width: 0 (#154) : un tableau large défile dans son cadre au lieu d'élargir la page sur mobile. */
+.app-contenu { padding: 24px 32px 48px; max-width: var(--largeur-app); width: 100%; min-width: 0; }
 .app-entete { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
 .app-entete h1 { margin: 0; }
 .app-entete p { margin: 4px 0 0; }
@@ -448,7 +481,7 @@ fieldset.choix-chapitres label.case { margin: 6px 0; }
 .bouton-menu { display: none; }
 
 @media (max-width: 900px) {
-  .app { grid-template-columns: 1fr; }
+  .app { grid-template-columns: minmax(0, 1fr); }
   .app-nav { position: fixed; inset: 0 auto 0 0; width: min(280px, 85vw); z-index: 40; transform: translateX(-100%); transition: transform 0.2s; }
   .app-nav.ouverte { transform: none; box-shadow: var(--ombre-haute); }
   .app-contenu { padding: 16px; }
@@ -917,7 +950,7 @@ h1, h2, .accueil h3, .profil h3, .app-entete h1, .logo, .chiffres-cles strong {
 .fr-liste .badge { margin-left: 6px; }
 .fr-table td:last-child { white-space: nowrap; }
 .fr-liste .code { font-family: var(--police-mono); }
-.alerte-douce { color: var(--alerte); font-weight: 600; }
+.alerte-douce { color: var(--alerte-texte); font-weight: 600; }
 @media (max-width: 1100px) { .fr-colonnes { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 640px) {
   .fr-liste-alertes li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
@@ -945,9 +978,9 @@ h1, h2, .accueil h3, .profil h3, .app-entete h1, .logo, .chiffres-cles strong {
 .fr-entete-cours { display: block; min-width: 8rem; max-width: 12rem; white-space: normal; }
 .fr-niveau { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; white-space: nowrap; }
 .fr-niveau::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: currentColor; flex: none; }
-.fr-niveau.m { color: var(--ok); }
+.fr-niveau.m { color: var(--ok-texte); }
 .fr-niveau.c { color: var(--action); }
-.fr-niveau.r { color: var(--alerte); }
+.fr-niveau.r { color: var(--alerte-texte); }
 .fr-niveau.n { color: var(--texte-doux); font-weight: 500; }
 .fr-niveau.n::before { content: "–"; width: auto; height: auto; background: none; border-radius: 0; }
 .fr-valeur-alerte { color: var(--alerte); }
@@ -1045,11 +1078,15 @@ button.question-entete:hover:not(:disabled) { background: none; color: var(--tex
 @media (max-width: 980px) {
   .ecran-cours { grid-template-columns: minmax(0, 1fr); gap: 14px; }
   .rail-etapes { position: static; padding: 12px 14px; }
-  .rail-liste { display: none; }
-  .rail-mobile { display: block; }
+  /* Issue #154 : les étapes restent toutes accessibles sur petit écran, en bande qui défile. */
+  .rail-liste { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+  .rail-liste li { flex: none; }
+  button.rail-etape { grid-template-columns: 24px auto; padding: 6px 10px 6px 6px; border: 1px solid var(--bordure); }
+  button.rail-etape small { display: none; }
   .lecture-partagee { grid-template-columns: minmax(0, 1fr); }
   .lecture-texte { position: static; max-height: 45vh; }
   .contenu-etape > .surtitre { display: none; }
 }
 .cours-avancement { display: grid; gap: 6px; max-width: 420px; font-size: var(--t-s); }
 .cours-action { display: grid; gap: 8px; justify-items: start; }
+.contenu-etape > h2:focus { outline: none; }

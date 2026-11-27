@@ -5,7 +5,7 @@
 // 3. Appliquer et s'entraîner, 4. Approfondir, 5. Réinvestir » : chaque partie va à son étape, sans toucher au contenu.
 // Les étapes d'exercices ouvrent l'entraînement existant : le moteur choisit les questions (FR-UI-D3). Pour un sujet
 // de rédaction, l'étape « Appliquer » est l'atelier d'écriture (consigne, critères de réussite, état de la rédaction).
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api.js";
 import { Erreur } from "../composants.jsx";
 import { Maths } from "../maths.jsx";
@@ -162,6 +162,14 @@ function Etapes({ lecon, avancement, jeton, onExpire, eleveId, etapeInitiale, ru
   const [active, setActive] = useState(depart);
   const [faites, setFaites] = useState(() => etapes.filter((e) => e.numero < depart).map((e) => e.numero));
 
+  // Issue #154 : au changement d'étape, le focus va au titre de l'étape (annoncé par un lecteur d'écran).
+  const refTitre = useRef(null);
+  const dejaAffiche = useRef(false);
+  useEffect(() => {
+    if (dejaAffiche.current) refTitre.current?.focus();
+    dejaAffiche.current = true;
+  }, [active]);
+
   function choisir(n) {
     setFaites((f) => (f.includes(active) ? f : [...f, active]));
     setActive(n);
@@ -193,7 +201,7 @@ function Etapes({ lecon, avancement, jeton, onExpire, eleveId, etapeInitiale, ru
       />
       <section className="contenu-etape" aria-labelledby="titre-etape">
         <p className="surtitre">Étape {active} sur 7</p>
-        <h2 id="titre-etape">{SEPT_ETAPES[active - 1]}</h2>
+        <h2 id="titre-etape" ref={refTitre} tabIndex={-1}>{SEPT_ETAPES[active - 1]}</h2>
 
         {active === 1 && (
           <>

@@ -83,6 +83,9 @@ export default function BandeauAdmin({ jeton, onExpire, domaines, domaine, onDom
           onFocus={() => resultats && setOuvert(true)}
           onKeyDown={(e) => e.key === "Escape" && setOuvert(false)}
           autoComplete="off"
+          // Issue #154 : champ à liste de résultats, d'où le rôle combobox (aria-expanded n'est pas permis sur un champ de recherche).
+          role="combobox"
+          aria-autocomplete="list"
           aria-controls="admin-resultats"
           aria-expanded={ouvert}
         />
