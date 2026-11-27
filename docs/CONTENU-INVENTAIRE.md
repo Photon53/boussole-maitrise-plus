@@ -2,8 +2,8 @@
 
 Fichier **généré** par `python -m app.contenu inventaire` (depuis `api/`) : ne pas modifier à la main.
 
-- Chapitres : **170** · compétences : **373** · questions actives : **1981**
-- Validation pédagogique : 0 validée(s), 1981 à valider, 0 à corriger
+- Chapitres : **172** · compétences : **375** · questions actives : **1999**
+- Validation pédagogique : 0 validée(s), 1999 à valider, 0 à corriger
 
 ## Matrice de couverture
 
@@ -530,6 +530,13 @@ Nombre de questions actives par difficulté (1 = application directe … 5 = niv
 | 1. Les fonctions : sujet, COD, COI et complément du nom | `FR5-FONCTIONS-ID` Identifier le sujet, le COD, le COI et le complément du nom | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 | 2. L’imparfait et le passé simple | `FR5-RECIT-TEMPS` Conjuguer et employer l’imparfait et le passé simple dans un récit | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 
+### 4e — Tronc commun
+
+| Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
+|---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| 1. La phrase complexe et les propositions subordonnées | `FR4-PHRASE-COMPLEXE` Analyser une phrase complexe et reconnaître ses propositions subordonnées | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+| 2. Les temps et les modes verbaux | `FR4-MODES-EMPLOI` Identifier et employer le subjonctif présent, le conditionnel présent et l’impératif | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+
 ### 3e — Tronc commun
 
 | Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
@@ -545,7 +552,7 @@ Aucun.
 
 | Source | Licence de la source | Adaptation | Questions |
 |---|---|---|:-:|
-| PKP Math | — | originale | 1938 |
+| PKP Math | — | originale | 1956 |
 | math.ma | non clarifiée | inspiree | 33 |
 | MathALÉA | CC BY-SA 4.0 | inspiree | 5 |
 | STACK | à vérifier | inspiree | 3 |

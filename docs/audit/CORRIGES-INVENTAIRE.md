@@ -12,7 +12,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 |---|---|:-:|:-:|:-:|:-:|:-:|
 | 6e | tronc-commun | 0 | 125 | 19 | 144 | 13 % |
 | 5e | tronc-commun | 0 | 121 | 29 | 150 | 19 % |
-| 4e | tronc-commun | 0 | 101 | 16 | 117 | 14 % |
+| 4e | tronc-commun | 0 | 108 | 27 | 135 | 20 % |
 | 3e | tronc-commun | 0 | 86 | 25 | 111 | 23 % |
 | 2nde | tronc-commun | 73 | 200 | 22 | 295 | 7 % |
 | 2nde | professionnel | 4 | 15 | 0 | 19 | 0 % |
@@ -31,7 +31,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 | Tle | excellence | 65 | 15 | 0 | 80 | 0 % |
 | Tle | mise-a-niveau | 13 | 2 | 0 | 15 | 0 % |
 | Tle | examens | 29 | 1 | 0 | 30 | 0 % |
-| **Total** | | 555 | 1278 | 148 | 1981 | 7 % |
+| **Total** | | 555 | 1285 | 159 | 1999 | 8 % |
 
 ## Par chapitre
 
@@ -944,6 +944,14 @@ FR5-FONCTIONS : 0 résultat seul, 3 à compléter, 6 complet(s).
 ### 5e · tronc-commun · L’imparfait et le passé simple
 
 FR5-RECIT : 0 résultat seul, 7 à compléter, 2 complet(s).
+
+### 4e · tronc-commun · La phrase complexe et les propositions subordonnées
+
+FR4-PHRASE : 0 résultat seul, 3 à compléter, 6 complet(s).
+
+### 4e · tronc-commun · Les temps et les modes verbaux
+
+FR4-MODES : 0 résultat seul, 4 à compléter, 5 complet(s).
 
 ### 3e · tronc-commun · Accords et réécriture : exercices associés au dossier brevet
 
