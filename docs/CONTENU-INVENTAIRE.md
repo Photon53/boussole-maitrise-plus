@@ -2,8 +2,8 @@
 
 Fichier **généré** par `python -m app.contenu inventaire` (depuis `api/`) : ne pas modifier à la main.
 
-- Chapitres : **168** · compétences : **371** · questions actives : **1931**
-- Validation pédagogique : 0 validée(s), 1931 à valider, 0 à corriger
+- Chapitres : **172** · compétences : **375** · questions actives : **1967**
+- Validation pédagogique : 0 validée(s), 1967 à valider, 0 à corriger
 
 ## Matrice de couverture
 
@@ -520,12 +520,16 @@ Nombre de questions actives par difficulté (1 = application directe … 5 = niv
 
 | Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| 1. La nature des mots | `FR6-NATURE-MOTS` Identifier la classe grammaticale d’un mot dans une phrase | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+| 2. Le présent de l’indicatif | `FR6-PRESENT-CONJ` Conjuguer un verbe au présent de l’indicatif et l’accorder avec son sujet | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 | 3. Rédaction : raconter une aventure au présent | `FR6-RED-AVENTURE-RECIT` Raconter une aventure fictive cohérente au présent | ✓ | — | 1 | — | — | — | 1 | 1 |
 
 ### 5e — Tronc commun
 
 | Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
 |---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| 1. Les fonctions : sujet, COD, COI et complément du nom | `FR5-FONCTIONS-ID` Identifier le sujet, le COD, le COI et le complément du nom | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+| 2. L’imparfait et le passé simple | `FR5-RECIT-TEMPS` Conjuguer et employer l’imparfait et le passé simple dans un récit | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
 | 3. Rédaction : raconter un événement passé | `FR5-RED-EVENEMENT-RECIT` Raconter un événement fictif à l’imparfait et au passé simple | ✓ | — | — | 1 | — | — | 1 | 1 |
 
 ### 4e — Tronc commun
@@ -548,7 +552,7 @@ Aucun.
 
 | Source | Licence de la source | Adaptation | Questions |
 |---|---|---|:-:|
-| PKP Math | — | originale | 1888 |
+| PKP Math | — | originale | 1924 |
 | math.ma | non clarifiée | inspiree | 33 |
 | MathALÉA | CC BY-SA 4.0 | inspiree | 5 |
 | STACK | à vérifier | inspiree | 3 |

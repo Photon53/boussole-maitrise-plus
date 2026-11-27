@@ -10,8 +10,8 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 
 | Niveau | Parcours | Résultat seul | À compléter | Complet | Questions | Complets |
 |---|---|:-:|:-:|:-:|:-:|:-:|
-| 6e | tronc-commun | 0 | 113 | 14 | 127 | 11 % |
-| 5e | tronc-commun | 0 | 111 | 22 | 133 | 17 % |
+| 6e | tronc-commun | 0 | 125 | 20 | 145 | 14 % |
+| 5e | tronc-commun | 0 | 121 | 30 | 151 | 20 % |
 | 4e | tronc-commun | 0 | 101 | 17 | 118 | 14 % |
 | 3e | tronc-commun | 0 | 79 | 15 | 94 | 16 % |
 | 2nde | tronc-commun | 73 | 200 | 22 | 295 | 7 % |
@@ -31,7 +31,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 | Tle | excellence | 65 | 15 | 0 | 80 | 0 % |
 | Tle | mise-a-niveau | 13 | 2 | 0 | 15 | 0 % |
 | Tle | examens | 29 | 1 | 0 | 30 | 0 % |
-| **Total** | | 555 | 1249 | 127 | 1931 | 7 % |
+| **Total** | | 555 | 1271 | 141 | 1967 | 7 % |
 
 ## Par chapitre
 
@@ -929,9 +929,25 @@ TLE-DIAG-SPE : 0 résultat seul, 5 à compléter, 1 complet(s).
 
 TLE-DIAG-TECH : 0 résultat seul, 6 à compléter, 0 complet(s).
 
+### 6e · tronc-commun · La nature des mots
+
+FR6-NATURE : 0 résultat seul, 4 à compléter, 5 complet(s).
+
+### 6e · tronc-commun · Le présent de l’indicatif
+
+FR6-PRESENT : 0 résultat seul, 8 à compléter, 1 complet(s).
+
 ### 6e · tronc-commun · Rédaction : raconter une aventure au présent
 
 FR6-RED-AVENTURE : 0 résultat seul, 0 à compléter, 1 complet(s).
+
+### 5e · tronc-commun · Les fonctions : sujet, COD, COI et complément du nom
+
+FR5-FONCTIONS : 0 résultat seul, 3 à compléter, 6 complet(s).
+
+### 5e · tronc-commun · L’imparfait et le passé simple
+
+FR5-RECIT : 0 résultat seul, 7 à compléter, 2 complet(s).
 
 ### 5e · tronc-commun · Rédaction : raconter un événement passé
 
