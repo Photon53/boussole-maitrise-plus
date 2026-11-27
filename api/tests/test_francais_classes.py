@@ -15,7 +15,15 @@ competences:
   - code: FR5-PRES
     libelle: Conjuguer au présent
     questions:
-      - {code: FR5-PRES-01, difficulte: 1, type: texte, enonce: "finir, ils (présent) ?", solution: "finissent | ils finissent"}
+      # Question validée (#177) : seul un contenu de français validé permet d'ouvrir le domaine au public.
+      - code: FR5-PRES-01
+        difficulte: 1
+        type: texte
+        enonce: "finir, ils (présent) ?"
+        solution: "finissent | ils finissent"
+        auteur: Test
+        correction: {etapes: ["Finir est du 2e groupe : ils finissent."], resultat: finissent}
+        validation: {statut: validee, par: Relecteur, le: 2026-11-01}
 """
 DOSSIER_FR = "francais/5e/tronc-commun/01-present.yaml"
 
