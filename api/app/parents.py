@@ -154,6 +154,7 @@ def resume(session: Session, eleve: models.Eleve, maintenant: datetime | None = 
         competences_total=len(competences),
         derniere_activite=_utc(derniere) if derniere else None,
         minutes_7_jours=_minutes(d for _, d, _ in semaine),
+        matiere="francais" if eleve.classe.domaine_code.startswith("francais-") else "maths",
     )
 
 

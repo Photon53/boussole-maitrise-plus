@@ -599,6 +599,8 @@ class EnfantResume(BaseModel):
     competences_total: int
     derniere_activite: datetime | None
     minutes_7_jours: float
+    # Issue #231 : matière de la classe, pour que l'espace parent montre le bon bilan (maths ou français).
+    matiere: str = "maths"
 
 
 class JourActivite(BaseModel):
