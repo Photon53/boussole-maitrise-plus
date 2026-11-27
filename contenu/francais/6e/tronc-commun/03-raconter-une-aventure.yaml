@@ -43,9 +43,9 @@ competences:
 
     - J’écris au présent et chaque verbe est accordé.
 
-    - Mes phrases commencent par une majuscule et se terminent par un point.
+    - Mes phrases commencent par une majuscule et se terminent par un point, un point d’exclamation ou d’interrogation.
 
-    - J’ai fait au moins trois paragraphes.
+    - J’ai fait au moins quatre paragraphes.
 
 
     ## 4. Relire et réécrire
@@ -61,7 +61,8 @@ competences:
     '
   erreurs_frequentes:
   - erreur: Changer de temps au milieu du récit.
-    explication: Choisir le présent dès la première phrase et s’y tenir.
+    explication: Raconter les actions principales au présent du début à la fin ; un passé composé reste possible pour un fait
+      antérieur.
   - erreur: Oublier le dénouement.
     explication: Prévoir la fin avant de commencer à écrire.
   questions:
@@ -86,6 +87,6 @@ competences:
       etapes:
       - 'Consigne : le récit raconte une aventure fictive, au présent, autour d’un lieu inconnu et d’un obstacle.'
       - 'Cohérence : situation initiale, péripéties et dénouement s’enchaînent ; le personnage reste le même.'
-      - 'Organisation : au moins trois paragraphes, chacun correspondant à une étape du récit.'
+      - 'Organisation : au moins quatre paragraphes (situation initiale, deux péripéties, dénouement).'
       - 'Langue : présent de l’indicatif maîtrisé (terminaisons, accord sujet-verbe) ; ponctuation et majuscules.'
       - 'Révision : la réécriture tient compte du retour (un passage amélioré au moins).'

@@ -63,7 +63,8 @@ competences:
   - erreur: Tout écrire à l’imparfait.
     explication: Les actions qui font avancer l’histoire sont au passé simple.
   - erreur: Mélanger passé composé et passé simple.
-    explication: Choisir le passé simple pour le récit et s’y tenir.
+    explication: Choisir le passé simple pour les actions du récit et s’y tenir ; les dialogues peuvent employer le présent
+      ou le passé composé.
   questions:
   - code: FR5-RED-EVENEMENT-RECIT-01
     difficulte: 3
@@ -73,7 +74,7 @@ competences:
 
 
       Installe le décor à l’imparfait, puis raconte l’événement et ses suites au passé simple. Utilise au moins trois connecteurs
-      temporels. Longueur indicative : 20 lignes.
+      temporels et organise ton récit en paragraphes. Longueur indicative : 20 lignes.
 
 
       Tout est inventé : n’écris ni ton nom, ni celui d’une personne réelle, ni adresse, ni information personnelle ou intime.'
