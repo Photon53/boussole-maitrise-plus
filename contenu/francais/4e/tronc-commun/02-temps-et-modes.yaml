@@ -1,0 +1,190 @@
+chapitre:
+  code: FR4-MODES
+  matiere: francais
+  rubrique: conjugaison
+  niveau: 4e
+  parcours: tronc-commun
+  ordre: 2
+  titre: Les temps et les modes verbaux
+
+competences:
+  - code: FR4-MODES-EMPLOI
+    libelle: Identifier et employer le subjonctif présent, le conditionnel présent et l’impératif
+    objectifs:
+      - Identifier le mode et le temps d’une forme verbale.
+      - Conjuguer au subjonctif présent et au conditionnel présent les verbes fréquents.
+      - Distinguer le futur (je serai) du conditionnel présent (je serais) selon le sens de la phrase.
+    resume: |
+      - **Indicatif** : le mode du réel (présent, imparfait, passé simple, futur, passé composé…). Le **conditionnel** est rangé parmi les temps de l’indicatif dans la terminologie de référence : il exprime un futur vu du passé ou une hypothèse.
+      - **Subjonctif** : après « il faut que », « je veux que », « bien que » ; terminaisons -e, -es, -e, -ions, -iez, -ent. *Que je finisse, que tu sois, qu’ils fassent.*
+      - **Impératif** : ordre ou conseil, sans sujet exprimé. *Viens ! Finissons.*
+      - **Conditionnel présent** : radical du futur + terminaisons de l’imparfait : *je serais, nous lirions.*
+      - **Futur ou conditionnel ?** Remplacer par « nous » : *nous serons* (futur), *nous serions* (conditionnel).
+    cours: |
+      ## 1. Découvrir
+      **Objectif** : choisir la bonne forme verbale selon ce que la phrase exprime. **Durée indicative** : trois séances de 45 minutes.
+      **Ce qu’il faut déjà savoir** : le présent (6e), l’imparfait et le passé simple (5e).
+
+      ## 2. Comprendre
+      | Phrase | Forme | Mode, temps | Ce qu’elle exprime |
+      |---|---|---|---|
+      | Demain, je **serai** à Lyon. | serai | indicatif, futur | un fait à venir, certain |
+      | Si j’avais le temps, je **lirais** davantage. | lirais | indicatif, conditionnel présent | une hypothèse |
+      | Il a dit qu’il **viendrait** le lendemain. | viendrait | indicatif, conditionnel présent | un futur vu du passé |
+      | Il faut que tu **partes**. | partes | subjonctif présent | une obligation, une action envisagée |
+      | **Viens** ici ! | viens | impératif présent | un ordre |
+
+      **Former le subjonctif présent** : radical de « ils » au présent de l’indicatif (*ils finissent → que je finisse*) ; « être », « avoir », « faire », « aller », « pouvoir », « savoir » et « vouloir » sont irréguliers (*que je sois, que j’aie, que je fasse*).
+
+      ## 3. Appliquer et s’entraîner
+      Les exercices commencent par l’identification des modes, puis demandent de conjuguer au subjonctif et au conditionnel.
+
+      ## 4. Approfondir
+      Après « si » suivi de l’imparfait, on emploie le conditionnel dans la principale (*si tu venais, je serais heureux*), jamais le futur. Après « il faut que », on emploie le subjonctif.
+
+      ## 5. Réinvestir
+      Dans le sujet de rédaction R3, utilise au moins une hypothèse au conditionnel pour défendre ton opinion.
+    methodes:
+      - titre: Choisir entre futur et conditionnel présent à la 1re personne du singulier
+        quand: On hésite entre « -rai » et « -rais ».
+        etapes:
+          - Remplacer « je » par « nous ».
+          - "Si l’on dit « nous serons », c’est le futur : on écrit « -rai »."
+          - "Si l’on dit « nous serions », c’est le conditionnel : on écrit « -rais »."
+        exemple:
+          enonce: Compléter « Si j’avais un vélo, j’(aller) au collège en dix minutes ».
+          resolution:
+            - "« Si » est suivi de l’imparfait (« avais ») : la principale est au conditionnel."
+            - "Avec « nous » : nous irions."
+            - On écrit donc « j’irais ».
+          resultat: irais
+    erreurs_frequentes:
+      - erreur: Écrire « je serai » au lieu de « je serais » après « si » suivi de l’imparfait.
+        explication: L’hypothèse « si + imparfait » appelle le conditionnel dans la principale.
+      - erreur: Écrire « que je soit ».
+        explication: Au subjonctif présent, « être » fait « que je sois, que tu sois, qu’il soit ».
+      - erreur: Écrire « qu’ils faisent ».
+        explication: "Le subjonctif de « faire » est irrégulier : qu’ils fassent."
+    questions:
+      - code: FR4-MODES-EMPLOI-01
+        difficulte: 1
+        type: qcm
+        enonce: "À quel mode est le verbe de la phrase « Viens ici ! » ? A) indicatif  B) impératif  C) subjonctif"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le sujet et ce que la phrase exprime.
+          etapes:
+            - Le verbe « viens » n’a pas de sujet exprimé.
+            - "La phrase donne un ordre : c’est l’impératif présent."
+          resultat: B
+      - code: FR4-MODES-EMPLOI-02
+        difficulte: 1
+        type: qcm
+        enonce: "Dans « Il faut que tu partes », à quel mode et à quel temps est « partes » ? A) indicatif présent  B) subjonctif présent  C) conditionnel présent"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Repérer l’expression qui introduit le verbe.
+          etapes:
+            - « Il faut que » est toujours suivi du subjonctif.
+            - "« Que tu partes » : subjonctif présent (à l’indicatif, on dirait « tu pars »)."
+          resultat: B
+      - code: FR4-MODES-EMPLOI-03
+        difficulte: 2
+        type: texte
+        enonce: Conjugue le verbe au subjonctif présent et écris seulement la forme verbale. « Il faut que nous (finir) ce travail. »
+        solution: finissions|nous finissions
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Partir du radical de « ils » au présent de l’indicatif.
+          etapes:
+            - "Ils finissent : le radical est « finiss- »."
+            - Avec « nous », la terminaison du subjonctif est -ions.
+          resultat: finissions
+          erreurs_frequentes:
+            - Écrire « finissons », qui est l’indicatif présent.
+      - code: FR4-MODES-EMPLOI-04
+        difficulte: 3
+        type: texte
+        enonce: Conjugue le verbe au subjonctif présent et écris seulement la forme verbale. « Je veux que tu (être) à l’heure. »
+        solution: sois|tu sois
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Connaître le subjonctif irrégulier d’« être ».
+          etapes:
+            - « Je veux que » est suivi du subjonctif.
+            - "Être : que je sois, que tu sois, qu’il soit, que nous soyons, que vous soyez, qu’ils soient."
+          resultat: sois
+          erreurs_frequentes:
+            - Écrire « es » (indicatif) ou « soit » (3e personne).
+      - code: FR4-MODES-EMPLOI-05
+        difficulte: 3
+        type: texte
+        enonce: Conjugue le verbe au conditionnel présent et écris seulement la forme verbale. « Si j’avais le temps, je (lire) davantage. »
+        solution: lirais|je lirais
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Radical du futur et terminaisons de l’imparfait.
+          etapes:
+            - « Si » suivi de l’imparfait (« avais ») appelle le conditionnel.
+            - "Futur : je lirai ; conditionnel : je lirais (terminaison -ais)."
+          resultat: lirais
+          erreurs_frequentes:
+            - Écrire « lirai », qui est le futur.
+      - code: FR4-MODES-EMPLOI-06
+        difficulte: 3
+        type: qcm
+        enonce: "Dans « Demain, je serai à Lyon », à quel temps est « serai » ? A) futur de l’indicatif  B) conditionnel présent  C) subjonctif présent"
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Faire le test du remplacement par « nous ».
+          etapes:
+            - Avec « nous », on dirait « Demain, nous serons à Lyon ».
+            - "« Nous serons » est le futur : « serai » est donc au futur."
+          resultat: A
+      - code: FR4-MODES-EMPLOI-07
+        difficulte: 4
+        type: qcm
+        enonce: "Quelle forme complète la phrase « Je … heureux de te revoir si tu venais » ? A) serai  B) serais  C) sois"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Identifier la structure de l’hypothèse.
+          etapes:
+            - "« Si tu venais » : « si » suivi de l’imparfait."
+            - La principale se met au conditionnel présent.
+            - "Avec « nous », on dirait « nous serions » : on écrit « je serais »."
+          resultat: B
+          erreurs_frequentes:
+            - Choisir « serai », qui est le futur.
+      - code: FR4-MODES-EMPLOI-08
+        difficulte: 4
+        type: texte
+        enonce: Conjugue le verbe au subjonctif présent et écris seulement la forme verbale. « Il faut qu’ils (faire) attention. »
+        solution: fassent|ils fassent
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Connaître le subjonctif irrégulier de « faire ».
+          etapes:
+            - « Il faut que » est suivi du subjonctif.
+            - "Faire : que je fasse, que tu fasses, qu’il fasse, qu’ils fassent."
+          resultat: fassent
+          erreurs_frequentes:
+            - Écrire « font » (indicatif) ou « faisent ».
+      - code: FR4-MODES-EMPLOI-09
+        difficulte: 5
+        type: qcm
+        enonce: "Dans « Il a dit qu’il viendrait le lendemain », que traduit le conditionnel « viendrait » ? A) un futur vu du passé  B) une demande polie  C) une hypothèse impossible"
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Mettre la phrase au présent pour comparer.
+          etapes:
+            - "Au présent, on dirait « Il dit qu’il viendra demain » : un futur."
+            - Quand le verbe principal passe au passé (« a dit »), ce futur devient un conditionnel.
+            - C’est la valeur temporelle du conditionnel, un futur vu du passé.
+          resultat: A
+          erreurs_frequentes:
+            - Répondre « hypothèse » parce que le conditionnel exprime souvent une condition.

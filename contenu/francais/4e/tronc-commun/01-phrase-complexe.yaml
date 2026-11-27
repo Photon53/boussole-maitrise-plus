@@ -1,0 +1,191 @@
+chapitre:
+  code: FR4-PHRASE
+  matiere: francais
+  rubrique: grammaire
+  niveau: 4e
+  parcours: tronc-commun
+  ordre: 1
+  titre: La phrase complexe et les propositions subordonnées
+
+competences:
+  - code: FR4-PHRASE-COMPLEXE
+    libelle: Analyser une phrase complexe et reconnaître ses propositions subordonnées
+    objectifs:
+      - Compter les propositions d’une phrase à partir des verbes conjugués.
+      - Distinguer juxtaposition, coordination et subordination.
+      - Reconnaître une subordonnée relative (introduite par un pronom relatif) et une subordonnée conjonctive (introduite par une conjonction de subordination).
+    resume: |
+      - Une **proposition** s’organise autour d’un verbe conjugué : autant de verbes conjugués, autant de propositions.
+      - **Juxtaposition** : propositions séparées par une virgule, un point-virgule ou deux-points. **Coordination** : reliées par une conjonction de coordination (mais, ou, et, donc, or, ni, car).
+      - **Subordination** : une proposition dépend d’une autre (la principale) ; elle est introduite par un **mot subordonnant**.
+      - **Relative** : introduite par un pronom relatif (qui, que, quoi, dont, où, lequel…), elle complète un nom, son **antécédent**.
+      - **Conjonctive** : introduite par une conjonction de subordination (que, quand, parce que, si, bien que…).
+    cours: |
+      ## 1. Découvrir
+      **Objectif** : comprendre comment les phrases longues sont construites, pour mieux les lire et les écrire. **Durée indicative** : trois séances de 45 minutes.
+      **Ce qu’il faut déjà savoir** : la nature des mots (6e) et les fonctions (5e).
+
+      ## 2. Comprendre
+      « **Quand la cloche sonna**, les élèves **qui attendaient dans la cour** se rangèrent. »
+      - Trois verbes conjugués (sonna, attendaient, rangèrent) : **trois propositions**.
+      - « les élèves se rangèrent » est la **principale**.
+      - « Quand la cloche sonna » est une **subordonnée conjonctive** (conjonction « quand »).
+      - « qui attendaient dans la cour » est une **subordonnée relative** : « qui » reprend son antécédent « élèves ».
+
+      | Relation | Mot de liaison | Exemple |
+      |---|---|---|
+      | Juxtaposition | ponctuation | Il pleut ; nous restons à la maison. |
+      | Coordination | mais, ou, et, donc, or, ni, car | Je sors, mais il fait froid. |
+      | Subordination | pronom relatif ou conjonction de subordination | Je pense qu’il viendra. |
+
+      ## 3. Appliquer et s’entraîner
+      Les exercices font compter les propositions, puis reconnaître le lien et le mot subordonnant.
+
+      ## 4. Approfondir
+      Le mot « que » a deux natures. **Pronom relatif**, il reprend un antécédent et a une fonction dans la relative : « Le livre **que** tu lis » (tu lis le livre). **Conjonction de subordination**, il n’a pas d’antécédent : « Je crois **que** tu as raison ».
+
+      ## 5. Réinvestir
+      Dans le sujet de rédaction R3, emploie au moins une relative et une conjonctive pour relier tes arguments.
+    methodes:
+      - titre: Reconnaître la nature de « que »
+        quand: Le mot « que » introduit une proposition.
+        etapes:
+          - Chercher si « que » suit un nom qu’il reprend (un antécédent).
+          - "Remplacer « que » par son antécédent dans la proposition : si la phrase a du sens, c’est un pronom relatif."
+          - Si « que » suit un verbe (croire, penser, vouloir…) et ne reprend aucun nom, c’est une conjonction de subordination.
+        exemple:
+          enonce: Quelle est la nature de « que » dans « La route que nous suivons est longue » ?
+          resolution:
+            - « Que » suit le nom « route ».
+            - "« Nous suivons la route » a du sens : « que » reprend « route »."
+            - C’est un pronom relatif ; « route » est son antécédent.
+          resultat: pronom relatif
+    erreurs_frequentes:
+      - erreur: Compter les propositions à partir des virgules.
+        explication: On compte les verbes conjugués ; un infinitif ou un participe ne forme pas à lui seul une proposition dans ce cours.
+      - erreur: Confondre « que » pronom relatif et « que » conjonction.
+        explication: Le pronom relatif reprend un antécédent, la conjonction n’en a pas.
+      - erreur: Prendre « mais » ou « car » pour des mots subordonnants.
+        explication: "Ce sont des conjonctions de coordination : les propositions restent de même niveau."
+    questions:
+      - code: FR4-PHRASE-COMPLEXE-01
+        difficulte: 1
+        type: qcm
+        enonce: "Combien de propositions compte la phrase « Le soleil se lève et les oiseaux chantent » ? A) une  B) deux  C) trois"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Compter les verbes conjugués.
+          etapes:
+            - Les verbes conjugués sont « se lève » et « chantent ».
+            - "Deux verbes conjugués : deux propositions."
+          resultat: B
+      - code: FR4-PHRASE-COMPLEXE-02
+        difficulte: 1
+        type: qcm
+        enonce: "Comment sont reliées les propositions de la phrase « Il pleut ; nous restons à la maison » ? A) par juxtaposition  B) par coordination  C) par subordination"
+        solution: A
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le mot ou le signe qui relie les propositions.
+          etapes:
+            - Les deux propositions sont séparées par un point-virgule.
+            - "Aucun mot de liaison : c’est une juxtaposition."
+          resultat: A
+      - code: FR4-PHRASE-COMPLEXE-03
+        difficulte: 2
+        type: qcm
+        enonce: "Comment sont reliées les propositions de la phrase « Je sors, mais il fait froid » ? A) par juxtaposition  B) par coordination  C) par subordination"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Identifier la nature du mot de liaison.
+          etapes:
+            - Les deux propositions sont reliées par « mais ».
+            - « Mais » est une conjonction de coordination.
+            - Les propositions sont donc coordonnées.
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « juxtaposition » à cause de la virgule.
+      - code: FR4-PHRASE-COMPLEXE-04
+        difficulte: 3
+        type: texte
+        enonce: Recopie le mot subordonnant de la phrase « Le livre que tu m’as prêté est passionnant ».
+        solution: que
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le mot qui introduit la proposition dépendante.
+          etapes:
+            - "Les verbes conjugués sont « as prêté » et « est » : deux propositions."
+            - « que tu m’as prêté » dépend du nom « livre ».
+            - Elle est introduite par le pronom relatif « que ».
+          resultat: que
+      - code: FR4-PHRASE-COMPLEXE-05
+        difficulte: 3
+        type: qcm
+        enonce: "Dans « Je pense qu’il viendra », quelle est la nature de la proposition « qu’il viendra » ? A) subordonnée relative  B) subordonnée conjonctive  C) proposition indépendante"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher un antécédent avant le mot subordonnant.
+          etapes:
+            - « Qu’ » (que) suit le verbe « pense » et ne reprend aucun nom.
+            - C’est une conjonction de subordination.
+            - La proposition est une subordonnée conjonctive, complément du verbe « pense ».
+          resultat: B
+          erreurs_frequentes:
+            - Répondre « relative » parce que « que » peut aussi être un pronom relatif.
+      - code: FR4-PHRASE-COMPLEXE-06
+        difficulte: 3
+        type: texte
+        enonce: Recopie l’antécédent du pronom relatif « qui » dans la phrase « J’ai rencontré une élève qui joue du violon ».
+        solution: une élève|élève
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Chercher le nom que le pronom relatif reprend.
+          etapes:
+            - "« Qui joue du violon » : qui est-ce qui joue ? L’élève."
+            - « Qui » reprend le groupe « une élève », placé juste avant lui.
+          resultat: une élève
+      - code: FR4-PHRASE-COMPLEXE-07
+        difficulte: 4
+        type: qcm
+        enonce: "Dans quelle phrase « que » est-il un pronom relatif ? A) Je crois que tu as raison.  B) La route que nous suivons est longue.  C) Il faut que tu viennes."
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Remplacer « que » par un nom qui le précède.
+          etapes:
+            - "Dans la phrase B, « que » suit le nom « route » et le reprend : nous suivons la route."
+            - "Dans les phrases A et C, « que » suit un verbe (« crois », « faut ») et ne reprend aucun nom : c’est une conjonction."
+          resultat: B
+      - code: FR4-PHRASE-COMPLEXE-08
+        difficulte: 4
+        type: texte
+        enonce: Combien de propositions compte la phrase « Quand la cloche sonna, les élèves qui attendaient dans la cour se rangèrent » ? Réponds par un nombre.
+        solution: 3|trois
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Compter les verbes conjugués, puis identifier chaque proposition.
+          etapes:
+            - "Verbes conjugués : sonna, attendaient, rangèrent."
+            - "Principale : « les élèves se rangèrent »."
+            - "Subordonnées : « Quand la cloche sonna » (conjonctive) et « qui attendaient dans la cour » (relative)."
+          resultat: '3'
+          erreurs_frequentes:
+            - Répondre « deux » en oubliant la relative placée au milieu de la principale.
+      - code: FR4-PHRASE-COMPLEXE-09
+        difficulte: 5
+        type: qcm
+        enonce: "Dans « La maison où j’ai grandi a été vendue », qu’est la proposition « où j’ai grandi » ? A) une subordonnée conjonctive, complément du verbe  B) une subordonnée relative, complément de l’antécédent « maison »  C) une proposition indépendante"
+        solution: B
+        auteur: Brouillon IA (Claude)
+        correction:
+          methode: Identifier le mot subordonnant et ce qu’il reprend.
+          etapes:
+            - "« Où » suit le nom « maison » et le reprend : j’ai grandi dans la maison."
+            - « Où » est ici un pronom relatif, et non un adverbe interrogatif.
+            - La proposition est une subordonnée relative qui complète son antécédent « maison ».
+          resultat: B
+          erreurs_frequentes:
+            - Prendre « où » pour un mot interrogatif ou pour une conjonction.

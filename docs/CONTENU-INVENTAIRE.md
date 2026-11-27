@@ -2,8 +2,8 @@
 
 Fichier **généré** par `python -m app.contenu inventaire` (depuis `api/`) : ne pas modifier à la main.
 
-- Chapitres : **164** · compétences : **367** · questions actives : **1927**
-- Validation pédagogique : 0 validée(s), 1927 à valider, 0 à corriger
+- Chapitres : **166** · compétences : **369** · questions actives : **1945**
+- Validation pédagogique : 0 validée(s), 1945 à valider, 0 à corriger
 
 ## Matrice de couverture
 
@@ -516,6 +516,13 @@ Nombre de questions actives par difficulté (1 = application directe … 5 = niv
 | 92. Diagnostic d'entrée, acquis de 1re technologique | `TLE-DIAG-TECH-FONCTIONS` Calcul et fonctions (acquis de 1re technologique) | — | 1 | 1 | — | — | — | 2 | 2 |
 | 92. Diagnostic d'entrée, acquis de 1re technologique | `TLE-DIAG-TECH-DONNEES` Statistiques, probabilités, suites et algorithmique (acquis de 1re technologique) | — | 2 | 2 | — | — | — | 4 | 4 |
 
+### 4e — Tronc commun
+
+| Chapitre | Compétence | Cours | 1 | 2 | 3 | 4 | 5 | Total | À valider |
+|---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| 1. La phrase complexe et les propositions subordonnées | `FR4-PHRASE-COMPLEXE` Analyser une phrase complexe et reconnaître ses propositions subordonnées | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+| 2. Les temps et les modes verbaux | `FR4-MODES-EMPLOI` Identifier et employer le subjonctif présent, le conditionnel présent et l’impératif | ✓ | 2 | 1 | 3 | 2 | 1 | 9 | 9 |
+
 ## Trous à combler
 
 Aucun.
@@ -524,7 +531,7 @@ Aucun.
 
 | Source | Licence de la source | Adaptation | Questions |
 |---|---|---|:-:|
-| PKP Math | — | originale | 1884 |
+| PKP Math | — | originale | 1902 |
 | math.ma | non clarifiée | inspiree | 33 |
 | MathALÉA | CC BY-SA 4.0 | inspiree | 5 |
 | STACK | à vérifier | inspiree | 3 |

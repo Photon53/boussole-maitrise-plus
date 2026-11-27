@@ -12,7 +12,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 |---|---|:-:|:-:|:-:|:-:|:-:|
 | 6e | tronc-commun | 0 | 113 | 13 | 126 | 10 % |
 | 5e | tronc-commun | 0 | 111 | 21 | 132 | 16 % |
-| 4e | tronc-commun | 0 | 101 | 16 | 117 | 14 % |
+| 4e | tronc-commun | 0 | 108 | 27 | 135 | 20 % |
 | 3e | tronc-commun | 0 | 79 | 14 | 93 | 15 % |
 | 2nde | tronc-commun | 73 | 200 | 22 | 295 | 7 % |
 | 2nde | professionnel | 4 | 15 | 0 | 19 | 0 % |
@@ -31,7 +31,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 | Tle | excellence | 65 | 15 | 0 | 80 | 0 % |
 | Tle | mise-a-niveau | 13 | 2 | 0 | 15 | 0 % |
 | Tle | examens | 29 | 1 | 0 | 30 | 0 % |
-| **Total** | | 555 | 1249 | 123 | 1927 | 6 % |
+| **Total** | | 555 | 1256 | 134 | 1945 | 7 % |
 
 ## Par chapitre
 
@@ -928,3 +928,11 @@ TLE-DIAG-SPE : 0 résultat seul, 5 à compléter, 1 complet(s).
 ### Tle · technologique · Diagnostic d'entrée, acquis de 1re technologique
 
 TLE-DIAG-TECH : 0 résultat seul, 6 à compléter, 0 complet(s).
+
+### 4e · tronc-commun · La phrase complexe et les propositions subordonnées
+
+FR4-PHRASE : 0 résultat seul, 3 à compléter, 6 complet(s).
+
+### 4e · tronc-commun · Les temps et les modes verbaux
+
+FR4-MODES : 0 résultat seul, 4 à compléter, 5 complet(s).
