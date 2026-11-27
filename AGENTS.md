@@ -71,6 +71,7 @@ Un nouveau script qui touche au cloud, à la VM ou aux secrets s'ajoute à cette
 - `scripts/tests/test-controle-acces-sauvegardes.sh` ;
 - `deploy/sauvegarde/tests/test-sauvegarde-prod.sh` (faux `docker` et faux `gcloud`, vrai `age`) ;
 - `scripts/recette/pile-locale.sh` (base SQLite temporaire, API et front locaux, recette Français multi-rôles dans Chromium ; aucun accès cloud, ne touche pas `api/pkp.db`) ;
+- `scripts/recette/accessibilite-francais.mjs` contre une pile locale jetable (axe-core, recomposition et parcours au clavier, comptes fictifs ; refuse toute adresse non locale, #231, #154) ;
 - `bash -n <script>` sur n'importe quel script (vérification de syntaxe, rien n'est exécuté).
 
 **Autres scripts** : lire et vérifier leurs effets ; demander une décision uniquement s'ils dépassent le périmètre autorisé ou restent ambigus. Le nom seul ne permet pas de décider : `installer-dev.sh` et `deployer-dev-iap.sh` ont des effets différents. Les interdictions explicites ci-dessus restent applicables.
