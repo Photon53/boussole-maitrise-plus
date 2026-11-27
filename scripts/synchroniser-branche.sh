@@ -6,7 +6,8 @@
 #   - inventaires régénérés après toute fusion qui touche le contenu, commit séparé s'ils changent ;
 #   - autres conflits : listés, fusion laissée en cours pour résolution (code 2).
 # Usage : bash scripts/synchroniser-branche.sh [base]
-# Variables : AGENT (attribution des commits), SYNCHRO_PY (interpréteur Python), SYNCHRO_SANS_FETCH=1 (tests).
+# Variables : AGENT (attribution des commits), ISSUE (numéro d'issue des commits ; déduit d'un nom de branche
+#   « …issue-<n>-… » sinon), SYNCHRO_PY (interpréteur Python), SYNCHRO_SANS_FETCH=1 (tests).
 set -Euo pipefail
 
 BASE="${1:-develop}"
@@ -32,6 +33,9 @@ regenerer() {   # regenerer <fichier généré>
 branche="$(git branch --show-current)"
 [ -n "$branche" ] || erreur "HEAD détaché : se placer sur une branche de travail"
 case "$branche" in main|develop|"$BASE") erreur "refus sur la branche protégée « $branche »" ;; esac
+ISSUE="${ISSUE:-}"; ISSUE="${ISSUE#\#}"
+if [ -z "$ISSUE" ] && [[ "$branche" =~ (^|[/-])issue-([0-9]+)($|-) ]]; then ISSUE="${BASH_REMATCH[2]}"; fi
+[ -z "$ISSUE" ] || [[ "$ISSUE" =~ ^[0-9]+$ ]] || erreur "ISSUE doit être un numéro d'issue : « $ISSUE »"
 git diff --quiet && git diff --cached --quiet || erreur "modifications non commitées : les commiter ou les mettre de côté"
 [ -f "$(git rev-parse --git-dir)/MERGE_HEAD" ] && erreur "une fusion est déjà en cours"
 
@@ -67,7 +71,14 @@ if ! git diff --quiet "$avant" HEAD -- contenu api/app/contenu.py; then
   done
   if ! git diff --quiet -- docs/CONTENU-INVENTAIRE.md docs/audit/CORRIGES-INVENTAIRE.md; then
     git add -- docs/CONTENU-INVENTAIRE.md docs/audit/CORRIGES-INVENTAIRE.md
-    git commit -q -m "chore(contenu): régénère les inventaires après synchronisation avec $BASE" -m "Agent: $AGENT"
+    # Format du § 4 d'AGENTS.md : « (#N) » dans le titre et « Refs: #N » après « Agent: ».
+    if [ -n "$ISSUE" ]; then
+      git commit -q -m "chore(contenu): régénère les inventaires après synchronisation avec $BASE (#$ISSUE)" \
+        -m "Agent: $AGENT"$'\n'"Refs: #$ISSUE"
+    else
+      git commit -q -m "chore(contenu): régénère les inventaires après synchronisation avec $BASE" -m "Agent: $AGENT"
+      echo "Attention : commit sans numéro d'issue ; relancer avec ISSUE=<n> ou le compléter (git commit --amend)." >&2
+    fi
     echo "Inventaires régénérés."
   fi
 fi

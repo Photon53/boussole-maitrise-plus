@@ -36,7 +36,8 @@ la skill `livraison-pkp`. Aucune branche `deploy` n'existe : ne pas en créer (g
 
 `bash scripts/synchroniser-branche.sh` : fusionne `origin/develop` dans la branche courante (jamais de rebase sur
 une branche qui porte une PR), régénère les fichiers générés en conflit, et s'arrête en listant les autres
-conflits. Résoudre ceux-ci soi-même : garder les deux apports quand ils s'ajoutent (lignes de tableau, règles
+conflits. Passer `AGENT=<agent> ISSUE=<n>` pour que le commit de régénération des inventaires porte
+`(#N)`, `Agent:` et `Refs:` (le numéro se déduit d'une branche `…issue-<n>-…`). Résoudre les autres conflits soi-même : garder les deux apports quand ils s'ajoutent (lignes de tableau, règles
 CSS, tests), choisir le code de `develop` puis réappliquer son intention quand ils se contredisent. Lancer ensuite
 les tests ciblés des fichiers touchés, puis les contrôles complets avant de pousser (skill `controles-ci`).
 

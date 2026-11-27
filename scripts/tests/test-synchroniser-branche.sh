@@ -63,6 +63,23 @@ avancer_develop 'echo c > contenu/c.yaml'
 AGENT=Banc bash "$SYNCHRO" >/dev/null 2>&1
 verif "corrigés régénérés" 'grep -q c.yaml docs/audit/CORRIGES-INVENTAIRE.md && grep -q b.yaml docs/audit/CORRIGES-INVENTAIRE.md'
 verif "commit attribué" 'git log -1 --format=%B | grep -q "Agent: Banc"'
+verif "sans issue : pas de référence" '! git log -1 --format=%B | grep -q "Refs:"'
+
+# 4 bis. Numéro d'issue : variable ISSUE, ou déduit du nom de branche.
+nouveau_depot issue_var; git checkout -q -b travail
+echo b > contenu/b.yaml; git add -A; git commit -qm travail
+avancer_develop 'echo c > contenu/c.yaml'
+ISSUE=252 bash "$SYNCHRO" >/dev/null 2>&1
+verif "ISSUE : titre avec (#252)" 'git log -1 --format=%s | grep -qF "(#252)"'
+verif "ISSUE : Refs après Agent" '[ "$(git log -1 --format=%B | grep -E "^(Agent|Refs):" | tr "\n" "|")" = "Agent: script synchroniser-branche|Refs: #252|" ]'
+nouveau_depot issue_branche; git checkout -q -b fix/issue-65-liste
+echo b > contenu/b.yaml; git add -A; git commit -qm travail
+git checkout -q develop && echo c > contenu/c.yaml && git add -A && git commit -qm develop
+git update-ref refs/remotes/origin/develop HEAD && git checkout -q fix/issue-65-liste
+bash "$SYNCHRO" >/dev/null 2>&1
+verif "branche issue-65 : Refs #65" 'git log -1 --format=%B | grep -qx "Refs: #65"'
+code=0; ISSUE=abc bash "$SYNCHRO" >/dev/null 2>&1 || code=$?
+verif "ISSUE invalide refusé" '[ "$code" -ne 0 ]'
 
 # 5. Conflit ordinaire : listé, code 2, fusion laissée en cours.
 nouveau_depot ordinaire; git checkout -q -b travail
