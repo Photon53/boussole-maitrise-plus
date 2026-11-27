@@ -1,0 +1,248 @@
+<!doctype html>
+<!-- Issue #231 — Maquettes conceptuelles du module Français, cinq rôles (Claude) -->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Boussole Français — maquettes conceptuelles (#231)</title>
+<style>
+  /* Jetons repris de web/src/theme.css pour rester cohérent avec les maths et l'anglais. */
+  :root {
+    --primaire: #1f3a68; --action: #2f5bd3; --action-doux: #e8eefc; --accent: #e07a1f; --accent-doux: #fdf0e3;
+    --francais: #0f6e66; --francais-doux: #e3f2f0; --ok: #2b8a3e; --ok-doux: #e6f6ea; --alerte: #b35c00;
+    --alerte-doux: #fff3e0; --ko: #c92a2a; --texte: #0f172a; --texte-doux: #475569; --fond: #f8fafc;
+    --surface: #fff; --surface-2: #f1f5f9; --bordure: #e2e8f0; --nuit: #0b1426; --sur-nuit: #eef2fa;
+    --sur-nuit-doux: #a9b6cf; --nord: #f2a65a; --rayon: 14px; --rayon-petit: 10px;
+    --ombre: 0 1px 2px rgb(15 23 42 / 5%), 0 8px 24px rgb(15 23 42 / 5%);
+    --police: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: var(--police); color: var(--texte); background: var(--surface-2); line-height: 1.45; }
+  .ecran { max-width: 1200px; margin: 24px auto; background: var(--fond); border-radius: var(--rayon); overflow: hidden;
+    box-shadow: var(--ombre); }
+  .legende { background: var(--accent-doux); color: #7a3e00; padding: 8px 20px; font-size: .85rem; font-weight: 600; }
+  header.barre { background: var(--nuit); color: var(--sur-nuit); display: flex; align-items: center; gap: 16px;
+    padding: 12px 20px; flex-wrap: wrap; }
+  header.barre .marque { font-weight: 700; letter-spacing: .02em; }
+  header.barre .marque b { color: var(--nord); }
+  header.barre nav { display: flex; gap: 6px; flex-wrap: wrap; }
+  header.barre nav a { color: var(--sur-nuit-doux); text-decoration: none; padding: 6px 10px; border-radius: 8px; font-size: .9rem; }
+  header.barre nav a.actif { background: #1b2f55; color: var(--sur-nuit); }
+  header.barre .qui { margin-left: auto; font-size: .85rem; color: var(--sur-nuit-doux); }
+  main { padding: 20px; }
+  .fil { font-size: .85rem; color: var(--texte-doux); margin-bottom: 6px; }
+  h1 { font-size: 1.6rem; margin: 0 0 4px; } h2 { font-size: 1.1rem; margin: 0 0 10px; }
+  .sous { color: var(--texte-doux); margin: 0 0 18px; }
+  .pastille { display: inline-block; font-size: .75rem; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+    background: var(--francais-doux); color: var(--francais); }
+  .pastille.alerte { background: var(--alerte-doux); color: var(--alerte); }
+  .pastille.ok { background: var(--ok-doux); color: var(--ok); }
+  .pastille.neutre { background: var(--surface-2); color: var(--texte-doux); }
+  .carte { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 16px; }
+  .reprise { display: flex; align-items: center; gap: 16px; border-left: 6px solid var(--francais); margin-bottom: 18px; flex-wrap: wrap; }
+  .reprise .texte { flex: 1 1 260px; }
+  .bouton { display: inline-block; background: var(--action); color: #fff; border: 0; border-radius: var(--rayon-petit);
+    padding: 10px 16px; font-weight: 600; font-size: .95rem; text-decoration: none; }
+  .bouton.secondaire { background: var(--surface); color: var(--action); border: 1px solid var(--action); }
+  .bouton.petit { padding: 6px 10px; font-size: .85rem; }
+  .grille { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .rubrique h3 { margin: 6px 0 2px; font-size: 1.05rem; }
+  .rubrique p { margin: 0 0 10px; color: var(--texte-doux); font-size: .9rem; }
+  .rubrique .icone { width: 36px; height: 36px; border-radius: 10px; background: var(--francais-doux); color: var(--francais);
+    display: grid; place-items: center; font-weight: 800; }
+  .barre-prog { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; margin: 6px 0 4px; }
+  .barre-prog span { display: block; height: 100%; background: var(--francais); }
+  .deux { display: grid; gap: 14px; grid-template-columns: 2fr 1fr; margin-top: 18px; }
+  .trois { display: grid; gap: 14px; grid-template-columns: repeat(3, 1fr); }
+  ul.liste { list-style: none; margin: 0; padding: 0; }
+  ul.liste li { display: flex; justify-content: space-between; gap: 10px; align-items: center; padding: 9px 0;
+    border-bottom: 1px solid var(--bordure); font-size: .92rem; }
+  ul.liste li:last-child { border-bottom: 0; }
+  table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--bordure); }
+  th { color: var(--texte-doux); font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; }
+  .chiffre { font-size: 1.7rem; font-weight: 700; }
+  .note { font-size: .8rem; color: var(--texte-doux); margin-top: 8px; }
+  .masque { background: var(--surface-2); border: 1px dashed var(--bordure); border-radius: var(--rayon-petit);
+    padding: 10px; font-size: .85rem; color: var(--texte-doux); }
+  .onglets { display: flex; gap: 4px; border-bottom: 1px solid var(--bordure); margin-bottom: 14px; flex-wrap: wrap; }
+  .onglets span { padding: 8px 12px; font-size: .9rem; color: var(--texte-doux); }
+  .onglets span.actif { color: var(--francais); border-bottom: 3px solid var(--francais); font-weight: 600; }
+  a:focus-visible, .bouton:focus-visible { outline: 3px solid var(--nord); outline-offset: 2px; }
+  @media (max-width: 720px) {
+    .deux, .trois { grid-template-columns: 1fr; }
+    header.barre .qui { margin-left: 0; width: 100%; }
+    h1 { font-size: 1.35rem; } main { padding: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 1. Élève -->
+<section class="ecran" id="eleve" aria-label="Maquette élève">
+  <div class="legende">Maquette conceptuelle — espace élève — données fictives, pas une capture de l'application</div>
+  <header class="barre">
+    <span class="marque">Boussole <b>Maîtrise+</b></span>
+    <nav aria-label="Matières"><a href="#">Accueil</a><a href="#" class="actif" aria-current="page">Français</a><a href="#">Mon historique</a></nav>
+    <span class="qui">Lina4 · 5e B (classe pilote)</span>
+  </header>
+  <main>
+    <div class="fil">Accueil / Français</div>
+    <h1>Mon espace Français</h1>
+    <p class="sous">Comprendre, s'entraîner et progresser à mon rythme. <span class="pastille">Parcours guidé par ta professeure</span></p>
+
+    <div class="carte reprise">
+      <div class="texte">
+        <span class="pastille">Reprendre</span>
+        <h2 style="margin:6px 0 2px">Les fonctions : sujet, COD, COI</h2>
+        <div class="barre-prog" aria-hidden="true"><span style="width:45%"></span></div>
+        <small>Étape 2 sur 4 · Entraînement · 4 questions sur 9 faites</small>
+      </div>
+      <a href="#" class="bouton">Continuer mon parcours</a>
+    </div>
+
+    <div class="grille" role="list">
+      <div class="carte rubrique" role="listitem"><div class="icone">Cj</div><h3>Conjugaison</h3><p>Les verbes et les temps</p><span class="pastille neutre">1 chapitre ouvert</span></div>
+      <div class="carte rubrique" role="listitem"><div class="icone">Gr</div><h3>Grammaire</h3><p>Nature, fonctions, orthographe</p><span class="pastille">En cours</span></div>
+      <div class="carte rubrique" role="listitem"><div class="icone">Ré</div><h3>Rédaction</h3><p>Écrire, corriger, réécrire</p><span class="pastille neutre">Bientôt</span></div>
+      <div class="carte rubrique" role="listitem"><div class="icone">Mc</div><h3>Mon cours</h3><p>Les ressources de ma professeure</p><span class="pastille ok">2 nouvelles fiches</span></div>
+      <div class="carte rubrique" role="listitem"><div class="icone">Cp</div><h3>Comprendre un texte</h3><p>Lire, analyser, justifier</p><span class="pastille neutre">Selon ton niveau</span></div>
+    </div>
+
+    <div class="deux">
+      <div class="carte">
+        <h2>Ma progression</h2>
+        <ul class="liste">
+          <li><span>Le sujet du verbe</span><span class="pastille ok">Maîtrisé</span></li>
+          <li><span>Le complément d'objet direct</span><span class="pastille">En cours</span></li>
+          <li><span>L'imparfait</span><span class="pastille alerte">À retravailler</span></li>
+        </ul>
+        <p class="note">Calculée à partir des exercices corrigés automatiquement. Les rédactions corrigées par ta professeure n'entrent pas dans ce calcul.</p>
+      </div>
+      <div class="carte">
+        <h2>Retours de ma professeure</h2>
+        <ul class="liste">
+          <li><span>Quiz « Comprendre un texte »</span><span>7/9</span></li>
+          <li><span>Réponse rédigée Q3</span><span class="pastille ok">Retour reçu</span></li>
+        </ul>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- 2. Parent -->
+<section class="ecran" id="parent" aria-label="Maquette parent">
+  <div class="legende">Maquette conceptuelle — espace parent — données fictives (SEC-D6, RGPD-2 : aucun texte rédigé, aucun énoncé du contenu pilote)</div>
+  <header class="barre">
+    <span class="marque">Boussole <b>Maîtrise+</b></span>
+    <nav aria-label="Enfants"><a href="#" class="actif" aria-current="page">Lina</a><a href="#">Noé</a></nav>
+    <span class="qui">Espace parent</span>
+  </header>
+  <main>
+    <h1>Lina — Français</h1>
+    <div class="onglets"><span>Maths</span><span class="actif">Français</span><span>Anglais</span></div>
+    <div class="trois">
+      <div class="carte"><div class="chiffre">3 / 7</div><div>compétences maîtrisées</div></div>
+      <div class="carte"><div class="chiffre">42 min</div><div>de travail ces 7 derniers jours</div></div>
+      <div class="carte"><div class="chiffre">2</div><div>retours de la professeure reçus</div></div>
+    </div>
+    <div class="deux">
+      <div class="carte">
+        <h2>Activités</h2>
+        <table>
+          <thead><tr><th>Cours</th><th>Type</th><th>Résultat</th></tr></thead>
+          <tbody>
+            <tr><td>Les fonctions</td><td>Exercices</td><td>6 réponses justes sur 9</td></tr>
+            <tr><td>Comprendre un texte</td><td>Quiz</td><td>Meilleur score 7/9 · 1er essai 5/9 · 2 essais</td></tr>
+            <tr><td>Comprendre un texte</td><td>« Je sais »</td><td>2 autonome · 1 en cours · 1 avec aide</td></tr>
+            <tr><td>Raconter un événement passé</td><td>Rédaction</td><td>Remise · corrigée le 12/01</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="carte">
+        <h2>Ce que vous ne voyez pas ici</h2>
+        <div class="masque">Les textes rédigés par Lina et les commentaires détaillés de sa professeure restent entre elles (RGPD-2). Pendant le pilote, les énoncés et corrigés sont réservés aux élèves de la classe (SEC-D6).</div>
+      </div>
+    </div>
+  </main>
+</section>
+
+<!-- 3. Professeur -->
+<section class="ecran" id="professeur" aria-label="Maquette professeur">
+  <div class="legende">Maquette conceptuelle — espace professeur — données fictives</div>
+  <header class="barre">
+    <span class="marque">Boussole <b>Maîtrise+</b></span>
+    <nav aria-label="Espace professeur"><a href="#">Mes classes</a><a href="#" class="actif" aria-current="page">Français</a><a href="#">Ressources</a><a href="#">Validation</a></nav>
+    <span class="qui">Mme Martin · professeure de français</span>
+  </header>
+  <main>
+    <h1>Français — 5e B</h1>
+    <p class="sous">Présentation de la classe : <strong>Parcours guidé</strong> <a href="#" class="bouton secondaire petit">Changer</a></p>
+    <div class="trois">
+      <div class="carte"><h2>À corriger</h2><div class="chiffre">5</div><p class="note">Rédactions et réponses rédigées remises</p><a href="#" class="bouton petit">Corriger</a></div>
+      <div class="carte"><h2>Notions fragiles</h2><ul class="liste"><li><span>COI / complément du nom</span><span class="pastille alerte">11 élèves</span></li><li><span>Passé simple, 3e groupe</span><span class="pastille alerte">8 élèves</span></li></ul></div>
+      <div class="carte"><h2>Exports</h2><a href="#" class="bouton secondaire petit">PDF élève</a> <a href="#" class="bouton secondaire petit">PDF professeur</a><p class="note">Le PDF élève ne contient aucun corrigé.</p></div>
+    </div>
+    <div class="carte" style="margin-top:14px">
+      <h2>Progression du cours</h2>
+      <table>
+        <thead><tr><th>Contenu</th><th>Rubrique</th><th>Statut</th><th>Classe</th><th></th></tr></thead>
+        <tbody>
+          <tr><td>Les fonctions : sujet, COD, COI</td><td>Grammaire</td><td><span class="pastille ok">Validé</span></td><td>Ouvert · 21/26 commencé</td><td><a href="#" class="bouton secondaire petit">Suivi</a></td></tr>
+          <tr><td>L'imparfait et le passé simple</td><td>Conjugaison</td><td><span class="pastille ok">Validé</span></td><td>Non ouvert</td><td><a href="#" class="bouton petit">Ouvrir</a></td></tr>
+          <tr><td>Raconter un événement passé</td><td>Rédaction</td><td><span class="pastille alerte">Soumis</span></td><td>—</td><td><a href="#" class="bouton secondaire petit">Aperçu élève</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </main>
+</section>
+
+<!-- 4. Validateur -->
+<section class="ecran" id="validateur" aria-label="Maquette validateur">
+  <div class="legende">Maquette conceptuelle — file de validation — données fictives (V2-D15 : jamais son propre contenu)</div>
+  <header class="barre">
+    <span class="marque">Boussole <b>Maîtrise+</b></span>
+    <nav aria-label="Validation"><a href="#">Maths</a><a href="#">Anglais</a><a href="#" class="actif" aria-current="page">Français</a></nav>
+    <span class="qui">M. Benali · validateur français collège</span>
+  </header>
+  <main>
+    <h1>Validation — Français</h1>
+    <p class="sous">Une file commune aux matières ; les chapitres et les dossiers y apparaissent ensemble.</p>
+    <div class="carte">
+      <table>
+        <thead><tr><th>Contenu</th><th>Niveau</th><th>Auteur</th><th>Soumis le</th><th>Actions</th></tr></thead>
+        <tbody>
+          <tr><td>Les fonctions : sujet, COD, COI (9 questions)</td><td>5e</td><td>Mme Martin</td><td>02/12</td><td><a href="#" class="bouton secondaire petit">Aperçu élève</a> <a href="#" class="bouton secondaire petit">PDF</a> <a href="#" class="bouton petit">Valider</a> <a href="#" class="bouton secondaire petit">À corriger</a></td></tr>
+          <tr><td>Comprendre un texte — v2 (quiz)</td><td>3e</td><td>Administration</td><td>23/11</td><td><a href="#" class="bouton secondaire petit">Aperçu élève</a> <a href="#" class="bouton petit">Valider</a> <a href="#" class="bouton secondaire petit">À corriger</a></td></tr>
+          <tr><td>Accords et réécriture</td><td>3e</td><td><strong>Vous</strong></td><td>03/12</td><td><span class="pastille neutre">Validation par une autre personne</span></td></tr>
+        </tbody>
+      </table>
+      <p class="note">« À corriger » demande un motif, conservé dans l'historique ; la dernière version validée reste servie.</p>
+    </div>
+  </main>
+</section>
+
+<!-- 5. Administrateur -->
+<section class="ecran" id="administrateur" aria-label="Maquette administrateur">
+  <div class="legende">Maquette conceptuelle — administration de la matière — données fictives</div>
+  <header class="barre">
+    <span class="marque">Boussole <b>Maîtrise+</b></span>
+    <nav aria-label="Administration"><a href="#">Comptes</a><a href="#" class="actif" aria-current="page">Matières</a><a href="#">Validation</a><a href="#">Journal</a></nav>
+    <span class="qui">Administration</span>
+  </header>
+  <main>
+    <h1>Matière : Français collège</h1>
+    <div class="trois">
+      <div class="carte"><h2>Accès</h2><ul class="liste"><li><span>Équipe (actif)</span><span class="pastille ok">Ouvert</span></li><li><span>Public</span><span class="pastille neutre">Fermé</span></li><li><span>Classes pilotes</span><span>3</span></li></ul><a href="#" class="bouton secondaire petit">Gérer les classes pilotes</a></div>
+      <div class="carte"><h2>Contenus</h2><ul class="liste"><li><span>Cours validés</span><span>2 / 8</span></li><li><span>Questions autocorrigées validées</span><span>18 / 72</span></li><li><span>Sujets de rédaction</span><span>1 / 4</span></li></ul></div>
+      <div class="carte"><h2>Fonctions sensibles</h2><ul class="liste"><li><span>Rédaction en ligne</span><span class="pastille neutre">Fermée (RGPD-2)</span></li><li><span>PDF dans « Mon cours »</span><span class="pastille neutre">Fermés</span></li></ul><p class="note">Activation sur décision du propriétaire uniquement.</p></div>
+    </div>
+    <div class="deux">
+      <div class="carte"><h2>Habilitations</h2><table><thead><tr><th>Compte</th><th>Niveaux</th><th>Validateur</th></tr></thead><tbody><tr><td>Mme Martin</td><td>5e, 4e</td><td>Non</td></tr><tr><td>M. Benali</td><td>6e à 3e</td><td>Oui</td></tr></tbody></table></div>
+      <div class="carte"><h2>Simulation</h2><p>Voir l'espace d'un élève fictif d'une classe pilote, avec ses droits réels.</p><a href="#" class="bouton">Lancer la simulation</a><p class="note">Les réponses fictives n'affectent ni les élèves ni les indicateurs.</p></div>
+    </div>
+  </main>
+</section>
+
+</body>
+</html>
