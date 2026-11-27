@@ -18,7 +18,7 @@ from tests.test_contenu import ecrire, erreurs
 
 TEXTE = "Il était une fois un dragon qui n'aimait pas le feu. RÉDACTION-TÉMOIN."
 SUJET_REDACTION = """
-chapitre: {code: FR5-RED, matiere: francais, rubrique: redaction, niveau: 5e, parcours: tronc-commun, ordre: 2, titre: Raconter}
+chapitre: {code: FR5-RED, matiere: francais, rubrique: redaction, niveau: 5e, parcours: tronc-commun, ordre: 92, titre: Raconter}
 competences:
   - code: FR5-RED-C
     libelle: Écrire un court récit

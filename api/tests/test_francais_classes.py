@@ -9,8 +9,10 @@ from app.referentiel import Niveau, domaine_de
 from tests.conftest import connecter_admin, connecter_enseignant
 from tests.test_contenu import ecrire, erreurs
 
+# Ordre 91 et suivants : positions laissées libres par le contenu du dépôt (#177). À une position déjà prise,
+# l'import reconnaîtrait le chapitre du dépôt (repli par position) et le remplacerait.
 CHAPITRE_FR = """
-chapitre: {code: FR5-CH, matiere: francais, rubrique: conjugaison, niveau: 5e, parcours: tronc-commun, ordre: 1, titre: Le présent}
+chapitre: {code: FR5-CH, matiere: francais, rubrique: conjugaison, niveau: 5e, parcours: tronc-commun, ordre: 91, titre: Le présent}
 competences:
   - code: FR5-PRES
     libelle: Conjuguer au présent
@@ -31,6 +33,11 @@ DOSSIER_FR = "francais/5e/tronc-commun/01-present.yaml"
 def importer_chapitre_fr(session, tmp_path) -> None:
     ecrire(tmp_path, CHAPITRE_FR, DOSSIER_FR)
     importer(session, charger(tmp_path), archiver_absentes=False)
+    # Les chapitres de français du dépôt (#177) sont masqués : le programme des classes de test ne contient
+    # que le chapitre du test, comme avant l'arrivée de ces contenus.
+    for chapitre in session.scalars(select(models.Chapitre).where(
+            models.Chapitre.domaine_code == "francais-college", models.Chapitre.code != "FR5-CH")):
+        chapitre.masque = True
     session.commit()
 
 

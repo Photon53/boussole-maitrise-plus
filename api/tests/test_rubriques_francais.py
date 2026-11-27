@@ -13,7 +13,8 @@ from tests.test_classes_pilotes import _classe_pilote, _preparer
 from tests.test_contenu import ecrire, erreurs
 
 
-def _chapitre_fr(code: str, niveau: str, rubrique: str | None, ordre: int = 2) -> str:
+def _chapitre_fr(code: str, niveau: str, rubrique: str | None, ordre: int = 93) -> str:
+    # Ordre 93 et suivants : positions libres dans le contenu du dépôt (#177), voir test_francais_classes.
     champ = f"rubrique: {rubrique}, " if rubrique else ""
     return f"""
 chapitre: {{code: {code}, matiere: francais, {champ}niveau: {niveau}, parcours: tronc-commun, ordre: {ordre}, titre: Chapitre {code}}}
@@ -65,15 +66,16 @@ def test_filtre_par_rubrique_sur_tous_les_niveaux(client, session, tmp_path):
         ("FR3-CONJ", "3e", "conjugaison", "francais/3e/tronc-commun/02-conj.yaml"),
         ("FR6-GRAM", "6e", "grammaire", "francais/6e/tronc-commun/03-gram.yaml"),
     ):
-        ecrire(tmp_path, _chapitre_fr(code, niveau, rubrique, ordre=3 if code.endswith("GRAM") else 2), chemin)
+        ecrire(tmp_path, _chapitre_fr(code, niveau, rubrique, ordre=94 if code.endswith("GRAM") else 93), chemin)
     importer(session, charger(tmp_path), archiver_absentes=False)
     session.commit()
     for h in (connecter_enseignant(client), connecter_admin(client)):
         conjugaison = client.get("/pkp-math/catalogue?rubrique=conjugaison", headers=h).json()
-        assert {c["code"] for c in conjugaison} == {"FR6-CONJ", "FR3-CONJ"}
+        # Le dépôt contient aussi ses propres chapitres de conjugaison (#177) : on vérifie ceux du test.
+        assert {"FR6-CONJ", "FR3-CONJ"} <= {c["code"] for c in conjugaison} and "FR6-GRAM" not in {c["code"] for c in conjugaison}
         assert all(c["rubrique"] == "conjugaison" for c in conjugaison)
         tout = client.get("/pkp-math/catalogue", headers=h).json()
-        assert {c["rubrique"] for c in tout} == {None, "conjugaison", "grammaire"}
+        assert {None, "conjugaison", "grammaire"} <= {c["rubrique"] for c in tout} <= {None, "conjugaison", "grammaire", "redaction"}
         doc = client.get(f"/pkp-math/chapitres/{conjugaison[0]['id']}", headers=h).json()
         assert doc["rubrique"] == "conjugaison"
         assert client.get("/pkp-math/catalogue?rubrique=lecture", headers=h).status_code == 422
