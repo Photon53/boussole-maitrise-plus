@@ -390,6 +390,12 @@ class QuestionAdmin(BaseModel):
     taux_reussite: float | None
     # Le compte connecté est validateur pour ce contenu (ticket #29) ; l'API le revérifie à chaque décision.
     peut_valider: bool = False
+    # Issue #231 (file de validation) : domaine et rubrique du chapitre, correction expliquée (adultes seulement,
+    # ARCH-4) et motif de la dernière décision « À corriger », lu dans le journal.
+    domaine: str | None = None
+    rubrique: str | None = None
+    correction: dict | None = None
+    motif_correction: str | None = None
 
 
 class PageQuestions(BaseModel):
@@ -428,6 +434,8 @@ class ResultatEssai(BaseModel):
 
 class Validation(BaseModel):
     statut: StatutValidation
+    # Issue #231 : ce qui doit être corrigé, pour l'auteur (« À corriger ») ; noté au journal avec la décision.
+    motif: Annotated[str | None, Field(max_length=500)] = None
 
 
 class Archivage(BaseModel):
@@ -649,7 +657,7 @@ class ResponsableRattache(BaseModel):
     mot_de_passe_provisoire: str | None = None
 
 
-from app.schemas import ArchiveResume  # noqa: E402  (référence avant de FicheEleve)
+from app.schemas import ArchiveResume
 
 FicheEleve.model_rebuild()
 

@@ -13,13 +13,12 @@ Archiver, créer ou réorganiser restent réservés à l'administration.
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from pkp_engine import TypeQuestion
 from sqlalchemy import and_, false, or_
 
 from app import permissions
 from app.auth import EnseignantAuthentifie, SessionDB
 from app.db import models
-from pkp_engine import TypeQuestion
-
 from app.referentiel import Niveau, Role, StatutValidation
 from app.routes import admin_contenu
 from app.schemas_admin import (
@@ -109,10 +108,13 @@ def questions(
     statut: StatutValidation | None = None,
     q: str | None = None,
     page: int = 1,
+    domaine: str | None = None,
     enseignant: Validateur = Depends(validateur_maths),
 ) -> PageQuestions:
+    # `domaine` (#231) : la file de validation du français ne montre que le français ; le périmètre s'applique toujours.
     return admin_contenu.lister_questions(
-        session, enseignant, niveau=niveau, type=type, statut=statut, q=q, page=page, perimetre=perimetre(enseignant)
+        session, enseignant, domaine=domaine, niveau=niveau, type=type, statut=statut, q=q, page=page,
+        perimetre=perimetre(enseignant),
     )
 
 
