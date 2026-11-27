@@ -5,8 +5,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { Erreur } from "../composants.jsx";
-import PartieEleve from "../francais/PartieEleve.jsx";
-import { AutoEvaluation, QuizFrancais, ReponsesRedigees } from "./ActiviteFrancais.jsx";
+import LectureDossier from "./LectureDossier.jsx";
 
 /** `codeOuvert` (#231) : ouvre directement ce dossier depuis « Mes cours » ; `onFermer` y ramène. */
 export default function DossiersFrancais({ jeton, onExpire, codeOuvert = null, onFermer = null }) {
@@ -38,17 +37,16 @@ export default function DossiersFrancais({ jeton, onExpire, codeOuvert = null, o
   if (codeOuvert && !ouvert) return erreur ? <Erreur message={erreur} /> : <p className="doux">Chargement du dossier…</p>;
   if (!ouvert && (!dossiers || dossiers.length === 0)) return null;
   if (ouvert) {
+    // Issue #231 : sept étapes, texte et questions côte à côte.
     return (
-      <section aria-labelledby="titre-dossier-francais">
-        <button className="lien" onClick={() => (onFermer ? onFermer() : setOuvert(null))}>
-          {onFermer ? "← Mes cours" : "← Mes dossiers"}
-        </button>
-        <h2 id="titre-dossier-francais">{ouvert.titre}</h2>
-        <PartieEleve eleve={ouvert.eleve} />
-        <QuizFrancais key={`quiz-${ouvert.code}`} dossier={ouvert} jeton={jeton} onExpire={onExpire} />
-        <ReponsesRedigees key={`reponses-${ouvert.code}`} dossier={ouvert} jeton={jeton} onExpire={onExpire} />
-        <AutoEvaluation key={`je-sais-${ouvert.code}`} dossier={ouvert} jeton={jeton} onExpire={onExpire} />
-      </section>
+      <LectureDossier
+        key={ouvert.code}
+        dossier={ouvert}
+        jeton={jeton}
+        onExpire={onExpire}
+        onFermer={() => (onFermer ? onFermer() : setOuvert(null))}
+        libelleRetour={onFermer ? "Mes cours" : "Mes dossiers"}
+      />
     );
   }
   return (
