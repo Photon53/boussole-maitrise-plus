@@ -172,6 +172,39 @@ button.icone:hover:not(:disabled) { background: var(--surface-2); color: var(--t
 .resultat.ok .verdict { color: var(--ok); }
 .resultat.ko .verdict { color: var(--ko); }
 
+/* Issue #231 — Exercice et correction expliquée en français (maquettes 4, 5 et 7) */
+.enonce-francais { margin: 8px 0 16px; }
+.consigne-exercice { color: var(--texte-doux); margin: 0 0 10px; }
+.phrase-exercice {
+  font-family: var(--police-lecture); font-size: 1.4rem; line-height: 1.5; margin: 0;
+  padding: 16px 20px; background: var(--surface-2); border: 1px solid var(--bordure);
+  border-left: 4px solid var(--francais); border-radius: var(--rayon-petit); overflow-wrap: anywhere;
+}
+.phrase-exercice .cible { text-decoration: underline 2px var(--francais); text-underline-offset: 4px; font-weight: 600; }
+.exercice-fr .options { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+.exercice-fr .options button { justify-content: flex-start; text-align: left; padding: 14px 16px; font-size: 1.05rem; }
+.clavier-accents { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 4px; }
+.clavier-accents button { min-width: 40px; min-height: 40px; padding: 4px 8px; font-size: 1.05rem; }
+.resultat.exercice-fr { border-left: 0; }
+.verdict-francais { display: flex; gap: 14px; align-items: flex-start; padding: 14px 16px; border-radius: var(--rayon-petit); }
+.verdict-francais.juste { background: var(--ok-doux); }
+.verdict-francais.a-revoir { background: var(--alerte-doux); }
+.verdict-icone { font-size: 1.5rem; line-height: 1; flex: none; }
+.verdict-titre { font-size: 1.2rem; font-weight: 700; margin: 0; }
+.reponses-comparees { list-style: none; padding: 0; margin: 10px 0 0; display: grid; gap: 6px; overflow-wrap: anywhere; }
+.reponses-comparees .badge { margin-right: 6px; }
+.methode-francais { margin-top: 16px; }
+.surtitre-methode { font-weight: 600; margin: 0 0 8px; }
+.etapes-correction { list-style: none; counter-reset: etape; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }
+.etapes-correction li { counter-increment: etape; display: flex; gap: 10px; align-items: baseline; }
+.etapes-correction li::before {
+  content: counter(etape); flex: none; width: 26px; height: 26px; border-radius: 50%; display: inline-grid;
+  place-items: center; background: var(--francais); color: var(--surface); font-weight: 700; font-size: 0.85rem;
+}
+.erreur-frequente { padding: 10px 14px; border-left: 4px solid var(--alerte); background: var(--surface-2); border-radius: var(--rayon-petit); }
+.erreur-frequente ul { margin: 6px 0 0; padding-left: 20px; }
+.correction-francais > .lien { margin-top: 12px; }
+
 .bilan { display: flex; gap: 24px; color: var(--texte-doux); font-size: 0.9rem; flex-wrap: wrap; }
 .bilan strong { color: var(--texte); font-variant-numeric: tabular-nums; }
 

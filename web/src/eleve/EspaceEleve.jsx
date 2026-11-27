@@ -283,7 +283,7 @@ export default function EspaceEleve() {
             rédaction sont dans « Mes cours ».
           </p>
         )}
-        <Exercice key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} onVoirCours={voirCours} cible={cible} />
+        <Exercice key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} onVoirCours={voirCours} cible={cible} francais={francais} />
       </div>
       {onglet === "accueil" && francais && (
         <AccueilFrancais

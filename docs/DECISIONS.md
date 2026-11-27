@@ -103,6 +103,7 @@ te délègue les arbitrages »). **Arbitrages d'agent, révisables** (AGENTS.md 
 | FR-UI-D4 | 2026-11-27 | **Police de lecture Literata** (OFL 1.1, auto-hébergée par `@fontsource`) pour les textes longs et les phrases d'exercice | Ajoutée avec la PR des fondations de l'élève ; CSP `font-src 'self'` inchangée ; aucun coût | #231 |
 | FR-UI-D5 | 2026-11-27 | **Navigation à trois destinations pour le français d'abord** ; Maths et Anglais gardent leurs onglets jusqu'à décision après le pilote | Aucune régression Maths et Anglais | #231 |
 | FR-UI-D6 | 2026-11-27 | **Correctif immédiat** : les mentions internes d'un dossier (issue, agent, « brouillon ») ne sont plus montrées à l'élève | PR 0 de la refonte | #231 (constat N2) |
+| FR-UI-EXO | 2026-11-27 | **Arbitrage d'agent, révisable** : la présentation française de l'exercice (phrase étudiée, clavier d'accents, correction expliquée) est une **option d'affichage** du composant d'exercice commun (`francais`), pas un second composant ; la phrase étudiée est le premier passage entre guillemets « … » de l'énoncé, sans changer le format du contenu | Options écartées : composant d'exercice séparé pour le français (double maintenance du tirage et de la séance) ; nouveau champ « phrase » dans le YAML (migration du contenu de #177) | #231 |
 | FR-UI-ORDRE | 2026-11-27 | **L'espace administrateur Français passe en premier**, à la demande du propriétaire, avant l'espace élève | Page « Français » dans l'administration ; voir le découpage du README | #231 (décision du propriétaire) |
 
 ### Sécurité et données personnelles
