@@ -3,13 +3,15 @@
 // La leçon d'un chapitre (champs existants : objectifs, cours, résumé, méthodes, erreurs fréquentes, ressources),
 // rangée selon la méthode commune de #177 (FR-UI-D2). Le cours rédigé suit déjà la trame « 1. Découvrir, 2. Comprendre,
 // 3. Appliquer et s'entraîner, 4. Approfondir, 5. Réinvestir » : chaque partie va à son étape, sans toucher au contenu.
-// Les étapes d'exercices ouvrent l'entraînement existant : le moteur choisit les questions (FR-UI-D3).
+// Les étapes d'exercices ouvrent l'entraînement existant : le moteur choisit les questions (FR-UI-D3). Pour un sujet
+// de rédaction, l'étape « Appliquer » est l'atelier d'écriture (consigne, critères de réussite, état de la rédaction).
 import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api.js";
 import { Erreur } from "../composants.jsx";
 import { Maths } from "../maths.jsx";
 import RailEtapes, { NavigationEtapes, SEPT_ETAPES } from "../ui/Etapes.jsx";
 import { ErreursFrequentes, Methodes, Objectifs } from "../ui/Pedagogie.jsx";
+import AtelierRedaction from "./AtelierRedaction.jsx";
 import { AvisCours } from "./Comprehension.jsx";
 import { Ressources } from "./Cours.jsx";
 
@@ -64,7 +66,7 @@ function Parties({ parties, etape }) {
 }
 
 export default function EcranCours({
-  jeton, onExpire, competenceId, etapeInitiale = null, rubrique = null, nbQuestions = null,
+  jeton, onExpire, competenceId, eleveId = null, etapeInitiale = null, rubrique = null, nbQuestions = null,
   onRetour, onEntrainer, onVoirHistorique,
 }) {
   const [lecon, setLecon] = useState(null);
@@ -109,7 +111,7 @@ export default function EcranCours({
   }
   if (!lecon) return <p className="doux">Chargement du cours…</p>;
   return (
-    <Etapes lecon={lecon} avancement={avancement} jeton={jeton} etapeInitiale={etapeInitiale} rubrique={rubrique} nbQuestions={nbQuestions}
+    <Etapes lecon={lecon} avancement={avancement} jeton={jeton} onExpire={onExpire} eleveId={eleveId} etapeInitiale={etapeInitiale} rubrique={rubrique} nbQuestions={nbQuestions}
       onRetour={onRetour} onEntrainer={onEntrainer} onVoirHistorique={onVoirHistorique} />
   );
 }
@@ -128,7 +130,7 @@ function Avancement({ av, niveau }) {
   );
 }
 
-function Etapes({ lecon, avancement, jeton, etapeInitiale, rubrique, nbQuestions, onRetour, onEntrainer, onVoirHistorique }) {
+function Etapes({ lecon, avancement, jeton, onExpire, eleveId, etapeInitiale, rubrique, nbQuestions, onRetour, onEntrainer, onVoirHistorique }) {
   const parties = useMemo(() => partiesDuCours(lecon.cours), [lecon.cours]);
   const redaction = rubrique === "redaction";
   // Exercices corrigés par la plateforme : inconnu (null) quand on arrive d'ailleurs que « Mes cours » ; on les propose.
@@ -138,7 +140,7 @@ function Etapes({ lecon, avancement, jeton, etapeInitiale, rubrique, nbQuestions
     const disponible = {
       1: lecon.objectifs.length > 0 || Boolean(parties[1]),
       2: true,
-      3: exercices || Boolean(parties[3]),
+      3: redaction || exercices || Boolean(parties[3]),
       4: exercices,
       5: exercices || Boolean(parties[5]) || lecon.erreurs_frequentes.length > 0,
       6: Boolean(parties[6]),
@@ -147,7 +149,7 @@ function Etapes({ lecon, avancement, jeton, etapeInitiale, rubrique, nbQuestions
     const detail = {
       1: "Objectifs, ce qu'il faut savoir",
       2: "Leçon, exemple résolu",
-      3: redaction ? "Critères de réussite" : "Premiers exercices",
+      3: redaction ? "Écrire : consigne et critères" : "Premiers exercices",
       4: "Exercices adaptés à ton niveau",
       5: redaction ? "Relire et réécrire" : "Exercices difficiles, erreurs à éviter",
       6: "Dans un autre travail",
@@ -220,7 +222,17 @@ function Etapes({ lecon, avancement, jeton, etapeInitiale, rubrique, nbQuestions
             <Ressources ressources={lecon.ressources ?? []} jeton={jeton} titre="De ta professeure" />
           </>
         )}
-        {active === 3 && (
+        {active === 3 && redaction && (
+          <AtelierRedaction
+            jeton={jeton}
+            onExpire={onExpire}
+            competenceId={lecon.competence_id}
+            eleveId={eleveId}
+            criteres={parties[3]}
+            relire={parties[5]}
+          />
+        )}
+        {active === 3 && !redaction && (
           <>
             <Parties parties={parties[3]} etape="Appliquer" />
             {exercices && <Avancement av={avancement} niveau="bases" />}

@@ -68,7 +68,7 @@ describe("écran de cours (#231)", () => {
 
   it("un sujet de rédaction n'a pas d'étape d'exercices corrigés", async () => {
     const redaction = { ...LECON, cours: "## 1. Découvrir\nA\n## 2. Comprendre la méthode\nB\n## 3. Mes critères de réussite\nC\n## 4. Relire et réécrire\nD\n## 5. Réinvestir\nE" };
-    fausseApi(routes(redaction));
+    fausseApi({ ...routes(redaction), "GET /francais/eleve/redaction/40": { json: { ouverte: false, sujets: [] } } });
     render(<EcranCours jeton="j" onExpire={vi.fn()} competenceId={40} rubrique="redaction" nbQuestions={1}
       onRetour={vi.fn()} onEntrainer={vi.fn()} onVoirHistorique={vi.fn()} />);
     await screen.findByRole("heading", { name: "Découvrir", level: 2 });

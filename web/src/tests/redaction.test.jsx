@@ -49,7 +49,11 @@ describe("rédaction : élève (#179)", () => {
   it("affiche que la rédaction n'est pas encore ouverte", async () => {
     fausseApi({ "GET /eleves/moi/redactions": { status: 403, json: { detail: "La rédaction en ligne n'est pas encore ouverte." } } });
     render(<Redaction jeton="j" onExpire={vi.fn()} />);
-    expect(await screen.findByText("La rédaction en ligne n'est pas encore ouverte.")).toBeInTheDocument();
+    // #231 : un état expliqué (où trouver les sujets, rédiger sur sa copie), pas un message d'erreur.
+    const note = await screen.findByRole("note");
+    expect(note).toHaveTextContent("La rédaction en ligne n'est pas encore ouverte.");
+    expect(note).toHaveTextContent("rédige sur ta copie");
+    expect(screen.queryByRole("alert")).toBeNull();
   });
 });
 

@@ -136,6 +136,11 @@ Sauvegardes : chiffrées, copiées hors du serveur, gardées 60 jours, restaurat
   3. activation d'abord en DEV, essai par la professeure (dépôt, consultation par une classe pilote, refus d'un PDF
      piégé) ;
   4. sauvegarde, puis `PKP_PDF_FRANCAIS_OUVERT=true` dans le `.env` de production et redémarrage.
+- **Brouillon de rédaction sur l'appareil** (#231, RGPD-2 bis) : tant que la rédaction en ligne est fermée, l'atelier
+  garde le brouillon de l'élève dans son navigateur, `PKP_REDACTION_BROUILLON_JOURS` jours après sa dernière
+  modification (10 par défaut, 0 désactive, 30 au plus : au-delà, décision du propriétaire). Rien n'est stocké sur
+  le serveur. Changer la valeur dans le `.env` puis redémarrer l'API ; une durée raccourcie efface les brouillons
+  plus anciens à la visite suivante.
 - **Candidatures et partenariats** (#171, « Enseigner ou collaborer avec nous ») : **fermés par défaut**
   (`PKP_COLLABORATION_ACTIVE=false` : le formulaire l'annonce, l'API répond 403, l'accueil n'affiche pas l'entrée).
   En production, l'API refuse de démarrer avec `PKP_COLLABORATION_ACTIVE=true` sans les durées « candidature » et

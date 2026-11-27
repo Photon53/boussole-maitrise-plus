@@ -15,6 +15,7 @@ import Progression from "./Progression.jsx";
 import EspaceEnfant, { CLE_ENFANT } from "./EspaceEnfant.jsx";
 import { AccueilFrancais, CoursFrancais, PlusFrancais } from "./FrancaisEleve.jsx";
 import EcranCours from "./EcranCours.jsx";
+import { purgerBrouillons } from "./brouillonLocal.js";
 import PkpMath from "../pkpmath/PkpMath.jsx";
 import Remarques from "../ui/Remarques.jsx";
 import { naviguer } from "../navigation.js";
@@ -57,6 +58,12 @@ export default function EspaceEleve() {
     if (!compte) return setMesParcours([]);
     api("/eleves/moi/parcours", { jeton: compte.jeton }).then(setMesParcours, () => setMesParcours([]));
   }, [compte]);
+
+  // Issue #231 : les brouillons de rédaction expirés sont effacés de l'appareil dès l'ouverture de l'espace élève,
+  // même si l'élève ne retourne pas à l'atelier.
+  useEffect(() => {
+    purgerBrouillons();
+  }, []);
 
   // Issue #231 : à la connexion d'un élève de français, l'accueil de la matière remplace l'entraînement.
   const matiereEleve = compte?.eleve?.matiere;
@@ -327,6 +334,8 @@ export default function EspaceEleve() {
           jeton={compte.jeton}
           onExpire={deconnecter}
           competenceId={leconOuverte}
+          // Brouillon de rédaction gardé sur l'appareil : pour l'élève lui-même, jamais en simulation par un adulte.
+          eleveId={compte.simulation ? null : compte.eleve.id}
           // Arrivée depuis une correction (« Relire le cours ») : la leçon, étape « Comprendre ».
           etapeInitiale={depuisExercice || ancreLecon ? 2 : infosCours?.etape}
           rubrique={infosCours?.rubrique}
