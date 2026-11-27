@@ -8,7 +8,17 @@ from datetime import UTC, date, datetime
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from fastapi.concurrency import run_in_threadpool
-from pkp_engine import CorrectionHumaineRequise, ExpressionInvalide, Forme, Niveau, TypeQuestion, Verdict, gabarits, reponse_modele, verifier
+from pkp_engine import (
+    CorrectionHumaineRequise,
+    ExpressionInvalide,
+    Forme,
+    Niveau,
+    TypeQuestion,
+    Verdict,
+    gabarits,
+    reponse_modele,
+    verifier,
+)
 from sqlalchemy import case, func, or_, select
 from sqlalchemy.orm import selectinload
 
@@ -301,7 +311,32 @@ def _vue_question(q: models.Question, n: int | None, c: int | None, compte: mode
         taux_reussite=(c or 0) / n if n else None,
         # Ticket #29 : le bouton « Valider » n'est montré qu'à qui peut valider ce contenu (l'API le revérifie).
         peut_valider=compte is not None and permissions.peut_valider(compte, chapitre.domaine_code, chapitre.niveau.value),
+        domaine=chapitre.domaine_code, rubrique=getattr(chapitre.rubrique, "value", chapitre.rubrique),
+        correction=q.correction,
     )
+
+
+def _motifs_de_correction(session: SessionDB, vues: list[QuestionAdmin]) -> list[QuestionAdmin]:
+    """Motif de la dernière décision « À corriger » de chaque question à corriger (#231), lu dans le journal."""
+    ids = [v.id for v in vues if v.statut_validation == StatutValidation.A_CORRIGER]
+    if not ids:
+        return vues
+    motifs: dict[int, str] = {}
+    for objet_id, apres in session.execute(
+        select(models.JournalAdmin.objet_id, models.JournalAdmin.apres)
+        .where(models.JournalAdmin.action == "valider", models.JournalAdmin.objet == "question",
+               models.JournalAdmin.objet_id.in_(ids))
+        .order_by(models.JournalAdmin.le, models.JournalAdmin.id)
+    ):
+        statut = (apres or {}).get("statut_validation")
+        if statut == StatutValidation.A_CORRIGER.value:
+            motifs[objet_id] = (apres or {}).get("motif") or None
+        else:
+            motifs.pop(objet_id, None)
+    for v in vues:
+        if v.id in motifs:
+            v.motif_correction = motifs[v.id]
+    return vues
 
 
 @router.get("/questions", response_model=PageQuestions)
@@ -375,7 +410,7 @@ def lister_questions(
         .offset((max(page, 1) - 1) * TAILLE_PAGE)
         .limit(TAILLE_PAGE)
     ).all()
-    return PageQuestions(total=total, elements=[_vue_question(qu, n, c, compte) for qu, n, c in lignes])
+    return PageQuestions(total=total, elements=_motifs_de_correction(session, [_vue_question(qu, n, c, compte) for qu, n, c in lignes]))
 
 
 def _question(session: SessionDB, question_id: int) -> models.Question:
@@ -484,15 +519,19 @@ def valider(question_id: int, corps: Validation, admin: AdminCourant, session: S
     if corps.statut == StatutValidation.VALIDEE and q.auteur and q.auteur.strip().lower() == admin.nom.strip().lower():
         raise HTTPException(422, "Vous êtes l'auteur de cette question : un autre professeur doit la valider.")
     avant = journal.instantane(q, ("statut_validation", "valide_par", "valide_le"))
+    motif = (corps.motif or "").strip() or None
     q.statut_validation = corps.statut
     if corps.statut == StatutValidation.A_VALIDER:
         q.valide_par, q.valide_le = None, None
     else:
         q.valide_par, q.valide_le = admin.nom, date.today()
     q.modifiee_admin_le = _maintenant()
-    journal.noter(session, admin, "valider", "question", q.id, avant, journal.instantane(q, ("statut_validation", "valide_par", "valide_le")))
+    apres = journal.instantane(q, ("statut_validation", "valide_par", "valide_le"))
+    if motif and corps.statut == StatutValidation.A_CORRIGER:
+        apres["motif"] = motif  # #231 : ce qu'il faut corriger, pour l'auteur et l'historique
+    journal.noter(session, admin, "valider", "question", q.id, avant, apres)
     session.commit()
-    return _vue_question_seule(session, q, admin)
+    return _motifs_de_correction(session, [_vue_question_seule(session, q, admin)])[0]
 
 
 @router.post("/questions/{question_id}/archivage", response_model=QuestionAdmin)
