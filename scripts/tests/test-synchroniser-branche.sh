@@ -64,6 +64,15 @@ AGENT=Banc bash "$SYNCHRO" >/dev/null 2>&1
 verif "corrigés régénérés" 'grep -q c.yaml docs/audit/CORRIGES-INVENTAIRE.md && grep -q b.yaml docs/audit/CORRIGES-INVENTAIRE.md'
 verif "commit attribué" 'git log -1 --format=%B | grep -q "Agent: Banc"'
 
+# 4 bis. Numéro d'issue déduit du nom de branche : titre (#N) et Refs.
+nouveau_depot issue; git checkout -q -b feat/issue-42-essai
+echo b > contenu/b.yaml; git add -A; git commit -qm travail
+git checkout -q develop && echo c > contenu/c.yaml && git add -A && git commit -qm develop -q
+git update-ref refs/remotes/origin/develop HEAD && git checkout -q feat/issue-42-essai
+AGENT=Banc bash "$SYNCHRO" >/dev/null 2>&1
+verif "titre avec (#42)" 'git log -1 --format=%s | grep -qF "(#42)"'
+verif "Refs: #42" 'git log -1 --format=%B | grep -qx "Refs: #42"'
+
 # 5. Conflit ordinaire : listé, code 2, fusion laissée en cours.
 nouveau_depot ordinaire; git checkout -q -b travail
 sed -i 's/l2/travail/' partage.txt; git commit -qam travail
