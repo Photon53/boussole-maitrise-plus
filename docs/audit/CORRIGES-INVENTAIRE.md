@@ -10,7 +10,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 
 | Niveau | Parcours | Résultat seul | À compléter | Complet | Questions | Complets |
 |---|---|:-:|:-:|:-:|:-:|:-:|
-| 6e | tronc-commun | 0 | 113 | 13 | 126 | 10 % |
+| 6e | tronc-commun | 0 | 125 | 19 | 144 | 13 % |
 | 5e | tronc-commun | 0 | 111 | 21 | 132 | 16 % |
 | 4e | tronc-commun | 0 | 101 | 16 | 117 | 14 % |
 | 3e | tronc-commun | 0 | 79 | 14 | 93 | 15 % |
@@ -31,7 +31,7 @@ Gabarit et règles de rédaction : `docs/CONTENU.md`, section « Corrigés ».
 | Tle | excellence | 65 | 15 | 0 | 80 | 0 % |
 | Tle | mise-a-niveau | 13 | 2 | 0 | 15 | 0 % |
 | Tle | examens | 29 | 1 | 0 | 30 | 0 % |
-| **Total** | | 555 | 1249 | 123 | 1927 | 6 % |
+| **Total** | | 555 | 1261 | 129 | 1945 | 7 % |
 
 ## Par chapitre
 
@@ -928,3 +928,11 @@ TLE-DIAG-SPE : 0 résultat seul, 5 à compléter, 1 complet(s).
 ### Tle · technologique · Diagnostic d'entrée, acquis de 1re technologique
 
 TLE-DIAG-TECH : 0 résultat seul, 6 à compléter, 0 complet(s).
+
+### 6e · tronc-commun · La nature des mots
+
+FR6-NATURE : 0 résultat seul, 4 à compléter, 5 complet(s).
+
+### 6e · tronc-commun · Le présent de l’indicatif
+
+FR6-PRESENT : 0 résultat seul, 8 à compléter, 1 complet(s).
