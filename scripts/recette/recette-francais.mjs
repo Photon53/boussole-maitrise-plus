@@ -120,7 +120,8 @@ async function connecterEleve(navigateur, prenom, codeClasse, codePersonnel) {
   await page.getByLabel("Code classe").fill(codeClasse);
   await page.getByLabel("Code personnel").fill(codePersonnel);
   await page.getByRole("button", { name: "Commencer" }).click();
-  await page.getByRole("tab", { name: "Cours", exact: true }).waitFor({ timeout: 15_000 });
+  // Issue #231 : l'élève de français arrive sur l'accueil ; ses cours sont dans « Mes cours ».
+  await page.getByRole("tab", { name: "Mes cours", exact: true }).waitFor({ timeout: 15_000 });
   return page;
 }
 
@@ -295,11 +296,13 @@ async function recette() {
       .flatMap((c) => c.paragraphes).filter((p) => p.length >= 40);
     {
       const page = await connecterEleve(navigateur, "Recette", ctx.pilote.code, ctx.pilote.codePersonnel);
-      await etape("élève pilote", "Dossier lisible dans « Cours », sans aucun corrigé", async () => {
-        await page.getByRole("tab", { name: "Cours", exact: true }).click();
+      await etape("élève pilote", "Dossier lisible dans « Mes cours », sans aucun corrigé", async () => {
+        await page.getByRole("tab", { name: "Mes cours", exact: true }).click();
         if (!ouvert) throw nonApplicable("mode lecture : la classe de recette n'a aucun dossier ouvert");
-        await visible(page.getByRole("heading", { name: "Mes dossiers" }));
-        await page.locator("section").filter({ has: page.getByRole("heading", { name: "Mes dossiers" }) }).getByRole("button").first().click();
+        // Issue #231 : chapitres et dossiers ont la même carte ; un dossier est dans « Lire et comprendre ».
+        const carte = page.locator("article").filter({ hasText: "Lire et comprendre" }).first();
+        await visible(carte);
+        await carte.getByRole("button", { name: /Commencer|Reprendre|Revoir/ }).click();
         await visible(page.getByText(/Rédige ta réponse/));
         const texte = await page.locator("body").innerText();
         const fuite = corriges.find((p) => texte.includes(p.slice(0, 60)));
@@ -346,8 +349,9 @@ async function recette() {
         const r = await api(`/francais/eleve/dossiers/${CODE}`, { jeton });
         verifier(r.status === 403, `adresse directe : ${r.status} au lieu de 403`);
         if (page) {
-          await page.getByRole("tab", { name: "Cours", exact: true }).click();
-          verifier(!(await page.getByRole("heading", { name: "Mes dossiers" }).isVisible()), "« Mes dossiers » affiché");
+          await page.getByRole("tab", { name: "Mes cours", exact: true }).click();
+          await page.waitForTimeout(1_000);
+          verifier(!(await page.locator("article").filter({ hasText: "Lire et comprendre" }).count()), "dossier affiché");
         }
       }, { page: page ?? undefined });
     }

@@ -121,10 +121,11 @@ for (const taille of Object.keys(TAILLES)) {
     await page.getByLabel("Code classe").fill(cp.code);
     await page.getByLabel("Code personnel").fill(lina.code);
     await page.getByRole("button", { name: "Commencer" }).click();
-    await page.getByRole("tab", { name: "Cours", exact: true }).waitFor({ timeout: 15000 });
+    // Issue #231 : nouvelle navigation de l'élève de français (avant : 8 onglets, dont « Cours »).
+    await page.getByRole("tab", { name: "Mes cours", exact: true }).waitFor({ timeout: 15000 });
     const onglets = taille === "ordinateur"
-      ? ["S'entraîner", "Cours", "Mon cours", "Rédaction", "Fiches et PDF", "Mon historique", "Ma progression"]
-      : ["S'entraîner", "Cours", "Ma progression"];
+      ? ["Accueil", "Mes cours", "S'entraîner", "Ma progression", "Plus"]
+      : ["Accueil", "Mes cours", "Ma progression"];
     for (const o of onglets) {
       const t = page.getByRole("tab", { name: o, exact: true });
       if (!(await t.count())) { journal.push(`onglet absent : ${o}`); continue; }
@@ -133,12 +134,18 @@ for (const taille of Object.keys(TAILLES)) {
     }
     if (taille === "ordinateur") {
       // Ouvrir un chapitre interactif et le dossier.
-      await page.getByRole("tab", { name: "Cours", exact: true }).click();
+      await page.getByRole("tab", { name: "Mes cours", exact: true }).click();
       await page.waitForTimeout(800);
-      const boutons = page.getByRole("button", { name: /Lire|Ouvrir|Accords|outils/i });
-      journal.push(`boutons cours : ${await boutons.count()}`);
-      await page.locator("section").filter({ has: page.getByRole("heading", { name: "Mes dossiers" }) }).getByRole("button").first().click().catch(() => {});
+      await page.locator("article").filter({ hasText: "Lire et comprendre" }).first()
+        .getByRole("button", { name: /Commencer|Reprendre|Revoir/ }).click().catch(() => {});
+      await page.waitForTimeout(800);
       await capture(page, "eleve-ordinateur-dossier-ouvert");
+      // Leçon d'un chapitre : depuis « Mes cours », bouton « Leçon » ou « Commencer » d'un cours de grammaire.
+      await page.getByRole("tab", { name: "Mes cours", exact: true }).click();
+      await page.waitForTimeout(600);
+      await page.locator("article").filter({ hasText: "Grammaire" }).first().getByRole("button").last().click().catch(() => {});
+      await page.waitForTimeout(1200);
+      await capture(page, "eleve-ordinateur-cours-ouvert");
     }
   });
   // Parent
