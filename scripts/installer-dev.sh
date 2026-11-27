@@ -11,7 +11,7 @@ if [[ "${1:-}" != "--base-seulement" ]]; then
   etape "Vérification des prérequis"
   command -v python3 >/dev/null || { echo "Python 3.11+ introuvable"; exit 1; }
   python3 -c "import sys; assert sys.version_info >= (3, 11), 'Python 3.11 ou plus requis'"
-  command -v npm >/dev/null || { echo "Node.js 20+ introuvable"; exit 1; }
+  command -v npm >/dev/null || { echo "Node.js 24+ introuvable"; exit 1; }
 
   etape "Environnement Python (.venv)"
   [[ -x "$PYTHON" ]] || python3 -m venv .venv

@@ -1,8 +1,8 @@
-<!-- Modèle de pull request — voir AGENTS.md § 2 et § 7. Base : develop, jamais main. -->
+<!-- Modèle de pull request — voir AGENTS.md § 4. Base : develop, jamais main. -->
 
 ## Issue liée
 
-<!-- AGENTS.md § 2.5 : `Refs #N` par défaut. `Closes #N` seulement si la PR traite entièrement l'issue ; il ne ferme
+<!-- AGENTS.md § 4 : `Refs #N` par défaut. `Closes #N` seulement si la PR traite entièrement l'issue ; il ne ferme
      rien à la fusion dans `develop` (la fermeture automatique ne vaut que vers `main`) : une personne ferme l'issue. -->
 
 Refs #
@@ -13,7 +13,7 @@ Refs #
 
 ## Tests lancés
 
-<!-- Depuis la racine du dépôt (AGENTS.md § 3). Ne jamais cocher un test non lancé : écrire « non exécuté »,
+<!-- Depuis la racine du dépôt (skill `controles-ci`). Ne jamais cocher un test non lancé : écrire « non exécuté »,
      la raison et le job de CI qui le vérifie, et laisser la PR en brouillon jusqu'à la CI verte. -->
 
 - [ ] `pip install -e "./engine[dev]" -e "./api[dev]"` (environnement virtuel du projet)
@@ -24,7 +24,7 @@ Refs #
 - [ ] `(cd web && npm audit --omit=dev --audit-level=high)`
 - [ ] `(cd web && npm test)`
 - [ ] `(cd web && npm run build)`
-- [ ] Job « Terraform DEV » et bancs simulés (AGENTS.md § 3), si la PR touche `infrastructure/`, `scripts/` ou `deploy/`
+- [ ] Job « Terraform DEV » et bancs simulés (skill `controles-ci`), si la PR touche `infrastructure/`, `scripts/` ou `deploy/`
 
 Résultat utile (nombre de tests passés) :
 
@@ -40,7 +40,7 @@ Non exécuté (commande, raison, job de CI qui le vérifie) :
 
 - [ ] Aucune donnée personnelle nouvelle
 - [ ] Données nouvelles décrites et justifiées dans `docs/RGPD.md`
-- [ ] Aucun nom de famille ni e-mail d'enfant ou d'élève introduit (décision RGPD-1, AGENTS.md § 5)
+- [ ] Aucun nom de famille ni e-mail d'enfant ou d'élève introduit (décision RGPD-1, AGENTS.md § 3)
 - [ ] Si un champ nominatif est ajouté : décision tracée dans `docs/DECISIONS.md` et `docs/RGPD.md` mis à jour
 
 ## Droits d'auteur
@@ -56,8 +56,8 @@ Non exécuté (commande, raison, job de CI qui le vérifie) :
 ## Agent IA
 
 - [ ] PR produite ou assistée par un agent — nom réel de l'agent (jamais celui d'un autre) : 
-- [ ] Commits avec `Agent: <nom>` et `Refs: #N` (AGENTS.md § 2.1)
-- [ ] Commentaire de suivi posté sur l'issue (AGENTS.md § 2.4)
+- [ ] Commits avec `Agent: <nom>` et `Refs: #N` (AGENTS.md § 4)
+- [ ] Commentaire de suivi posté sur l'issue (modèle : skill `integration-git`)
 
 ## Relecture
 

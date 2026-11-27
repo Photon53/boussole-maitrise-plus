@@ -27,7 +27,7 @@ des 8 tables et le découpage en 6 phases.
 
 ## Développement avec VS Code
 
-Prérequis : [Python 3.11+](https://www.python.org/downloads/), [Node.js 20+](https://nodejs.org/), [VS Code](https://code.visualstudio.com/).
+Prérequis : [Python 3.11+](https://www.python.org/downloads/), [Node.js 24+](https://nodejs.org/), [VS Code](https://code.visualstudio.com/).
 
 1. Installer l'environnement (une fois) — crée `.venv`, installe les dépendances, crée la base de démo :
    - Windows : `powershell -ExecutionPolicy Bypass -File scripts\installer-dev.ps1`

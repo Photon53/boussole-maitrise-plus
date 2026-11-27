@@ -32,7 +32,7 @@ documents de domaine font foi : `ARCHITECTURE.md`, `DECISIONS.md`, `RGPD.md`, `C
 
 ## 3. Divergences et décisions à prendre
 
-Recommandation entre parenthèses. Depuis le 27/11/2026, ces points relèvent de l'arbitrage d'agent (AGENTS.md § 8.2), sauf s'ils touchent un cas du § 8.1.
+Recommandation entre parenthèses. Depuis le 27/11/2026, ces points relèvent de l'arbitrage d'agent (AGENTS.md § 1), sauf s'ils touchent un cas d'arrêt de ce même paragraphe.
 
 | Id | Divergence | Effet | Recommandation |
 |---|---|---|---|

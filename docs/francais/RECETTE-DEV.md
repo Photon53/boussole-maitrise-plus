@@ -2,7 +2,7 @@
 
 Issue #175 / #217 — Claude — 26/11/2026. Décision `V2-D12 — recette sur DEV (A7)`.
 
-**Exécutée par le propriétaire uniquement.** Aucun agent n'intervient sur DEV (AGENTS.md § 1). Cette procédure
+**Exécutée par le propriétaire uniquement.** Aucun agent n'intervient sur DEV (AGENTS.md § 2). Cette procédure
 n'ouvre aucune fonction sensible : `PKP_REDACTION_ACTIVE` et `PKP_PDF_FRANCAIS_OUVERT` restent faux (A5, A6).
 Elle complète [`INTEGRATION-DEV.md`](INTEGRATION-DEV.md) et [`../../scripts/recette/README.md`](../../scripts/recette/README.md),
 qui font foi en cas d'écart.

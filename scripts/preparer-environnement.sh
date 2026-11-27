@@ -29,11 +29,12 @@ declare -A TERRAFORM_SHA256=(
   [amd64]=e6f16b2f0b137ee5729caa8c4e79a3bae4ee261acd198a1fcfa8584a6296605b
   [arm64]=858e08c181a76b6b223e8c767a8e983922eebe2d062db949a2de66ce040c368c
 )
-# Node : dernière 20.x (la CI demande « 20 »). Empreintes tirées de nodejs.org/dist/v20.20.2/SHASUMS256.txt.
-NODE_VERSION=20.20.2
+# Node : 24.15.0, comme la CI, la publication DEV et deploy/Dockerfile.web (#252).
+# Empreintes tirées de nodejs.org/dist/v24.15.0/SHASUMS256.txt (archives .tar.xz).
+NODE_VERSION=24.15.0
 declare -A NODE_SHA256=(
-  [x64]=df770b2a6f130ed8627c9782c988fda9669fa23898329a61a871e32f965e007d
-  [arm64]=73093db209e4e9e09dd7d15a47aeaab1b74833830df03efa5f942a1122c5fa71
+  [x64]=472655581fb851559730c48763e0c9d3bc25975c59d518003fc0849d3e4ba0f6
+  [arm64]=f3d5a797b5d210ce8e2cb265544c8e482eaedcb8aa409a8b46da7e8595d0dda0
 )
 # ShellCheck : la CI ne l'exécute pas (elle vérifie seulement « bash -n ») ; outil local. Le projet ne
 # publie pas d'empreinte : celles-ci ont été calculées sur les archives de la release GitHub v0.11.0,
