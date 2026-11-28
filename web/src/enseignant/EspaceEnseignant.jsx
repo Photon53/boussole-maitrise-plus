@@ -36,34 +36,54 @@ const VALIDATION = { vers: "/enseignant/validation", libelle: "Validation", icon
 // Issue #179 : rédactions remises par les élèves des classes de français.
 const REDACTIONS = { vers: "/enseignant/redactions", libelle: "Rédactions", icone: "crayon" };
 
-/** Issue #231 : un professeur de français a son propre espace, rangé par groupes, à la marque « Boussole Français ».
- * Professeur de français seulement : le tableau de bord est l'accueil et les pages propres aux maths disparaissent.
- * Professeur des deux matières : les pages des maths restent, le groupe « Français » s'ajoute. */
-function pagesFrancais({ seul, validateur }) {
+/** Issue #231 : l'espace d'un professeur de français, rangé par groupes, à la marque « Boussole Français ».
+ * `accueil` : adresse du tableau de bord (« /enseignant » pour un professeur de français seulement,
+ * « /enseignant/francais » pour un professeur de plusieurs matières, dont « /enseignant » reste l'accueil des maths). */
+function pagesFrancais({ accueil, validateur }) {
   const fr = (p) => ({ ...p, groupe: "Français" });
   const outils = (p) => ({ ...p, groupe: "Outils" });
   const parVers = Object.fromEntries(PAGES.map((p) => [p.vers, p]));
-  const tableau = fr({ vers: seul ? "/enseignant" : "/enseignant/francais", libelle: "Tableau de bord", icone: "tableau" });
-  const francais = [
-    tableau,
-    ...(seul ? [fr({ ...parVers["/enseignant"], vers: "/enseignant/classes", libelle: "Mes classes" })] : []),
-    ...(seul ? [fr(parVers["/enseignant/cours"])] : []),
+  return [
+    fr({ vers: accueil, libelle: "Tableau de bord", icone: "tableau" }),
+    fr({ ...parVers["/enseignant"], vers: "/enseignant/classes", libelle: "Mes classes" }),
+    fr(parVers["/enseignant/cours"]),
     // L'espace des dossiers (#212, #217) garde sa page ; il s'ouvre avec la même session.
     fr({ vers: "/francais", libelle: "Dossiers et PDF", icone: "pdf" }),
     fr(REDACTIONS),
-    ...(seul ? [fr(parVers["/enseignant/ressources"])] : []),
-  ];
-  if (!seul) {
-    const maths = PAGES.map((p) => ({ ...p, groupe: "Maths" }));
-    return [...maths, ...francais, ...(validateur ? [outils(VALIDATION)] : [])];
-  }
-  return [
-    ...francais,
+    fr(parVers["/enseignant/ressources"]),
     outils(parVers["/enseignant/seance"]),
     outils(parVers["/enseignant/vue-eleve"]),
     ...(validateur ? [outils(VALIDATION)] : []),
     outils(parVers["/enseignant/remarques"]),
   ];
+}
+
+// Issue #231 : un professeur de plusieurs matières choisit la matière ; le menu ne montre que ses pages.
+export const CLE_MATIERE = "pkp.enseignant.matiere";
+const PAGES_FRANCAIS = ["/enseignant/francais", "/enseignant/redactions"];
+const PAGES_MATHS = ["/enseignant/pkp-math", "/enseignant/banque"];
+
+/** Matière affichée : celle de la page ouverte si elle est propre à une matière, sinon le dernier choix. */
+export function matiereDeLaPage(chemin, preferee) {
+  if (PAGES_FRANCAIS.some((v) => chemin === v || chemin.startsWith(`${v}/`))) return "francais";
+  if (PAGES_MATHS.some((v) => chemin === v || chemin.startsWith(`${v}/`))) return "maths";
+  return preferee === "francais" ? "francais" : "maths";
+}
+
+function SelecteurMatiere({ matiere, anglais }) {
+  const choisir = (m, vers) => {
+    ecrire(CLE_MATIERE, m);
+    naviguer(vers);
+  };
+  return (
+    <div className="selecteur-matiere" role="group" aria-label="Matière">
+      <button type="button" aria-pressed={matiere === "maths"} onClick={() => choisir("maths", "/enseignant")}>Maths</button>
+      <button type="button" aria-pressed={matiere === "francais"} onClick={() => choisir("francais", "/enseignant/francais")}>
+        Français
+      </button>
+      {anglais && <a href="/anglais">Anglais</a>}
+    </div>
+  );
 }
 
 export default function EspaceEnseignant({ chemin = "/enseignant" }) {
@@ -84,7 +104,8 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
       <PageSimple>
         <ConnexionEnseignant onConnexion={connecter}>
           <p className="aide">
-            Vous enseignez le français ? <a href="/francais">Français (préparation)</a>
+            Professeurs de maths et de français : un seul compte ; choisissez la matière après la connexion. Les dossiers de
+            français s'ouvrent depuis votre espace (« Dossiers et PDF »).
           </p>
         </ConnexionEnseignant>
       </PageSimple>
@@ -116,11 +137,16 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
   const francais = Boolean(compte.enseigne_francais);
   const francaisSeul = francais && compte.enseigne_maths === false;
   const validateur = Boolean(compte.validateur_maths);
+  const maths = compte.enseigne_maths !== false;
+  // Plusieurs matières : un sélecteur ; le menu ne montre que les pages de la matière choisie (#231).
+  const plusieurs = enseigne && francais && maths;
+  const matiere = !francais ? "maths" : francaisSeul ? "francais" : matiereDeLaPage(chemin, lire(CLE_MATIERE));
+  const pagesMaths = validateur ? [...PAGES, VALIDATION] : PAGES;
   const pages = !enseigne
     ? [VALIDATION]
-    : francais
-      ? pagesFrancais({ seul: francaisSeul, validateur })
-      : validateur ? [...PAGES, VALIDATION] : PAGES;
+    : matiere === "francais"
+      ? pagesFrancais({ accueil: francaisSeul ? "/enseignant" : "/enseignant/francais", validateur })
+      : pagesMaths;
   const page = pages.filter((p) => chemin === p.vers || chemin.startsWith(`${p.vers}/`)).sort(
     (a, b) => b.vers.length - a.vers.length,
   )[0] ?? pages[0];
@@ -129,8 +155,9 @@ export default function EspaceEnseignant({ chemin = "/enseignant" }) {
   return (
     <CadreApplication
       espace="Espace professeur"
-      marque={francaisSeul ? "Français" : "Maths"}
+      marque={matiere === "francais" ? "Français" : "Maths"}
       liens={pages}
+      selecteur={plusieurs ? <SelecteurMatiere matiere={matiere} anglais={Boolean(compte.enseigne_anglais)} /> : null}
       cheminActif={chemin}
       pied={
         <>

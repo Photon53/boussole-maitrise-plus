@@ -9,7 +9,8 @@ import Icone, { Monogramme } from "./Icone.jsx";
  * `groupe` : titre affiché au-dessus du premier lien de chaque groupe.
  * `pied` : contenu du bas de la navigation (compte, déconnexion). `marque` : « Éducation » (par défaut), « Maths » ou « Anglais ».
  */
-export function CadreApplication({ espace, liens, cheminActif, pied, marque = "Éducation", children }) {
+/** `selecteur` (#231) : contenu placé sous le nom de l'espace, avant les liens (choix de la matière d'un professeur). */
+export function CadreApplication({ espace, liens, cheminActif, pied, marque = "Éducation", selecteur = null, children }) {
   const [ouverte, setOuverte] = useState(false);
   const actif = liens
     .filter((l) => cheminActif === l.vers || cheminActif.startsWith(`${l.vers}/`))
@@ -27,6 +28,7 @@ export function CadreApplication({ espace, liens, cheminActif, pied, marque = "�
           </span>
         </a>
         <div className="espace">{espace}</div>
+        {selecteur}
         {liens.map((l, i) => (
           <Fragment key={l.vers}>
             {l.groupe && l.groupe !== liens[i - 1]?.groupe && <div className="groupe-nav">{l.groupe}</div>}

@@ -169,7 +169,17 @@ function Dossiers({ compte, onDeconnexion }) {
       marque={MARQUE}
       liens={[
         { vers: "/francais", libelle: "Dossiers et validation", icone: "cours" },
-        ...(compte.admin ? [{ vers: "/admin", libelle: "Retour à l'administration", icone: "bouclier" }] : []),
+        // Issue #231 : cette page n'est plus une impasse ; retour à l'espace d'où l'on vient.
+        ...(!compte.admin
+          ? [{
+              vers: compte.enseigne_francais ? (compte.enseigne_maths === false ? "/enseignant" : "/enseignant/francais") : "/enseignant",
+              libelle: "Espace professeur",
+              icone: "classes",
+            }]
+          : []),
+        ...(compte.admin || compte.role === "admin"
+          ? [{ vers: "/admin/francais", libelle: "Administration · Français", icone: "bouclier" }]
+          : []),
       ]}
       cheminActif="/francais"
       pied={
