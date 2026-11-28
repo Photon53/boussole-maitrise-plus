@@ -5,7 +5,7 @@ Le propriétaire ne doit intervenir que pour la validation finale. Ce dispositif
 
 ## Déjà automatisé par ce changement
 - Exécution explicite des tests API Français existants (`api/tests/test_francais.py`) sur base SQLite jetable, avec rapport JUnit téléchargeable.
-- Exécution des tests front existants et compilation.
+- Tests front et compilation : job « Front » de `ci.yml`, sur chaque PR (le doublon de `recette-francais.yml` est retiré, #256).
 - Échec de la PR si un de ces jobs échoue, sous réserve de rendre les checks obligatoires dans la protection de branche.
 - Aucun identifiant GCP, aucune base DEV et aucune donnée élève réelle utilisés.
 
