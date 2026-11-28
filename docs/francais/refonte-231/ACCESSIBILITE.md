@@ -110,11 +110,13 @@ la **tablette** (820 px), le **zoom à 200 %** (683 px de large, WCAG 1.4.4), l'
 **Rédactions** de la professeure et la **file de validation**, et peut enregistrer une capture de chaque écran
 (`CAPTURES=1`).
 
-**Résultat : 0 violation axe et aucun débordement horizontal sur 57 contrôles** (19 écrans × 3 tailles) ; recomposition
+**Résultat : 0 violation axe et aucun débordement horizontal sur 60 contrôles** (20 écrans × 3 tailles) ; recomposition
 à 320 px et zoom à 200 % sans défilement horizontal ; parcours au clavier complet. Le QCM d'un exercice de français
 reçoit désormais le focus sur son premier choix (0 appui, contre 11 avant #251).
 
 Correctif de la passe : « Entrainement ciblé » devient « Entraînement ciblé » (écran d'exercice commun).
+
+Complément du 28/11 : la **validation des dossiers** (#267) est auditée, avec une révision fictive du dossier soumise par l'administrateur (les élèves lisent toujours la version validée).
 
 Recette des cinq rôles, avec l'avant et l'après de chaque écran : [`RECETTE-FINALE.md`](RECETTE-FINALE.md).
 
@@ -137,6 +139,7 @@ Recette des cinq rôles, avec l'avant et l'après de chaque écran : [`RECETTE-F
 | professeur | Mes classes | ordinateur | aucune | non |
 | professeur | Rédactions | ordinateur | aucune | non |
 | validateur | File de validation | ordinateur | aucune | non |
+| validateur | Validation des dossiers | ordinateur | aucune | non |
 | administrateur | Page Français | ordinateur | aucune | non |
 | parent | Bilan Français | ordinateur | aucune | non |
 | eleve | Accueil Français | tablette | aucune | non |
@@ -156,6 +159,7 @@ Recette des cinq rôles, avec l'avant et l'après de chaque écran : [`RECETTE-F
 | professeur | Mes classes | tablette | aucune | non |
 | professeur | Rédactions | tablette | aucune | non |
 | validateur | File de validation | tablette | aucune | non |
+| validateur | Validation des dossiers | tablette | aucune | non |
 | administrateur | Page Français | tablette | aucune | non |
 | parent | Bilan Français | tablette | aucune | non |
 | eleve | Accueil Français | mobile | aucune | non |
@@ -175,6 +179,7 @@ Recette des cinq rôles, avec l'avant et l'après de chaque écran : [`RECETTE-F
 | professeur | Mes classes | mobile | aucune | non |
 | professeur | Rédactions | mobile | aucune | non |
 | validateur | File de validation | mobile | aucune | non |
+| validateur | Validation des dossiers | mobile | aucune | non |
 | administrateur | Page Français | mobile | aucune | non |
 | parent | Bilan Français | mobile | aucune | non |
 

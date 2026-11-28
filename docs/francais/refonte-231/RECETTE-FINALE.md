@@ -12,7 +12,7 @@ ni un essai avec un lecteur d'écran (#154). Ces essais relèvent du propriétai
 | Contrôle | Outil | Résultat |
 |---|---|---|
 | Recette fonctionnelle multi-rôles (élève, professeure, validateur, administrateur, parent) | `scripts/recette/pile-locale.sh` | 20/20 |
-| Accessibilité automatique, 19 écrans × 3 tailles (1 366, 820 et 390 px) | `scripts/recette/accessibilite-francais.mjs` (axe-core, WCAG 2.1 A et AA) | 0 violation sur 57 contrôles |
+| Accessibilité automatique, 20 écrans × 3 tailles (1 366, 820 et 390 px) | `scripts/recette/accessibilite-francais.mjs` (axe-core, WCAG 2.1 A et AA) | 0 violation sur 60 contrôles |
 | Débordement horizontal, mêmes écrans et mêmes tailles | idem | aucun |
 | Zoom à 200 % (683 px) et recomposition à 320 px | idem | aucun défilement horizontal |
 | Parcours au clavier seul : connexion, cours, exercice, réponse, correction, progression | idem | complet, focus visible |
@@ -50,6 +50,7 @@ Les captures « avant » viennent de l'audit initial ([`audit/`](audit/)). Les c
 | Écran | Avant | Après |
 |---|---|---|
 | Validation des questions | [`validateur-ordinateur-validation-questions-haut`](audit/validateur-ordinateur-validation-questions-haut.png) : tableau d'environ 14 000 px (N6) | [file en deux volets](apres/validateur-ordinateur-file.png) · [tablette](apres/validateur-tablette-file.png) · [mobile](apres/validateur-mobile-file.png) |
+| Validation des dossiers | [`validateur-ordinateur-francais-validation`](audit/validateur-ordinateur-francais-validation.png) : liste déroulante, dossier entier sur une seule page | [file et onglets](apres/validateur-ordinateur-dossier.png) · [corrigé](apres/validateur-ordinateur-dossier-corrige.png) · [tablette](apres/validateur-tablette-dossier.png) · [mobile](apres/validateur-mobile-dossier.png) (#267) |
 
 ### Administrateur
 
