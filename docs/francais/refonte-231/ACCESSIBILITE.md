@@ -116,6 +116,8 @@ reçoit désormais le focus sur son premier choix (0 appui, contre 11 avant #251
 
 Correctif de la passe : « Entrainement ciblé » devient « Entraînement ciblé » (écran d'exercice commun).
 
+Recette des cinq rôles, avec l'avant et l'après de chaque écran : [`RECETTE-FINALE.md`](RECETTE-FINALE.md).
+
 | Rôle | Écran | Taille | Violations axe | Débordement horizontal |
 |---|---|---|---|---|
 | eleve | Accueil Français | ordinateur | aucune | non |
