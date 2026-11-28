@@ -8,6 +8,7 @@ import { avecDomaine, parametre } from "./BandeauAdmin.jsx";
 import { LIBELLES_PARCOURS, NIVEAUX, PARCOURS_PAR_NIVEAU } from "../parcours.js";
 import { GererClasse, parcoursCourt } from "./GestionClasses.jsx";
 import { NouveauGroupe } from "./AnglaisAdmin.jsx";
+import NouvelleClasseFrancais from "./NouvelleClasseFrancais.jsx";
 import { naviguer } from "../navigation.js";
 import Repertoire from "./Repertoire.jsx";
 
@@ -329,6 +330,9 @@ function ListeClasses({ jeton, onExpire, domaine }) {
           <button onClick={() => setFenetre({ genre: "classe" })}>
             <Icone nom="plus" taille={18} /> Classe de maths
           </button>
+          <button className="secondaire" onClick={() => setFenetre({ genre: "francais" })}>
+            <Icone nom="plus" taille={18} /> Classe de français
+          </button>
           <button className="secondaire" onClick={() => setFenetre({ genre: "groupe" })}>
             <Icone nom="plus" taille={18} /> Groupe d'anglais
           </button>
@@ -348,6 +352,20 @@ function ListeClasses({ jeton, onExpire, domaine }) {
           onCreee={(c) => {
             setFenetre(null);
             setMessage(`Classe ${c.code} créée. Ajoutez-y les élèves avec « Gérer », ou laissez le professeur le faire.`);
+            charger();
+          }}
+        />
+      )}
+      {fenetre?.genre === "francais" && (
+        <NouvelleClasseFrancais
+          appeler={appeler}
+          onFermer={() => setFenetre(null)}
+          onCreee={(c) => {
+            setFenetre(null);
+            setMessage(
+              `Classe ${c.code} créée${c.pilote ? " comme classe pilote" : ""}. Ajoutez-y les élèves avec « Gérer », ` +
+                "ou laissez la professeure le faire ; ouvrez ensuite ses cours depuis l'espace professeur.",
+            );
             charger();
           }}
         />
