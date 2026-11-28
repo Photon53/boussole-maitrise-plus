@@ -21,11 +21,10 @@ Toutes les commandes se lancent depuis la racine, dans `.venv` (`bash scripts/pr
 |---|---|
 | Moteur, API et contenu | `(cd api && python -m app.contenu verifier)` · `(cd engine && pytest -q)` · `(cd api && pytest -q -n auto -W ignore::DeprecationWarning)` |
 | Front | `(cd web && npm audit --omit=dev --audit-level=high)` · `(cd web && npm test)` · `(cd web && npm run build)` |
-| Terraform DEV et bancs (si `infrastructure/`, `scripts/`, `deploy/` changent) | `(cd infrastructure/terraform/dev && terraform fmt -check -recursive && terraform init -input=false -backend=false && terraform validate)` · `for f in scripts/*.sh deploy/*.sh infrastructure/terraform/dev/*.sh; do bash -n "$f"; done` · `bash scripts/test-dev-publier-version.sh` · `bash deploy/vm/tests/test-boussole-dev-sync.sh` · `bash deploy/vm/tests/test-refus-deploiement-manuel.sh` · `bash scripts/tests/test-controle-acces-sauvegardes.sh` |
+| Terraform DEV et bancs (si `infrastructure/`, `scripts/`, `deploy/` changent) | `(cd infrastructure/terraform/dev && terraform fmt -check -recursive && terraform init -input=false -backend=false && terraform validate)` · `for f in scripts/*.sh deploy/*.sh infrastructure/terraform/dev/*.sh; do bash -n "$f"; done` · `bash scripts/test-dev-publier-version.sh` · `bash deploy/vm/tests/test-boussole-dev-sync.sh` · `bash deploy/vm/tests/test-refus-deploiement-manuel.sh` · `bash scripts/tests/test-controle-acces-sauvegardes.sh` · `EXIGER_AGE=1 bash deploy/sauvegarde/tests/test-sauvegarde-prod.sh` (vrai `age` requis) |
 | Recette Français (PR touchant `api/`, `engine/`, `web/`, `contenu/francais/`) | `(cd api && pytest -q tests/test_francais.py)` (déjà inclus dans la suite API) |
 
-Hors CI, à lancer si le sujet est touché : `bash deploy/sauvegarde/tests/test-sauvegarde-prod.sh` (sauvegardes,
-vrai `age`), `bash scripts/tests/test-synchroniser-branche.sh` (script de synchronisation),
+Hors CI, à lancer si le sujet est touché : `bash scripts/tests/test-synchroniser-branche.sh` (script de synchronisation),
 `bash scripts/recette/pile-locale.sh` (recette navigateur, skill `recette-accessibilite`).
 
 Inventaires : `test_inventaire_du_depot_a_jour` et `test_inventaire_des_corriges_a_jour` échouent s'ils sont

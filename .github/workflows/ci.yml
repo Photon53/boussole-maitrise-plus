@@ -86,3 +86,10 @@ jobs:
           bash deploy/vm/tests/test-boussole-dev-sync.sh
           bash deploy/vm/tests/test-refus-deploiement-manuel.sh
           bash scripts/tests/test-controle-acces-sauvegardes.sh
+      # Banc des sauvegardes : faux docker et faux gcloud, vrai age ; EXIGER_AGE=1 interdit le saut silencieux (#265).
+      - name: Sauvegardes chiffrées contre un faux docker et un faux GCS (sans base ni GCP)
+        working-directory: .
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends age
+          EXIGER_AGE=1 bash deploy/sauvegarde/tests/test-sauvegarde-prod.sh
