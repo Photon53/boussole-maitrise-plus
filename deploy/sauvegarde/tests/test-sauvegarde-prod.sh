@@ -5,7 +5,11 @@
 set -Euo pipefail
 RACINE="$(cd "$(dirname "$0")/../../.." && pwd)"
 SCRIPT="$RACINE/deploy/sauvegarde-prod.sh"
-command -v age >/dev/null && command -v age-keygen >/dev/null || { echo "IGNORÉ : age et age-keygen requis"; exit 0; }
+# En CI, EXIGER_AGE=1 : un outil absent fait échouer le banc au lieu de l'ignorer (#265).
+if ! command -v age >/dev/null || ! command -v age-keygen >/dev/null; then
+  [ "${EXIGER_AGE:-0}" = 1 ] && { echo "ÉCHEC : age et age-keygen requis (EXIGER_AGE=1)" >&2; exit 1; }
+  echo "IGNORÉ : age et age-keygen requis"; exit 0
+fi
 T="$(mktemp -d)"; trap 'rm -rf "$T"' EXIT
 mkdir -p "$T/bin" "$T/gcs" "$T/deploy" "$T/faux"
 cp "$RACINE/deploy/sauvegarde/tests/faux_docker.py" "$T/bin/docker"; chmod +x "$T/bin/docker"
