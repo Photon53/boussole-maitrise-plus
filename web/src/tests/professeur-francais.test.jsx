@@ -2,7 +2,7 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import EspaceEnseignant from "../enseignant/EspaceEnseignant.jsx";
+import EspaceEnseignant, { matiereDeLaPage } from "../enseignant/EspaceEnseignant.jsx";
 import TableauFrancais from "../francais/TableauFrancais.jsx";
 import { fausseApi } from "./setup.js";
 
@@ -45,14 +45,58 @@ describe("espace professeur de français (#231)", () => {
     expect(await screen.findByRole("heading", { name: "Suivi de la classe 5E-FR-K7Q2" })).toBeInTheDocument();
   });
 
-  it("garde l'espace des maths et ajoute le groupe Français pour un professeur des deux matières", () => {
+  it("professeur des deux matières : un sélecteur, et le menu de la seule matière choisie", () => {
+    sessionStorage.setItem("pkp.enseignant", JSON.stringify({ ...FRANCAIS_SEUL, enseigne_maths: true, enseigne_anglais: true }));
+    fausseApi({ "GET /enseignants/classes": { json: [] } });
+    const vue = render(<EspaceEnseignant chemin="/enseignant" />);
+    let navigation = screen.getByRole("navigation", { name: "Navigation Espace professeur" });
+    const selecteur = within(navigation).getByRole("group", { name: "Matière" });
+    expect(within(selecteur).getByRole("button", { name: "Maths" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(selecteur).getByRole("link", { name: "Anglais" })).toHaveAttribute("href", "/anglais");
+    expect(within(navigation).getByRole("link", { name: "Classes et élèves" })).toHaveAttribute("aria-current", "page");
+    expect(within(navigation).getByRole("link", { name: "Boussole Maths (fiches PDF)" })).toBeInTheDocument();
+    expect(within(navigation).queryByRole("link", { name: "Rédactions" })).toBeNull(); // rien du français ici
+    vue.unmount();
+
+    // Le français : son tableau de bord, ses pages, rien des maths.
+    render(<EspaceEnseignant chemin="/enseignant/francais" />);
+    navigation = screen.getByRole("navigation", { name: "Navigation Espace professeur" });
+    expect(within(navigation).getByRole("button", { name: "Français" })).toHaveAttribute("aria-pressed", "true");
+    expect(within(navigation).getByRole("link", { name: "Tableau de bord" })).toHaveAttribute("aria-current", "page");
+    for (const nom of ["Mes classes", "Cours", "Dossiers et PDF", "Rédactions"]) {
+      expect(within(navigation).getByRole("link", { name: nom })).toBeInTheDocument();
+    }
+    expect(within(navigation).queryByRole("link", { name: "Boussole Maths (fiches PDF)" })).toBeNull();
+    expect(within(navigation).queryByRole("link", { name: "Banque de questions" })).toBeNull();
+    expect(navigation).toHaveTextContent("Boussole Français");
+  });
+
+  it("une page commune (Mes classes) garde la matière choisie", () => {
+    sessionStorage.setItem("pkp.enseignant", JSON.stringify({ ...FRANCAIS_SEUL, enseigne_maths: true }));
+    sessionStorage.setItem("pkp.enseignant.matiere", JSON.stringify("francais"));
+    fausseApi({ "GET /enseignants/classes": { json: [] } });
+    render(<EspaceEnseignant chemin="/enseignant/classes" />);
+    const navigation = screen.getByRole("navigation", { name: "Navigation Espace professeur" });
+    expect(within(navigation).getByRole("link", { name: "Mes classes" })).toHaveAttribute("aria-current", "page");
+    expect(within(navigation).getByRole("button", { name: "Français" })).toHaveAttribute("aria-pressed", "true");
+    sessionStorage.removeItem("pkp.enseignant.matiere");
+  });
+
+  it("choisir la matière mémorise le choix et ouvre son accueil", async () => {
     sessionStorage.setItem("pkp.enseignant", JSON.stringify({ ...FRANCAIS_SEUL, enseigne_maths: true }));
     fausseApi({ "GET /enseignants/classes": { json: [] } });
     render(<EspaceEnseignant chemin="/enseignant" />);
-    const navigation = screen.getByRole("navigation", { name: "Navigation Espace professeur" });
-    expect(within(navigation).getByRole("link", { name: "Classes et élèves" })).toHaveAttribute("aria-current", "page");
-    expect(within(navigation).getByRole("link", { name: "Tableau de bord" })).toHaveAttribute("href", "/enseignant/francais");
-    expect(within(navigation).getByRole("link", { name: "Boussole Maths (fiches PDF)" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Français" }));
+    expect(JSON.parse(sessionStorage.getItem("pkp.enseignant.matiere"))).toBe("francais");
+    expect(window.location.pathname).toBe("/enseignant/francais");
+    sessionStorage.removeItem("pkp.enseignant.matiere");
+  });
+
+  it("matière d'une page : propre à une matière, sinon le dernier choix", () => {
+    expect(matiereDeLaPage("/enseignant/redactions", "maths")).toBe("francais");
+    expect(matiereDeLaPage("/enseignant/pkp-math", "francais")).toBe("maths");
+    expect(matiereDeLaPage("/enseignant/classes", "francais")).toBe("francais");
+    expect(matiereDeLaPage("/enseignant/classes", null)).toBe("maths");
   });
 
   it("montre l'état de chaque élève dans chaque cours, sans couleur seule", async () => {

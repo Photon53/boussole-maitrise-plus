@@ -23,7 +23,8 @@ describe("navigation vers le Français en préparation", () => {
     fausseApi({});
     const vue = render(<App />);
     expect(await screen.findByRole("heading", { name: "Connexion professeur" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Français (préparation)" })).toHaveAttribute("href", "/francais");
+    // #231 : un seul compte pour les deux matières ; la matière se choisit après la connexion.
+    expect(screen.getByText(/choisissez la matière après la connexion/)).toBeInTheDocument();
     vue.unmount();
     render(<PageSimple><p>Connexion parent</p></PageSimple>);
     expect(screen.queryByRole("link", { name: /Français/ })).not.toBeInTheDocument();
@@ -72,8 +73,24 @@ describe("navigation vers le Français en préparation", () => {
     render(<App />);
     expect(await screen.findByRole("heading", { name: "Dossiers de français" })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Connexion — Français (préparation)" })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /Retour à l'administration/ })[0]).toHaveAttribute("href", "/admin");
+    expect(screen.getAllByRole("link", { name: /Administration · Français/ })[0]).toHaveAttribute("href", "/admin/francais");
+    expect(screen.queryByRole("link", { name: "Espace professeur" })).toBeNull();
     expect(appels.some((a) => a.cle === "GET /francais/validation")).toBe(true);
+  });
+
+  it("#231 : depuis les dossiers, retour à l'espace professeur (plus d'impasse)", async () => {
+    window.history.replaceState(null, "", "/francais");
+    sessionStorage.setItem("pkp.enseignant", JSON.stringify({ ...PROFESSEUR, enseigne_maths: true, enseigne_francais: true }));
+    fausseApi({
+      "GET /francais/dossiers": { json: [] },
+      "GET /francais/etat": { json: { domaines: [], dossiers: 0 } },
+      "GET /francais/validation": { status: 403, json: { detail: "Réservé aux validateurs de français." } },
+    });
+    render(<App />);
+    expect(await screen.findByRole("heading", { name: "Dossiers de français" })).toBeInTheDocument();
+    expect(screen.getAllByRole("link", { name: "Espace professeur" })[0]).toHaveAttribute("href", "/enseignant/francais");
+    expect(screen.queryByRole("link", { name: /Administration/ })).toBeNull();
+    sessionStorage.removeItem("pkp.enseignant");
   });
 
   it("demande une connexion professeur si la session admin a expiré", async () => {
