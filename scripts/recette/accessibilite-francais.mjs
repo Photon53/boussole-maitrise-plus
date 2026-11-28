@@ -58,6 +58,8 @@ async function preparer() {
   const prof = await professeur(admin, "prof3e", [{ role: "professeur", domaine: DOMAINE, niveau: "3e" }]);
   const val = await professeur(admin, "validatrice", [
     { role: "professeur", domaine: DOMAINE, niveau: "4e" }, { role: "validateur", domaine: DOMAINE, niveau: "4e" },
+    // #231 : validatrice aussi de 3e, pour la file des dossiers (FR3-DNB27-01 soumis).
+    { role: "validateur", domaine: DOMAINE, niveau: "3e" },
   ]);
   const { jeton: jp } = await api("/enseignants/connexion", { methode: "POST", corps: { email: prof.email, mot_de_passe: MDP } });
   const cp = await api("/admin/classes-pilotes", { methode: "POST", jeton: admin, corps: { matiere: "francais", niveau: "3e", enseignant_id: prof.id, motif: "Audit d'accessibilité #231 (fictif)" } });
@@ -70,6 +72,16 @@ async function preparer() {
   }
   await api("/francais/validation/FR3-DNB27-01/valider", { methode: "POST", jeton: admin }).catch(() => {});
   await api(`/francais/dossiers/FR3-DNB27-01/classes/${cp.classe_id}`, { methode: "PUT", jeton: jp });
+  // #231 : une révision du dossier, soumise par l'administrateur, attend la validatrice (file des dossiers). Les élèves
+  // lisent toujours la version validée ; seule la partie professeur change.
+  try {
+    const { source } = await api("/francais/dossiers/FR3-DNB27-01/source", { jeton: admin });
+    const professeur = { ...source.professeur, presentation: [...(source.professeur.presentation ?? []), "Révision fictive pour l'audit d'accessibilité."] };
+    await api("/francais/dossiers/FR3-DNB27-01/brouillon", { methode: "PUT", jeton: admin, corps: { ...source, professeur } });
+    await api("/francais/dossiers/FR3-DNB27-01/soumettre", { methode: "POST", jeton: admin });
+  } catch (e) {
+    console.warn(`Révision soumise impossible (${e.message}) : la file des dossiers sera auditée vide.`);
+  }
   const eleves = await api(`/admin/classes/${cp.classe_id}/eleves`, { jeton: admin });
   const lina = eleves.find((e) => e.prenom === "Lina");
   const famille = await api("/admin/parents", { methode: "POST", jeton: admin, corps: { eleve_id: lina.id, email: "a11y-parent@exemple.test" } });
@@ -285,6 +297,11 @@ try {
         await p.goto(`${BASE}/enseignant/validation`);
         await p.getByRole("heading", { name: "File de validation" }).waitFor({ timeout: 15000 });
         await p.waitForTimeout(600);
+      }],
+      ["validateur", "Validation des dossiers", "/enseignant", d.val.email, async (p) => {
+        await p.goto(`${BASE}/francais`);
+        await p.getByRole("tab", { name: "Validation" }).click();
+        await p.getByRole("tab", { name: "Ce que lira l'élève" }).or(p.getByText("Aucun dossier en attente de validation.")).first().waitFor({ timeout: 15000 });
       }],
       ["administrateur", "Page Français", "/admin", "admin@pkp.test", async (p) => { await p.goto(`${BASE}/admin/francais`); await p.getByRole("heading", { name: "À traiter" }).waitFor(); }],
       ["parent", "Bilan Français", "/parent", d.parent, async () => {}],
