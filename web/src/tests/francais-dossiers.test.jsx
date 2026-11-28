@@ -1,5 +1,5 @@
 // Issue #98 — Intégration du premier dossier Français 3e en DEV (Claude)
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import MonCours from "../eleve/MonCours.jsx";
@@ -140,9 +140,17 @@ describe("Français : validation et ouverture aux classes (#212)", () => {
     });
     render(<EspaceFrancais />);
     await userEvent.click(await screen.findByRole("tab", { name: "Validation" }));
-    await userEvent.selectOptions(await screen.findByLabelText(/Dossier à relire/), "FR3-DNB27-01");
+    // #231 : le dossier en attente s'ouvre d'office dans la file ; la liste des dossiers est à gauche.
+    const file = await screen.findByRole("navigation", { name: /Dossiers à relire \(1 en attente\)/ });
+    expect(within(file).getByRole("button", { name: /FR3-DNB27-01/ })).toHaveAttribute("aria-current", "true");
     expect(await screen.findByText("La porte de la salle était déjà ouverte.")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Ce que lira l'élève" })).toHaveAttribute("aria-selected", "true");
+    // Corrigé et supports professeur dans leur propre onglet.
+    await userEvent.click(screen.getByRole("tab", { name: "Corrigé et supports professeur" }));
     expect(screen.getByText("Un jardin avec des bancs.")).toBeInTheDocument();
+    expect(screen.queryByText("La porte de la salle était déjà ouverte.")).toBeNull();
+    await userEvent.click(screen.getByRole("tab", { name: "Historique" }));
+    expect(screen.getByRole("heading", { name: "Historique" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Valider cette version" }));
     expect(await screen.findByText(/validé : les classes ouvertes lisent cette version/)).toBeInTheDocument();
     expect(appels.some((a) => a.cle === "POST /francais/validation/FR3-DNB27-01/valider")).toBe(true);
@@ -159,7 +167,7 @@ describe("Français : validation et ouverture aux classes (#212)", () => {
     });
     render(<EspaceFrancais />);
     await userEvent.click(await screen.findByRole("tab", { name: "Validation" }));
-    await userEvent.selectOptions(await screen.findByLabelText(/Dossier à relire/), "FR3-DNB27-01");
+    expect(await screen.findByRole("button", { name: /vous en êtes l'auteur/ })).toBeInTheDocument();
     expect(await screen.findByText(/un autre validateur doit la valider/)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Valider cette version" })).not.toBeInTheDocument();
   });

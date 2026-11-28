@@ -48,3 +48,6 @@
 .decision-actions { justify-content: flex-end; }
 .decision-actions button.valider { background: var(--ok-texte); border-color: var(--ok-texte); }
 .file-navigation { justify-content: space-between; border-top: 1px solid var(--bordure); padding-top: 12px; }
+/* Issue #231 — Validation des dossiers : même file, détail en onglets */
+.file-detail-dossier { display: grid; gap: 16px; min-width: 0; }
+.file-detail-dossier .onglets { margin: 0; }
