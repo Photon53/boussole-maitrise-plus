@@ -9,6 +9,7 @@
       "Bash(bash scripts/synchroniser-branche.sh)",
       "Bash(bash scripts/synchroniser-branche.sh *)",
       "Bash(bash scripts/resume-commande.sh *)",
+      "Bash(bash scripts/tests/test-synchroniser-branche.sh)",
       "Bash(.venv/bin/python -m pytest *)",
       "Bash(../.venv/bin/python -m pytest *)",
       "Bash(../.venv/bin/python -m app.contenu verifier)",
