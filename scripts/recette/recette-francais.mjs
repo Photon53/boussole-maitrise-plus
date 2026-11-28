@@ -211,10 +211,11 @@ async function recette() {
           await visible(page.getByText("Aucun dossier en attente de validation."));
           throw nonApplicable("aucune version soumise : le dossier est déjà validé ou refusé");
         }
-        await liste.selectOption(CODE);
+        // #231 : la file présente les dossiers en cartes (#dossier-a-valider) ; choisir celui du dossier de recette.
+        await liste.getByRole("button", { name: new RegExp(CODE) }).click();
         // La file se recharge à l'ouverture de l'onglet : refaire le choix s'il a été perdu.
         if (!(await visible(page.getByRole("button", { name: "Valider cette version" }), 5_000).catch(() => false))) {
-          await liste.selectOption(CODE);
+          await liste.getByRole("button", { name: new RegExp(CODE) }).click();
           await visible(page.getByRole("button", { name: "Valider cette version" }));
         }
         await visible(page.getByRole("button", { name: "Refuser" }));
@@ -265,7 +266,7 @@ async function recette() {
         if (resume.statut !== "soumis") throw nonApplicable(`aucune version soumise (statut ${resume.statut}, validée : v${resume.version_validee})`);
         await page.getByRole("button", { name: /Tous les dossiers/ }).click();
         await page.getByRole("tab", { name: "Validation" }).click();
-        await page.locator("#dossier-a-valider").selectOption(CODE);
+        await page.locator("#dossier-a-valider").getByRole("button", { name: new RegExp(CODE) }).click();
         await page.getByRole("button", { name: "Valider cette version" }).click();
         await visible(page.getByText(`${CODE} validé`));
       }, { page });

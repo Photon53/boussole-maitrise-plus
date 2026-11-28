@@ -395,12 +395,22 @@ function OuvertureClasses({ code, classes, validee, appeler, onChange }) {
   );
 }
 
-/** File de validation, comme l'anglais : versions soumises, relues en entier, validées ou refusées avec motif. */
+/** File de validation, comme l'anglais : versions soumises, relues en entier, validées ou refusées avec motif.
+ * Issue #231 (refonte, maquette 11) : les dossiers à relire en cartes à gauche ; à droite la décision, puis trois
+ * onglets — ce que lira l'élève, corrigé et supports professeur, historique — au lieu d'une page de plusieurs écrans.
+ * Mêmes routes et mêmes règles : l'auteur ne valide pas sa version (V2-D15), le refus exige un motif. */
+const VOLETS_DOSSIER = [
+  ["eleve", "Ce que lira l'élève"],
+  ["professeur", "Corrigé et supports professeur"],
+  ["historique", "Historique"],
+];
+
 function ValidationFrancais({ appeler }) {
   const [liste, setListe] = useState(null);
   const [code, setCode] = useState(null);
   const [dossier, setDossier] = useState(null);
   const [message, setMessage] = useState(null);
+  const [volet, setVolet] = useState("eleve");
 
   const charger = useCallback(() => appeler("/francais/validation").then(setListe, () => {}), [appeler]);
 
@@ -408,8 +418,14 @@ function ValidationFrancais({ appeler }) {
     charger();
   }, [charger]);
 
+  // Le premier dossier en attente s'ouvre d'office ; le choix reste sur la liste à gauche.
+  useEffect(() => {
+    if (liste?.length && !liste.some((d) => d.code === code)) setCode(liste[0].code);
+  }, [liste, code]);
+
   useEffect(() => {
     setDossier(null);
+    setVolet("eleve");
     if (code) appeler(`/francais/validation/${encodeURIComponent(code)}`).then(setDossier, () => {});
   }, [appeler, code]);
 
@@ -427,7 +443,7 @@ function ValidationFrancais({ appeler }) {
 
   const choisi = liste?.find((d) => d.code === code);
   return (
-    <section>
+    <section className="file-validation">
       <div className="carte">
         <p className="doux">
           Dossiers soumis à relecture. Une fois validée, la version devient celle que lisent les élèves des classes auxquelles le
@@ -440,44 +456,83 @@ function ValidationFrancais({ appeler }) {
         )}
         {liste === null && <p className="doux">Chargement…</p>}
         {liste?.length === 0 && <p className="doux">Aucun dossier en attente de validation.</p>}
-        {liste?.length > 0 && (
-          <>
-            <label htmlFor="dossier-a-valider">Dossier à relire ({liste.length} en attente)</label>
-            <select id="dossier-a-valider" value={code ?? ""} onChange={(e) => setCode(e.target.value || null)}>
-              <option value="">Choisir…</option>
-              {liste.map((d) => (
-                <option key={d.code} value={d.code}>
-                  {d.code} · {d.titre} · v{d.version}
-                  {d.est_auteur ? " (vous en êtes l'auteur)" : ""}
-                </option>
-              ))}
-            </select>
-          </>
-        )}
       </div>
-      {dossier && choisi && (
-        <>
-          <div className="carte">
-            <h2>
-              {dossier.code} · {dossier.titre} <StatutSeance statut={dossier.statut} />
-            </h2>
-            <p className="doux">
-              Version {dossier.version_affichee} · auteur : {dossier.auteur ?? "import du dépôt"}
-              {dossier.version_validee ? ` · version diffusée actuellement : v${dossier.version_validee}` : " · jamais validée"}
-            </p>
-            <Decision
-              interdit={choisi.est_auteur && "Vous êtes l'auteur de cette version : un autre validateur doit la valider."}
-              onValider={() => decider("valider", undefined, `${dossier.code} validé : les classes ouvertes lisent cette version.`)}
-              onRefuser={(motif) => decider("refuser", { motif }, `${dossier.code} refusé, motif enregistré.`)}
-            />
+      {liste?.length > 0 && (
+        <div className="file-grille">
+          <nav className="file-liste" id="dossier-a-valider" aria-label={`Dossiers à relire (${liste.length} en attente)`}>
+            <p className="doux petit">{liste.length} dossier{liste.length > 1 ? "s" : ""} en attente</p>
+            <ul>
+              {liste.map((d) => (
+                <li key={d.code}>
+                  <button
+                    type="button"
+                    className={d.code === code ? "file-chapitre actif" : "file-chapitre"}
+                    aria-current={d.code === code ? "true" : undefined}
+                    onClick={() => {
+                      setCode(d.code);
+                      setMessage(null);
+                    }}
+                  >
+                    <span className="file-tag">{d.niveau ? `${d.niveau} · ` : ""}version {d.version}</span>
+                    <strong>{d.titre}</strong>
+                    <span className="doux petit">
+                      {d.code} · {d.nb_questions} question{d.nb_questions > 1 ? "s" : ""}
+                      {d.est_auteur ? " · vous en êtes l'auteur" : d.auteur ? ` · auteur : ${d.auteur}` : ""}
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <div className="file-detail-dossier">
+            {!dossier || !choisi ? (
+              <p className="doux">Chargement du dossier…</p>
+            ) : (
+              <>
+                <div className="carte">
+                  <h2>
+                    {dossier.code} · {dossier.titre} <StatutSeance statut={dossier.statut} />
+                  </h2>
+                  <p className="doux">
+                    Version {dossier.version_affichee} · auteur : {dossier.auteur ?? "import du dépôt"}
+                    {dossier.version_validee ? ` · version diffusée actuellement : v${dossier.version_validee}` : " · jamais validée"}
+                  </p>
+                  <Decision
+                    interdit={choisi.est_auteur && "Vous êtes l'auteur de cette version : un autre validateur doit la valider."}
+                    onValider={() => decider("valider", undefined, `${dossier.code} validé : les classes ouvertes lisent cette version.`)}
+                    onRefuser={(motif) => decider("refuser", { motif }, `${dossier.code} refusé, motif enregistré.`)}
+                  />
+                </div>
+                <div className="onglets" role="tablist" aria-label="Contenu du dossier">
+                  {VOLETS_DOSSIER.map(([v, l]) => (
+                    <button
+                      key={v}
+                      type="button"
+                      role="tab"
+                      id={`onglet-dossier-${v}`}
+                      aria-selected={volet === v}
+                      aria-controls="volet-dossier"
+                      className={volet === v ? "onglet actif" : "onglet"}
+                      onClick={() => setVolet(v)}
+                    >
+                      {l}
+                    </button>
+                  ))}
+                </div>
+                <div id="volet-dossier" role="tabpanel" aria-labelledby={`onglet-dossier-${volet}`}>
+                  {volet === "eleve" && <PartieEleve eleve={dossier.eleve} apercu />}
+                  {volet === "professeur" && <SupportsProfesseur professeur={dossier.professeur} />}
+                  {volet === "historique" && (
+                    <div className="carte">
+                      <h3>Historique</h3>
+                      <Historique versions={dossier.historique} />
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
-          <PartieEleve eleve={dossier.eleve} apercu />
-          <SupportsProfesseur professeur={dossier.professeur} />
-          <div className="carte">
-            <h3>Historique</h3>
-            <Historique versions={dossier.historique} />
-          </div>
-        </>
+        </div>
       )}
     </section>
   );
