@@ -1,0 +1,118 @@
+/* Issue #252 — Espaces adultes : navigation latérale, tableau de bord, éditeur, modale, impression (Claude) */
+
+/* --- Application professeur et administrateur : navigation latérale ------------------------ */
+
+.app { display: grid; grid-template-columns: var(--largeur-nav) minmax(0, 1fr); min-height: 100vh; }
+.app-nav {
+  background: var(--primaire); color: var(--primaire-texte); padding: 16px 12px;
+  display: flex; flex-direction: column; gap: 4px; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+}
+.app-nav .logo { color: var(--primaire-texte); padding: 4px 8px 16px; }
+.app-nav .logo em { color: inherit; opacity: 0.75; }
+.app-nav .monogramme rect { fill: rgb(255 255 255 / 14%); }
+.app-nav .espace { font-size: var(--t-xs); text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.7; padding: 8px 10px 4px; }
+.app-nav a, .app-nav button.nav {
+  display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border-radius: var(--rayon-petit);
+  color: inherit; text-decoration: none; background: none; border: none; font-weight: 500; font-size: 0.95rem; justify-content: flex-start;
+}
+.app-nav a:hover, .app-nav button.nav:hover:not(:disabled) { background: rgb(255 255 255 / 10%); color: inherit; }
+.app-nav a[aria-current="page"] { background: rgb(255 255 255 / 16%); font-weight: 600; }
+.app-nav .groupe-nav { font-size: var(--t-xs); text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.6; padding: 12px 10px 2px; }
+.app-nav .bas { margin-top: auto; border-top: 1px solid rgb(255 255 255 / 15%); padding-top: 12px; }
+.app-nav .compte { font-size: var(--t-s); padding: 4px 10px 8px; opacity: 0.9; overflow-wrap: anywhere; }
+@media (prefers-color-scheme: dark) {
+  .app-nav { background: #161a26; color: var(--texte); border-right: 1px solid var(--bordure); }
+  .app-nav .logo { color: var(--primaire); }
+}
+/* min-width: 0 (#154) : un tableau large défile dans son cadre au lieu d'élargir la page sur mobile. */
+.app-contenu { padding: 24px 32px 48px; max-width: var(--largeur-app); width: 100%; min-width: 0; }
+.app-entete { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin-bottom: 20px; }
+.app-entete h1 { margin: 0; }
+.app-entete p { margin: 4px 0 0; }
+.fil { font-size: var(--t-s); color: var(--texte-doux); margin-bottom: 4px; }
+.bouton-menu { display: none; }
+
+@media (max-width: 900px) {
+  .app { grid-template-columns: minmax(0, 1fr); }
+  .app-nav { position: fixed; inset: 0 auto 0 0; width: min(280px, 85vw); z-index: 40; transform: translateX(-100%); transition: transform 0.2s; }
+  .app-nav.ouverte { transform: none; box-shadow: var(--ombre-haute); }
+  .app-contenu { padding: 16px; }
+  .bouton-menu { display: inline-flex; }
+}
+
+/* --- Tableau de bord ------------------------------------------------------------------- */
+
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+.kpi { background: var(--surface); border: 1px solid var(--bordure); border-radius: var(--rayon); padding: 16px; box-shadow: var(--ombre); }
+.kpi .libelle { font-size: var(--t-s); color: var(--texte-doux); display: flex; gap: 6px; align-items: center; }
+.kpi .valeur { font-size: var(--t-xxl); font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; margin-top: 4px; }
+.kpi .sous { font-size: var(--t-s); color: var(--texte-doux); }
+.grille-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 16px; }
+@media (max-width: 480px) { .grille-2 { grid-template-columns: 1fr; } }
+
+.graphique { width: 100%; height: auto; display: block; overflow: visible; }
+.graphique .axe { stroke: var(--bordure-forte); }
+.graphique .grille { stroke: var(--bordure); }
+.graphique text { fill: var(--texte-doux); font-size: 11px; font-family: var(--police); }
+.graphique .serie { fill: none; stroke: var(--action); stroke-width: 2; }
+.graphique .aire { fill: var(--action); opacity: 0.12; }
+.graphique .point { fill: var(--action); }
+.barres { display: grid; gap: 6px; }
+.barre { display: grid; grid-template-columns: minmax(120px, 40%) 1fr 56px; gap: 8px; align-items: center; font-size: var(--t-s); }
+.barre .nom { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.barre .piste { height: 10px; background: var(--surface-2); border-radius: 99px; overflow: hidden; display: flex; }
+.barre .rempli { height: 100%; background: var(--action); }
+.barre .rempli.ok { background: var(--ok); }
+.barre .rempli.alerte { background: var(--alerte); }
+.barre .rempli.ko { background: var(--ko); }
+.barre .val { text-align: right; font-variant-numeric: tabular-nums; }
+.legende { display: flex; gap: 16px; flex-wrap: wrap; font-size: var(--t-s); color: var(--texte-doux); margin-top: 8px; }
+.legende i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+/* --- Éditeur de leçon et arborescence ------------------------------------------------------ */
+
+.deux-volets { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+.deux-volets textarea { font-family: var(--police-mono); font-size: 0.9rem; min-height: 360px; }
+.apercu { border: 1px solid var(--bordure); border-radius: var(--rayon-petit); padding: 12px 16px; background: var(--fond); min-height: 360px; overflow: auto; }
+@media (max-width: 1000px) { .deux-volets { grid-template-columns: 1fr; } }
+
+.arbre { list-style: none; margin: 0; padding: 0; }
+.arbre > li { border: 1px solid var(--bordure); border-radius: var(--rayon-petit); margin-bottom: 8px; background: var(--surface); }
+.arbre > li.groupe-parcours { border: none; background: none; margin: 20px 0 6px; }
+.arbre > li.groupe-parcours:first-child { margin-top: 0; }
+.arbre .noeud { display: flex; gap: 8px; align-items: center; padding: 8px 12px; flex-wrap: wrap; }
+.arbre .noeud .titre { flex: 1 1 240px; font-weight: 600; }
+.arbre .noeud > button, .arbre ul li > button, .arbre ul li > .badge { flex: none; }
+.arbre ul { list-style: none; margin: 0; padding: 0 0 8px 0; border-top: 1px solid var(--bordure); }
+.arbre ul li { display: flex; gap: 8px; align-items: center; padding: 6px 12px 6px 28px; flex-wrap: wrap; }
+.arbre ul li:hover { background: var(--surface-2); }
+.arbre ul li .libelle { flex: 1 1 240px; }
+.poignee { cursor: grab; color: var(--texte-doux); }
+li.glisse { opacity: 0.5; }
+li.cible { box-shadow: inset 0 2px 0 var(--action); }
+
+/* --- Fenêtre modale -------------------------------------------------------------------- */
+
+.voile { position: fixed; inset: 0; background: rgb(15 23 42 / 45%); z-index: 60; display: grid; place-items: center; padding: 16px; }
+.modale { background: var(--surface); border-radius: var(--rayon); box-shadow: var(--ombre-haute); width: min(560px, 100%); max-height: 90vh; overflow: auto; padding: 24px; }
+.modale.large { width: min(960px, 100%); }
+.modale h2 { margin-top: 0; }
+
+/* --- Impression ------------------------------------------------------------------------- */
+
+@media print {
+  body { background: #fff; color: #000; font-size: 11pt; }
+  .app-nav, .app-entete .actions, .outils-lecon, .entete, .pied, .onglets, .bouton-menu { display: none !important; }
+  .app { display: block; }
+  .app-contenu { padding: 0; }
+  .carte { border: none; box-shadow: none; padding: 0; }
+  .resume { border-left: 3px solid #000; background: none; }
+  .ressources a::after { content: " (" attr(href) ")"; font-size: 9pt; }
+  body:has(.fiche-codes) * { visibility: hidden; }
+  .fiche-codes, .fiche-codes * { visibility: visible; }
+  .fiche-codes { position: absolute; inset: 0 auto auto 0; width: 100%; border: none; background: none; color: #000; }
+  .fiche-codes .actions, .fiche-codes .aide { display: none; }
+  .fiche-codes td { padding: 14px 8px; border-bottom: 1px dashed #999; }  /* lignes à découper */
+  .cartes-eleves { grid-template-columns: 1fr 1fr; }
+  .carte-eleve { break-inside: avoid; border: 1px dashed #000; }  /* cartes à découper */
+}

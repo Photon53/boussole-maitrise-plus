@@ -12,6 +12,7 @@ import DossiersFrancais from "./DossiersFrancais.jsx";
 import MonCours from "./MonCours.jsx";
 import Redaction from "./Redaction.jsx";
 import Progression from "./Progression.jsx";
+import ProgressionFrancais from "./ProgressionFrancais.jsx";
 import EspaceEnfant, { CLE_ENFANT } from "./EspaceEnfant.jsx";
 import { AccueilFrancais, CoursFrancais, PlusFrancais } from "./FrancaisEleve.jsx";
 import EcranCours from "./EcranCours.jsx";
@@ -388,7 +389,10 @@ export default function EspaceEleve() {
         />
       )}
       {onglet === "diagnostic" && <Diagnostic key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
-      {onglet === "progression" && <Progression key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
+      {onglet === "progression" && !francais && <Progression key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} />}
+      {onglet === "progression" && francais && (
+        <ProgressionFrancais key={compte.eleve.id} jeton={compte.jeton} onExpire={deconnecter} onOuvrir={ouvrirCoursFrancais} />
+      )}
       {onglet === "remarques" && <Remarques jeton={compte.jeton} onExpire={deconnecter} tutoiement />}
     </>
   );
