@@ -228,7 +228,7 @@ export default function Exercice({ jeton, onExpire, onVoirCours, cible, francais
           {competenceVisee && (
             <>
               {" "}
-              Entrainement ciblé : <strong>{competenceVisee.libelle}</strong>.
+              Entraînement ciblé : <strong>{competenceVisee.libelle}</strong>.
             </>
           )}
         </p>
@@ -359,7 +359,7 @@ export default function Exercice({ jeton, onExpire, onVoirCours, cible, francais
       {enCours}
       {competenceVisee && (
         <p className="info petit">
-          Entrainement ciblé : <strong>{competenceVisee.libelle}</strong>
+          Entraînement ciblé : <strong>{competenceVisee.libelle}</strong>
           {competenceVisee.niveaux &&
             ` · niveaux ${competenceVisee.niveaux.min} ${competenceVisee.niveaux.max - competenceVisee.niveaux.min > 1 ? "à" : "et"} ${competenceVisee.niveaux.max}`}
         </p>

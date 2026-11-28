@@ -78,7 +78,7 @@ describe("lien entre exercices, cours et historique", () => {
     await userEvent.click(await screen.findByRole("button", { name: "S'entraîner sur cette compétence" }));
 
     expect(appels.find((a) => a.cle === "POST /seances").corps).toEqual({ competence_ids: [10] });
-    expect(await screen.findByText(/Entrainement ciblé/)).toHaveTextContent(LECON.libelle);
+    expect(await screen.findByText(/Entraînement ciblé/)).toHaveTextContent(LECON.libelle);
     expect(screen.getByRole("tab", { name: "S'entraîner" })).toHaveAttribute("aria-selected", "true");
   });
 

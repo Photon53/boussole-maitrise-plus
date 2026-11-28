@@ -2,14 +2,15 @@
 // Issue #231 — Audit d'accessibilité des écrans Français, sur pile locale jetable (Claude)
 //
 // Pour #154 : contrôle automatique axe-core (WCAG 2.1 A et AA) de chaque écran Français de l'élève, du professeur,
-// du validateur, de l'administrateur et du parent, sur ordinateur (1 366 px) et sur mobile (390 px) ; recomposition à
-// 320 px (aucun défilement horizontal) ; parcours au clavier seul : connexion → accueil → cours → exercice → réponse →
+// du validateur, de l'administrateur et du parent, sur ordinateur (1 366 px), tablette (820 px) et mobile (390 px) ;
+// zoom à 200 % (683 px) et recomposition à 320 px (aucun défilement horizontal) ; parcours au clavier seul : connexion → accueil → cours → exercice → réponse →
 // correction → progression. Un contrôle automatique ne remplace ni un lecteur d'écran ni un essai avec des élèves.
 //
 // RÉSERVÉ à une pile locale jetable (comptes fictifs, validations et ouvertures dans une base temporaire) : refuse
 // toute adresse non locale. Lancer après `bash scripts/recette/pile-locale.sh` ou sur une pile équivalente.
 //
 //   BASE_URL=http://127.0.0.1:5765 SORTIE=rapport-a11y node scripts/recette/accessibilite-francais.mjs
+//   CAPTURES=1 : une capture de chaque écran audité, dans SORTIE/captures (passe finale #231).
 
 import { createRequire } from "node:module";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -27,7 +28,9 @@ const SORTIE = process.env.SORTIE ?? "rapport-accessibilite-francais";
 mkdirSync(SORTIE, { recursive: true });
 const DOMAINE = "francais-college";
 const MDP = "Accessibilite-231-Fictif!";
-const TAILLES = { ordinateur: { width: 1366, height: 900 }, mobile: { width: 390, height: 844 } };
+const TAILLES = { ordinateur: { width: 1366, height: 900 }, tablette: { width: 820, height: 1180 }, mobile: { width: 390, height: 844 } };
+const CAPTURES = process.env.CAPTURES === "1";
+if (CAPTURES) mkdirSync(join(SORTIE, "captures"), { recursive: true });
 
 // --- API et données fictives ----------------------------------------------------------------------------------
 async function api(chemin, { methode = "GET", corps, jeton } = {}) {
@@ -119,11 +122,21 @@ const ECRANS = [
   ["eleve", "Cours · S'entraîner", async (p) => { await rail(p).getByRole("button", { name: /S'entraîner/ }).click(); }],
   ["eleve", "Exercice", async (p) => { await p.getByRole("button", { name: /Commencer les exercices|Continuer l'entraînement/ }).click(); await p.waitForTimeout(1200); }],
   ["eleve", "Correction", async (p) => {
-    const choix = p.getByRole("radio").first();
-    if (await choix.count()) await choix.check();
-    else await p.getByRole("textbox").first().fill("x");
-    await p.getByRole("button", { name: /^Valider/ }).click();
+    // QCM : un bouton par choix (le clic répond) ; sinon une réponse courte puis « Valider ».
+    const choix = p.locator(".options button").first();
+    if (await choix.count()) await choix.click();
+    else {
+      await p.getByRole("textbox").first().fill("x");
+      await p.getByRole("button", { name: /^Valider/ }).click();
+    }
     await p.waitForTimeout(1000);
+  }],
+  ["eleve", "Rédaction · atelier", async (p) => {
+    await p.getByRole("tab", { name: "Mes cours" }).click(); await p.waitForTimeout(500);
+    await p.locator("article").filter({ hasText: "Rédaction" }).filter({ hasText: "sujet" }).first().getByRole("button").last().click();
+    await rail(p).waitFor();
+    await rail(p).getByRole("button", { name: /Appliquer/ }).click();
+    await p.locator(".consigne-redaction").first().waitFor();
   }],
   ["eleve", "Ma progression", async (p) => { await p.getByRole("tab", { name: "Ma progression" }).click(); await p.waitForTimeout(800); }],
   ["eleve", "Plus", async (p) => { await p.getByRole("tab", { name: "Plus" }).click(); }],
@@ -138,12 +151,17 @@ async function auditer(page, nom, taille) {
       exemples: v.nodes.slice(0, 3).map((n) => n.target.join(" ")) }));
   });
   const largeur = await page.evaluate(() => document.documentElement.scrollWidth);
+  if (CAPTURES) {
+    const fichier = `${taille}-${nom}`.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9]+/g, "-").toLowerCase();
+    await page.screenshot({ path: join(SORTIE, "captures", `${fichier}.png`), fullPage: true }).catch(() => {});
+  }
   return { ecran: nom, taille, violations: r, debordement: largeur > (TAILLES[taille]?.width ?? 0) };
 }
 
-async function recomposition(navigateur, d) {
-  // 320 px de large ≈ 1 280 px affichés à 400 % (WCAG 1.4.10) : aucun défilement horizontal de la page.
-  const page = await (await navigateur.newContext({ viewport: { width: 320, height: 700 } })).newPage();
+async function recomposition(navigateur, d, largeurEcran = 320) {
+  // 320 px de large ≈ 1 280 px affichés à 400 % (WCAG 1.4.10) ; 683 px ≈ 1 366 px à 200 % (WCAG 1.4.4) :
+  // aucun défilement horizontal de la page.
+  const page = await (await navigateur.newContext({ viewport: { width: largeurEcran, height: 700 } })).newPage();
   await connexionEleve(page, d, "Yanis");
   const resultats = [];
   for (const [, nom, aller] of ECRANS.slice(0, 8)) {
@@ -151,7 +169,7 @@ async function recomposition(navigateur, d) {
       await aller(page);
       await page.waitForTimeout(300);
       const l = await page.evaluate(() => document.documentElement.scrollWidth);
-      resultats.push({ ecran: nom, largeur: l, ok: l <= 320 });
+      resultats.push({ ecran: nom, largeur: l, ok: l <= largeurEcran });
     } catch (e) {
       resultats.push({ ecran: nom, erreur: e.message.split("\n")[0], ok: false });
     }
@@ -234,7 +252,7 @@ async function parcoursClavier(navigateur, d) {
     await page.keyboard.press("Enter");
     await page.waitForTimeout(1200);
     const focus = await page.evaluate(() => (document.activeElement?.innerText || document.activeElement?.tagName || "").slice(0, 60));
-    const correction = await page.getByText(/Bonne réponse|Pas tout à fait|Réponse attendue|correction/i).count();
+    const correction = await page.getByText(/Bonne réponse|Pas tout à fait|Réponse attendue|correction|Bravo|Pas encore/i).count();
     if (!correction) throw new Error("aucune correction affichée après la réponse");
     return `${detail} ; correction affichée ; focus ensuite sur « ${focus.trim()} »`;
   });
@@ -262,7 +280,12 @@ try {
     const adultes = [
       ["professeur", "Tableau de bord", "/enseignant", d.prof.email, async () => {}],
       ["professeur", "Mes classes", "/enseignant", d.prof.email, async (p) => { await p.goto(`${BASE}/enseignant/classes`); await p.waitForTimeout(1000); }],
-      ["validateur", "Validation des questions", "/enseignant", d.val.email, async (p) => { await p.goto(`${BASE}/enseignant/validation`); await p.waitForTimeout(1500); }],
+      ["professeur", "Rédactions", "/enseignant", d.prof.email, async (p) => { await p.goto(`${BASE}/enseignant/redactions`); await p.waitForTimeout(1200); }],
+      ["validateur", "File de validation", "/enseignant", d.val.email, async (p) => {
+        await p.goto(`${BASE}/enseignant/validation`);
+        await p.getByRole("heading", { name: "File de validation" }).waitFor({ timeout: 15000 });
+        await p.waitForTimeout(600);
+      }],
       ["administrateur", "Page Français", "/admin", "admin@pkp.test", async (p) => { await p.goto(`${BASE}/admin/francais`); await p.getByRole("heading", { name: "À traiter" }).waitFor(); }],
       ["parent", "Bilan Français", "/parent", d.parent, async () => {}],
     ];
@@ -276,13 +299,14 @@ try {
     }
   }
   var reflow = await recomposition(navigateur, d);
+  var zoom = await recomposition(navigateur, d, 683);
   var clavier = await parcoursClavier(navigateur, d);
 } finally {
   await navigateur.close();
 }
 
 const total = audits.reduce((n, a) => n + (a.violations?.length ?? 0), 0);
-writeFileSync(join(SORTIE, "rapport.json"), JSON.stringify({ base: BASE, audits, reflow, clavier }, null, 2));
+writeFileSync(join(SORTIE, "rapport.json"), JSON.stringify({ base: BASE, audits, reflow, zoom, clavier }, null, 2));
 const ligne = (a) => `| ${a.role} | ${a.ecran} | ${a.taille} | ${a.erreur ? `erreur : ${a.erreur}` : a.violations.length
   ? a.violations.map((v) => `${v.id} (${v.impact}, ${v.noeuds})`).join(" ; ") : "aucune"} | ${a.debordement ? "OUI" : "non"} |`;
 writeFileSync(join(SORTIE, "rapport.md"), [
@@ -291,6 +315,8 @@ writeFileSync(join(SORTIE, "rapport.md"), [
   "| Rôle | Écran | Taille | Violations axe | Débordement horizontal |", "|---|---|---|---|---|",
   ...audits.map(ligne), "", "## Recomposition à 320 px", "", "| Écran | Largeur de page | Résultat |", "|---|---|---|",
   ...reflow.map((r) => `| ${r.ecran} | ${r.largeur ?? "—"} | ${r.ok ? "OK" : `KO ${r.erreur ?? ""}`} |`), "",
+  "## Zoom à 200 % (683 px)", "", "| Écran | Largeur de page | Résultat |", "|---|---|---|",
+  ...zoom.map((r) => `| ${r.ecran} | ${r.largeur ?? "—"} | ${r.ok ? "OK" : `KO ${r.erreur ?? ""}`} |`), "",
   "## Parcours au clavier seul", "", "| Étape | Résultat | Détail |", "|---|---|---|",
   ...clavier.map((e) => `| ${e.nom} | ${e.ok ? "OK" : "KO"} | ${e.detail} |`), "",
 ].join("\n"));
